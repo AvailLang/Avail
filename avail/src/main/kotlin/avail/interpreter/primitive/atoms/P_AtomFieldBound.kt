@@ -53,6 +53,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -89,20 +91,23 @@ object P_AtomFieldBound : Primitive1(
 		return typeBound
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val atomType = argumentTypes[0]
-		if (!atomType.instanceCount.equalsInt(1)) return anyMeta
+		if (!atomType.instanceCount.equalsInt(1))
+		{
+			return restrictionForType(anyMeta)
+		}
 		val atom = atomType.instance
-		if (atom.isAtomSpecial) return anyMeta
+		if (atom.isAtomSpecial) return restrictionForType(anyMeta)
 		val typeBound = atom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
-		if (typeBound.isNil) return anyMeta
+		if (typeBound.isNil) return restrictionForType(anyMeta)
 		assert(typeBound.isSubtypeOf(ANY()))
-		return typeBound
+		return restrictionForType(typeBound)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

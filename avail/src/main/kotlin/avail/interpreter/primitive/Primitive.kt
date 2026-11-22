@@ -329,7 +329,7 @@ constructor(
 	 * A performance metric indicating how long was spent checking the return
 	 * result for all invocations of this primitive in level two code.  An
 	 * excessively large value indicates a profitable opportunity for
-	 * [returnTypeGuaranteedByVM] to return a stronger type, perhaps allowing
+	 * [restrictionGuaranteedByVM] to return a stronger type, perhaps allowing
 	 * the level two optimizer to skip more checks.
 	 */
 	private val resultTypeCheckingNanos = Statistic(
@@ -647,56 +647,62 @@ constructor(
 	fun blockTypeRestriction(): A_Type = blockTypeRestriction
 
 	/**
-	 * The context in which [returnTypeGuaranteedByVM] may be called.
-	 * Overrides name it in their signatures, where it resolves without an
-	 * import, but its only instance is private to [Primitive], and it is
-	 * sealed, so no other package can make one.  Only [guaranteedType] can
-	 * therefore call a primitive's own answer, which it then narrows.
+	 * The context in which [restrictionGuaranteedByVM] may be called, named
+	 * for the access it grants: a member that takes it as a context parameter
+	 * is in effect `protected`, in the sense Java gives the word.  Subclasses
+	 * override such a member and may call `super`, since an override already
+	 * holds the context, but nothing else can call it.  Overrides name it in
+	 * their signatures, where it resolves without an import, but its only
+	 * instance, [ProtectedInstance], is private to [Primitive], and it is
+	 * sealed, so no other package can make one.  Only [guaranteedRestriction]
+	 * can therefore call a primitive's own answer, which it then narrows.
 	 */
-	sealed interface GuaranteeContext
+	sealed interface Protected
 
-	/** The only [GuaranteeContext], held by [guaranteedType]. */
-	private object PrimitiveGuaranteeContext : GuaranteeContext
+	/** The only [Protected], held by [guaranteedRestriction]. */
+	private object ProtectedInstance : Protected
 
 	/**
-	 * Answer the type of the result that will be produced by a call site with
-	 * the given argument types.  Don't include semantic restrictions defined
-	 * in the Avail code, but if convenient answer something stronger than the
-	 * return type in the primitive's basic function type.
+	 * Answer the [TypeRestriction] on the result that will be produced by a
+	 * call site with the given argument types.  Don't include semantic
+	 * restrictions defined in the Avail code, but if convenient answer
+	 * something stronger than the return type in the primitive's basic
+	 * function type.  A restriction can say more than a type, such as a range
+	 * with a gap in it, or whether the result can be ⊥.
 	 *
-	 * Only [guaranteedType] can call this, since only it holds a
-	 * [GuaranteeContext]; everything else calls [guaranteedType], which
-	 * narrows this answer further for a [Foldable] primitive.  An override may
-	 * still call `super`, whose context it already holds.
+	 * Only [guaranteedRestriction] can call this, since only it holds a
+	 * [Protected] context; everything else calls [guaranteedRestriction],
+	 * which narrows this answer further for a [Foldable] primitive.  An
+	 * override may still call `super`, whose context it already holds.
 	 *
 	 * @param rawFunction
 	 *   The [A_RawFunction] being invoked, if available.
 	 * @param argumentTypes
 	 *   A [List] of argument [types][TypeDescriptor].
 	 * @return
-	 *   The return type guaranteed by the VM at some call site.
+	 *   The restriction on the result guaranteed by the VM at some call site.
 	 */
-	context(_: GuaranteeContext)
-	open fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	open fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		assert(rawFunction.isNullOr { codePrimitive() == this@Primitive })
-		return blockTypeRestriction().returnType
+		return restrictionForType(blockTypeRestriction().returnType)
 	}
 
 	/**
-	 * Answer the type of the result that a successful call of this primitive
-	 * will produce, given the argument types.  This is the primitive's own
-	 * [returnTypeGuaranteedByVM], narrowed further when the primitive is
-	 * [Foldable] and every argument type is an enumeration other than a
-	 * metatype, whose instances combine in at most 256 ways: the primitive is
-	 * folded on every combination, and the answer is intersected with the
-	 * enumeration of the results.  A combination whose fold fails contributes
-	 * nothing, since the guarantee describes only successful calls; if every
-	 * one fails, the unnarrowed answer stands.  A metatype is excluded because
-	 * metatypes are covariant: its one instance is a type, and the subtypes of
-	 * that type are values it admits as well.
+	 * Answer the [TypeRestriction] on the result that a successful call of
+	 * this primitive will produce, given the argument types.  This is the
+	 * primitive's own [restrictionGuaranteedByVM], narrowed further when the
+	 * primitive is [Foldable] and every argument type is an enumeration other
+	 * than a metatype, whose instances combine in at most 256 ways: the
+	 * primitive is folded on every combination, and the answer is intersected
+	 * with the enumeration of the results.  A combination whose fold fails
+	 * contributes nothing, since the guarantee describes only successful
+	 * calls; if every one fails, the unnarrowed answer stands.  A metatype is
+	 * excluded because metatypes are covariant: its one instance is a type,
+	 * and the subtypes of that type are values it admits as well.
 	 *
 	 * Folding runs the primitive, so it needs the current [Interpreter]; on a
 	 * thread without one, the answer is not narrowed.
@@ -706,20 +712,20 @@ constructor(
 	 * @param argumentTypes
 	 *   A [List] of argument [types][TypeDescriptor].
 	 * @return
-	 *   The return type guaranteed by the VM at some call site.
+	 *   The restriction on the result guaranteed by the VM at some call site.
 	 */
-	fun guaranteedType(
+	fun guaranteedRestriction(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
-		val guaranteed = context(PrimitiveGuaranteeContext) {
-			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val guaranteed = context(ProtectedInstance) {
+			restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		// Metatypes are covariant: a metatype's one instance, a type, stands
 		// for the type's subtypes as well, so it doesn't list every value.
 		if (this !is Foldable
-			|| guaranteed.isBottom
+			|| guaranteed.type.isBottom
 			|| !argumentTypes.all { it.isEnumeration && !it.isInstanceMeta })
 		{
 			return guaranteed
@@ -742,7 +748,7 @@ constructor(
 			foldedResultOrNull(interpreter, constants)?.let(results::add)
 		}
 		if (results.isEmpty()) return guaranteed
-		return guaranteed.typeIntersection(
+		return guaranteed.intersectionWithType(
 			enumerationWith(setFromCollection(results)))
 	}
 
@@ -814,7 +820,7 @@ constructor(
 	): A_Type
 	{
 		assert(argCount == 2)
-		return guaranteedType(null, listOf(argType1, argType2))
+		return guaranteedRestriction(null, listOf(argType1, argType2)).type
 	}
 
 	/**
@@ -1153,7 +1159,8 @@ constructor(
 			|| !hasFlag(Flag.CanInline)
 			|| hasFlag(Flag.CanSwitchContinuations)
 			|| hasFlag(Flag.Unknown)
-			|| fallibilityForArgumentTypes(argumentTypes) != Fallibility.CallSiteCannotFail
+			|| fallibilityForArgumentTypes(argumentTypes)
+				!= Fallibility.CallSiteCannotFail
 		)
 		{
 			return false
@@ -1161,9 +1168,13 @@ constructor(
 		// The primitive cannot fail at this site.  Output code to run the
 		// primitive as simply as possible, feeding a register with as strong a
 		// type as possible.
-		val guaranteedType = guaranteedType(rawFunction, argumentTypes)
-		val restriction = restrictionForType(
-			if (guaranteedType.isBottom) TOP() else guaranteedType)
+		val guaranteed = guaranteedRestriction(rawFunction, argumentTypes)
+		val guaranteedType = guaranteed.type
+		val restriction = when
+		{
+			guaranteedType.isBottom -> restrictionForType(TOP())
+			else -> guaranteed
+		}
 		val semanticValue: L2SemanticValue
 		val self = this@Primitive
 		if (self is Foldable && !guaranteedType.isBottom)
@@ -1178,7 +1189,7 @@ constructor(
 			)?.let { equivalent ->
 				// Reuse the previously computed result.
 				currentManifest.updateRestriction(equivalent) {
-					intersectionWithType(guaranteedType)
+					intersection(guaranteed)
 				}
 				callSiteHelper.useAnswer(readBoxed(equivalent))
 				return true
@@ -1306,8 +1317,8 @@ constructor(
 			return false
 		}
 		val argTypes = argRestrictions.map { it.type }
-		val guaranteedType = guaranteedType(rawFunction, argTypes)
-		if (!guaranteedType.isSubtypeOf(expectedType))
+		val guaranteed = guaranteedRestriction(rawFunction, argTypes)
+		if (!guaranteed.containedByType(expectedType))
 		{
 			// The result isn't strong enough to satisfy the expectedType.
 			return false
@@ -1351,7 +1362,7 @@ constructor(
 					rawFunction = rawFunction,
 					arguments = arguments,
 					answer = answer)
-				return true // restrictionForType(guaranteedType)
+				return true
 			}
 			else ->
 			{
@@ -1920,8 +1931,8 @@ constructor(
 }
 
 /**
- * [Primitive.guaranteedType] folds a [Foldable] primitive over the Cartesian
- * product of its arguments' enumerations only when the product has at most
- * this many combinations, keeping type computation cheap.
+ * [Primitive.guaranteedRestriction] folds a [Foldable] primitive over the
+ * Cartesian product of its arguments' enumerations only when the product has
+ * at most this many combinations, keeping type computation cheap.
  */
 private const val guaranteeFoldLimit = 256L

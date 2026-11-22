@@ -52,6 +52,8 @@ import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -72,10 +74,10 @@ object P_SetToTuple : Primitive1(CannotFail, CanInline), Foldable
 		return set.asTuple
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		assert(argumentTypes.size == 1)
 		val setType = argumentTypes[0]
@@ -89,8 +91,9 @@ object P_SetToTuple : Primitive1(CannotFail, CanInline), Foldable
 				setRange.typeIntersection(naturalNumbers)
 			else -> setRange
 		}
-		return tupleTypeForSizesTypesDefaultType(
-			resultRange, emptyTuple, setType.contentType)
+		return restrictionForType(
+			tupleTypeForSizesTypesDefaultType(
+				resultRange, emptyTuple, setType.contentType))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

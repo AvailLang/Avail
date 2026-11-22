@@ -168,7 +168,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			primitive.fallibilityForArgumentTypes(argumentTypes)
 				== CallSiteCannotFail ->
 			{
-				val resultType = primitive.guaranteedType(
+				val guaranteed = primitive.guaranteedRestriction(
 					rawFunction, argumentTypes)
 				+L2_RUN_INFALLIBLE_PRIMITIVE(
 					rawFunction,
@@ -176,7 +176,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 					arguments,
 					boxedWrite(
 						result.semanticValues(),
-						result.restriction().intersectionWithType(resultType)))
+						result.restriction().intersection(guaranteed)))
 				jumpTo(ifReturn.targetBlock())
 				return
 			}

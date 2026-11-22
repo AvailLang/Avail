@@ -55,6 +55,8 @@ import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.levelTwo.operation.numbers.L2_SUBTRACT_INT_MINUS_INT
@@ -94,10 +96,10 @@ object P_Subtraction : Primitive2(CanInline), Foldable
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_SUBTRACT_LIKE_INFINITIES))
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (aType, bType) = argumentTypes
 		try
@@ -114,11 +116,12 @@ object P_Subtraction : Primitive2(CanInline), Foldable
 				val includesInfinity =
 					positiveInfinity.isInstanceOf(aType)
 						|| negativeInfinity.isInstanceOf(bType)
-				return integerRangeType(
-					low.minusCanDestroy(one, false),
-					includesNegativeInfinity,
-					high.plusCanDestroy(one, false),
-					includesInfinity)
+				return restrictionForType(
+					integerRangeType(
+						low.minusCanDestroy(one, false),
+						includesNegativeInfinity,
+						high.plusCanDestroy(one, false),
+						includesInfinity))
 			}
 		}
 		catch (e: ArithmeticException)
@@ -126,7 +129,7 @@ object P_Subtraction : Primitive2(CanInline), Foldable
 			// $FALL-THROUGH$
 		}
 
-		return binaryNumericOperationTypeBound(aType, bType)
+		return restrictionForType(binaryNumericOperationTypeBound(aType, bType))
 	}
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)

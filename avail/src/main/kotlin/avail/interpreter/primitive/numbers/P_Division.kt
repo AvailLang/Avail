@@ -65,6 +65,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator.GreaterOrEqual
 import avail.interpreter.levelTwo.operation.NumericComparator.LessOrEqual
@@ -117,17 +118,18 @@ object P_Division : Primitive2(CanInline), Foldable
 		enumerationWith(
 			set(E_CANNOT_DIVIDE_BY_ZERO, E_CANNOT_DIVIDE_INFINITIES))
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val (aType, bType) = argumentTypes
 		if (!aType.isSubtypeOf(integers) || !bType.isSubtypeOf(integers))
 		{
-			return binaryNumericOperationTypeBound(
-				argumentTypes[0], argumentTypes[1])
+			return restrictionForType(
+				binaryNumericOperationTypeBound(
+					argumentTypes[0], argumentTypes[1]))
 		}
 		// The values are integers.
 		val aBoundaries = mutableSetOf<A_Number>()
@@ -166,16 +168,17 @@ object P_Division : Primitive2(CanInline), Foldable
 				}
 			}
 		}
-		if (quotients.isEmpty()) return bottom
+		if (quotients.isEmpty()) return restrictionForType(bottom)
 		val min = quotients.minWithOrNull { a, b ->
 			if (a.lessThan(b)) -1 else 1
 		}!!.makeImmutable()
 		val max = quotients.maxWithOrNull { a, b ->
 			if (a.lessThan(b)) -1 else 1
 		}!!.makeImmutable()
-		return inclusive(min, max)
-			.typeIntersection(integers)
-			.makeImmutable()
+		return restrictionForType(
+			inclusive(min, max)
+				.typeIntersection(integers)
+				.makeImmutable())
 	}
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
@@ -240,7 +243,7 @@ object P_Division : Primitive2(CanInline), Foldable
 			startBlock(nonnegativeNumerator)
 			if (!currentlyReachable())
 				return@attemptToGenerateTwoIntToIntPrimitive
-			val strongerType = guaranteedType(
+			val stronger = guaranteedRestriction(
 				null,
 				listOf(
 					currentManifest.restrictionFor(intA).type,
@@ -249,9 +252,7 @@ object P_Division : Primitive2(CanInline), Foldable
 				Div,
 				intA,
 				intB,
-				intWrite(
-					intWrite.semanticValues(),
-					restrictionForType(strongerType)))
+				intWrite(intWrite.semanticValues(), stronger))
 		},
 		ifOutputIsPossiblyInt = {
 			// The unboxed division only handles a non-negative dividend and a

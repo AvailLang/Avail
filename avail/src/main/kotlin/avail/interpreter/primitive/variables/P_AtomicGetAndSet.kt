@@ -54,6 +54,8 @@ import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACE
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive2
@@ -94,14 +96,14 @@ object P_AtomicGetAndSet : Primitive2(
 				ANY()),
 			ANY())
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val varType = argumentTypes[0]
 		val readType = varType.readType
-		return if (readType.isTop) ANY() else readType
+		return restrictionForType(if (readType.isTop) ANY() else readType)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

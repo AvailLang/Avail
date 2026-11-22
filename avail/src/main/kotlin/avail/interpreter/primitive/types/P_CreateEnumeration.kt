@@ -44,6 +44,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -69,10 +71,10 @@ object P_CreateEnumeration : Primitive1(CannotFail, CanInline), Foldable
 			tuple(mostGeneralSetType()),
 			anyMeta)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val setType = argumentTypes[0]
 		// The type restricting the set's elements (i.e., the set's element
@@ -82,6 +84,6 @@ object P_CreateEnumeration : Primitive1(CannotFail, CanInline), Foldable
 		// when the set's element type is an enumeration.
 		val elementType = setType.contentType
 		val metaType = instanceMeta(elementType)
-		return metaType.makeImmutable()
+		return restrictionForType(metaType.makeImmutable())
 	}
 }

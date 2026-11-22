@@ -48,14 +48,15 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -78,15 +79,15 @@ object P_InstanceCount : Primitive1(CannotFail, CanInline), Foldable
 		return type.instanceCount
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val type = argumentTypes[0]
 
-		if (type.equals(bottomMeta)) return instanceType(zero)
+		if (type.equals(bottomMeta)) return restrictionForConstant(zero)
 		if (type.isInstanceMeta)
 		{
 			val innerType = type.instance
@@ -99,10 +100,11 @@ object P_InstanceCount : Primitive1(CannotFail, CanInline), Foldable
 				// the argument typed as boolean's type, then it may be called
 				// at runtime with boolean, {true}ᵀ, {false}ᵀ, or ⊥. These would
 				// have an instance count of 2, 1, 1, and 0, respectively.
-				return inclusive(zero, innerType.instanceCount)
+				return restrictionForType(
+					inclusive(zero, innerType.instanceCount))
 			}
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun PostPhiData.interestingSplitConditions(

@@ -36,16 +36,21 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instanceTag
+import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.descriptor.types.TypeTag
+import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
 import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -82,16 +87,23 @@ object P_ExtractTagOrdinal
 		invocation: L2SemanticPrimitiveInvocation
 	) = "Tag(" + invocation.argumentSemanticValues.single() + ")"
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].run {
+	): TypeRestriction = argumentTypes[0].run {
+		val tagRange = restrictionForType(instanceTag.tagRangeType)
 		when
 		{
 			// There is no value to have a tag, so there is no ordinal.
-			isBottom -> bottom
-			else -> instanceTag.tagRangeType
+			isBottom -> restrictionForType(bottom)
+			// ⊥ is an instance of every type that isn't a subtype of nontype,
+			// such as every metatype, but its tag can lie outside the instance
+			// tag's range.  The union adds just ⊥'s ordinal, excluding any
+			// ordinals in between.
+			!isSubtypeOf(NONTYPE()) -> tagRange.union(
+				restrictionForConstant(BOTTOM_TYPE_TAG.ordinalInteger))
+			else -> tagRange
 		}
 	}
 

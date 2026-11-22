@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.NonOperandField
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -61,8 +62,24 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 	 * each records its own outcome of the test, which no longer holds once the
 	 * test is gone.
 	 */
+	@NonOperandField
 	var preBranchManifest: L2ValueManifest? = null
 		private set
+
+	/**
+	 * Answer a clone of this instruction, with its own copy of the
+	 * [preBranchManifest], since a manifest is mutable.
+	 *
+	 * @return
+	 *   The clone.
+	 */
+	override fun clone(): L2Instruction =
+		super.clone().also { clone ->
+			clone as L2ConditionalJump
+			clone.preBranchManifest = preBranchManifest?.let {
+				L2ValueManifest(it)
+			}
+		}
 
 	override fun justAdded(manifest: L2ValueManifest)
 	{

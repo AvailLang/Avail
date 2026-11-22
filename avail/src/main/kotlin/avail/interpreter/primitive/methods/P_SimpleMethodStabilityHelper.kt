@@ -72,6 +72,8 @@ import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.Private
@@ -292,9 +294,9 @@ object P_SimpleMethodStabilityHelper : PrimitiveN(-1, Private, CanSuspend)
 
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = topMeta
+	): TypeRestriction = restrictionForType(topMeta)
 }

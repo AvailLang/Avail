@@ -56,6 +56,8 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -83,10 +85,10 @@ object P_MapReplacingKey : Primitive3(CannotFail, CanInline), Foldable
 			tuple(mostGeneralMapType(), ANY(), ANY()),
 			mapTypeForSizesKeyTypeValueType(naturalNumbers, ANY(), ANY()))
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (mapType, addedKeyType, addedValueType) = argumentTypes
 
@@ -107,7 +109,8 @@ object P_MapReplacingKey : Primitive3(CannotFail, CanInline), Foldable
 		val newSizes = integerRangeType(
 			newMin, true, newMaxPlusOne, false)
 
-		return mapTypeForSizesKeyTypeValueType(
-			newSizes, newKeyType, newValueType)
+		return restrictionForType(
+			mapTypeForSizesKeyTypeValueType(
+				newSizes, newKeyType, newValueType))
 	}
 }

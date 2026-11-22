@@ -343,8 +343,8 @@ the old restriction, the change propagates immediately:
    that value's semantic constant, merging with the constant's class if it
    exists.
 3. **Users.**  Each primitive invocation computed from the value has its
-   result recomputed from the primitive's `returnTypeGuaranteedByVM` and the
-   arguments' restrictions, and is narrowed by the result.  This is skipped
+   result recomputed from the primitive's `guaranteedRestriction` for the
+   arguments' types, and is narrowed by the result.  This is skipped
    unless every argument satisfies the primitive's declared argument types,
    since the primitive's answer assumes a call that could actually happen.
 4. **Arguments.**  Each primitive invocation among the value's members asks

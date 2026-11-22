@@ -71,6 +71,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.dispatch.ShiftedHashSplitter
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
@@ -108,11 +109,11 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 		return a.bitwiseAnd(b, true)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -137,12 +138,12 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 		else
 		{
 			// Give up, as the result may be negative.
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+			return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 
 		// It's non-negative.
-		if (upper.isFinite) return inclusive(zero, upper)
-		return wholeNumbers
+		if (upper.isFinite) return restrictionForType(inclusive(zero, upper))
+		return restrictionForType(wholeNumbers)
 	}
 
 	override fun L2GeneratorInterface.readAsTwoInts(
@@ -191,7 +192,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
-		val bound = guaranteedType(rawFunction, argumentTypes)
+		val bound = guaranteedRestriction(rawFunction, argumentTypes).type
 		if (bound.lowerBound.equals(bound.upperBound))
 		{
 			// Constant result.
@@ -240,7 +241,7 @@ object P_BitwiseAnd : Primitive2(CannotFail, CanInline), Foldable
 				argumentTypes,
 				callSiteHelper,
 				typeGuaranteeFunction = { restrictedArgTypes ->
-					guaranteedType(rawFunction, restrictedArgTypes)
+					guaranteedRestriction(rawFunction, restrictedArgTypes).type
 				},
 				fallbackBody = {
 					generateGeneralFunctionInvocation(

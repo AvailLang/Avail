@@ -53,6 +53,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -75,17 +77,17 @@ object P_ReverseTuple : Primitive1(CannotFail, CanInline), Foldable
 		return tuple.tupleReverse()
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val tupleType = argumentTypes[0]
 		if (tupleType.typeTuple.tupleSize == 0)
 		{
 			// The tuple type is homogeneous.  Answer the same tuple type, since
 			// it's its own inverse.
-			return tupleType
+			return restrictionForType(tupleType)
 		}
 		val tupleSizes = tupleType.sizeRange
 		val tupleSizeLowerBound = tupleSizes.lowerBound
@@ -95,16 +97,18 @@ object P_ReverseTuple : Primitive1(CannotFail, CanInline), Foldable
 			// Variable number of <key,value> pairs.  In theory we could
 			// still strengthen it, but a homogenous tuple type of the same size
 			// should be sufficient.
-			return tupleTypeForSizesTypesDefaultType(
-				tupleSizes,
-				emptyTuple,
-				tupleType.unionOfTypesAtThrough(1, MAX_VALUE))
+			return restrictionForType(
+				tupleTypeForSizesTypesDefaultType(
+					tupleSizes,
+					emptyTuple,
+					tupleType.unionOfTypesAtThrough(1, MAX_VALUE)))
 		}
 		val tupleSize = tupleSizeLowerBound.extractInt
 		val elementTypes = tupleType.tupleOfTypesFromTo(1, tupleSize)
 		val reversedElementTypes = elementTypes.tupleReverse()
-		return tupleTypeForSizesTypesDefaultType(
-			tupleSizes, reversedElementTypes, bottom)
+		return restrictionForType(
+			tupleTypeForSizesTypesDefaultType(
+				tupleSizes, reversedElementTypes, bottom))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

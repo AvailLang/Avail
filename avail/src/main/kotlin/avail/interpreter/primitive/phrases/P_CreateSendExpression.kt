@@ -63,6 +63,8 @@ import avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
 
@@ -116,10 +118,10 @@ object P_CreateSendExpression : Primitive3(
 				topMeta),
 			SEND_PHRASE.mostGeneralType)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		assert(argumentTypes.size == 3)
 		// final A_Type messageNameType = argumentTypes.get(0);
@@ -127,7 +129,7 @@ object P_CreateSendExpression : Primitive3(
 		val returnTypeType = argumentTypes[2]
 
 		val returnType = returnTypeType.instance
-		return SEND_PHRASE.create(returnType)
+		return restrictionForType(SEND_PHRASE.create(returnType))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

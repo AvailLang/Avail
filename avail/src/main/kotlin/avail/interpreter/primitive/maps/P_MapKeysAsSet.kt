@@ -46,6 +46,8 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -65,17 +67,18 @@ object P_MapKeysAsSet : Primitive1(CannotFail, CanInline), Foldable
 		return map.keysAsSet
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		assert(argumentTypes.size == 1)
 		val mapType = argumentTypes[0]
 
 		// There can't be any duplicate keys in the map, so the size range is
 		// the same for the set.
-		return setTypeForSizesContentType(mapType.sizeRange, mapType.keyType)
+		return restrictionForType(
+			setTypeForSizesContentType(mapType.sizeRange, mapType.keyType))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

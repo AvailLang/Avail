@@ -47,6 +47,8 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.MarshalingException
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.PrimitiveHelper.marshalValues
@@ -142,13 +144,13 @@ object P_InvokePojoConstructor : PrimitiveN(
 	 */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
-		return rawFunction!!.functionType().returnType
+		return restrictionForType(rawFunction!!.functionType().returnType)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

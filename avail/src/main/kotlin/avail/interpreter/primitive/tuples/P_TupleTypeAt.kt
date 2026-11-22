@@ -52,6 +52,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -77,10 +79,10 @@ object P_TupleTypeAt : Primitive2(CannotFail, CanInline), Foldable
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (tupleMeta, indexType) = argumentTypes
 		// The optimizer can ask this about a call site whose argument it has
@@ -88,20 +90,21 @@ object P_TupleTypeAt : Primitive2(CannotFail, CanInline), Foldable
 		// ask for and nothing better to say than the declared return type.
 		if (!tupleMeta.isInstanceMeta)
 		{
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+			return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val tupleType = tupleMeta.instance
 		val minIndex = indexType.lowerBound
 		val maxIndex = indexType.upperBound
 		return if (minIndex.isInt)
 		{
-			instanceMeta(
-				tupleType.unionOfTypesAtThrough(
-					minIndex.extractInt,
-					if (maxIndex.isInt) maxIndex.extractInt
-					else Integer.MAX_VALUE))
+			restrictionForType(
+				instanceMeta(
+					tupleType.unionOfTypesAtThrough(
+						minIndex.extractInt,
+						if (maxIndex.isInt) maxIndex.extractInt
+						else Integer.MAX_VALUE)))
 		}
-		else super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		else super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

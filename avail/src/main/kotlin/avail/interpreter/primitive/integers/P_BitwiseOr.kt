@@ -52,6 +52,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Or
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -77,11 +79,11 @@ object P_BitwiseOr : Primitive2(CannotFail, CanInline), Foldable
 		return a.bitwiseOr(b, true)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -102,15 +104,16 @@ object P_BitwiseOr : Primitive2(CannotFail, CanInline), Foldable
 						aMax.extractLong.takeHighestOneBit(),
 						bMax.extractLong.takeHighestOneBit())
 					// Top bit is at most 0x40..., so overflow will still be ok.
-					return inclusive(0, (topOneBit shl 1) - 1)
+					return restrictionForType(
+						inclusive(0, (topOneBit shl 1) - 1))
 				}
 			}
 			// We could dig into the integer representation, but it's unlikely
 			// to save us more than a rare type test amid already expensive code
 			// in L2.
-			return wholeNumbers
+			return restrictionForType(wholeNumbers)
 		}
-		return integers
+		return restrictionForType(integers)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -129,7 +132,7 @@ object P_BitwiseOr : Primitive2(CannotFail, CanInline), Foldable
 			argumentTypes,
 			callSiteHelper,
 			typeGuaranteeFunction = { restrictedArgTypes ->
-				guaranteedType(rawFunction, restrictedArgTypes)
+				guaranteedRestriction(rawFunction, restrictedArgTypes).type
 			},
 			fallbackBody = {
 				generateGeneralFunctionInvocation(

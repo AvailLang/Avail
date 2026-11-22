@@ -45,6 +45,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -70,12 +72,13 @@ object P_PhraseExpressionType : Primitive1(CannotFail, CanInline), Foldable
 				PARSE_PHRASE.mostGeneralType),
 			topMeta)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val phraseType = argumentTypes[0]
-		return instanceMeta(phraseType.phraseTypeExpressionType)
+		return restrictionForType(
+			instanceMeta(phraseType.phraseTypeExpressionType))
 	}
 }

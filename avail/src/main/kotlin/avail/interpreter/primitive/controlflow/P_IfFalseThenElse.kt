@@ -44,6 +44,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Invokes
@@ -68,11 +70,11 @@ object P_IfFalseThenElse : Primitive3(Invokes, CanInline, CannotFail)
 		return invokeInPrimitive(falseFunction)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type =
-			argumentTypes[2].returnType
+		argumentTypes: List<A_Type>): TypeRestriction =
+			restrictionForType(argumentTypes[2].returnType)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

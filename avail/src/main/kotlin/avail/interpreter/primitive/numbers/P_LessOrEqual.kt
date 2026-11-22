@@ -53,6 +53,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -83,10 +85,10 @@ object P_LessOrEqual : Primitive2(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(NUMBER(), NUMBER()), booleanType)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (type1, type2) = argumentTypes
 		val possible = possibleOrdersWhenComparingInstancesOf(type1, type2)
@@ -94,14 +96,13 @@ object P_LessOrEqual : Primitive2(CannotFail, CanInline), Foldable
 		val canBeFalse =
 			possible.contains(MORE) || possible.contains(INCOMPARABLE)
 		assert(canBeTrue || canBeFalse)
-		return if (canBeTrue)
-		{
-			if (canBeFalse) { booleanType } else { trueType }
-		}
-		else
-		{
-			falseType
-		}
+		return restrictionForType(
+			when
+			{
+				!canBeTrue -> falseType
+				canBeFalse -> booleanType
+				else -> trueType
+			})
 	}
 
 	override fun PostPhiData.interestingSplitConditions(

@@ -44,6 +44,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_AbstractCloseFunction
@@ -76,11 +77,11 @@ object P_PushLastOuter : PrimitiveN(
 		return function.outerVarAt(1)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = rawFunction!!.outerTypeAt(1)
+	): TypeRestriction = restrictionForType(rawFunction!!.outerTypeAt(1))
 
 	/**
 	 * This primitive is suitable for any block signature, although really the

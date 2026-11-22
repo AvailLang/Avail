@@ -46,6 +46,7 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
@@ -79,13 +80,14 @@ object P_TypeUnion : Primitive2(CannotFail, CanInline), Foldable
 			tuple(topMeta, topMeta),
 			topMeta)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (meta1, meta2) = argumentTypes
-		return meta1.typeUnion(meta2)  // by metavariance
+		// By metavariance.
+		return restrictionForType(meta1.typeUnion(meta2))
 	}
 
 	override fun PostPhiData.interestingSplitConditions(

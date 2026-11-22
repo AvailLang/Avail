@@ -39,7 +39,6 @@ import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.primitive.Primitive.BinaryIntGeneratorHelper
 import avail.interpreter.primitive.Primitive.BinaryNonIntGeneratorHelper
@@ -168,15 +167,15 @@ interface Foldable
 		assert(currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
-		val returnTypeIfInts = thisPrimitive.guaranteedType(
+		val restrictionIfInts = thisPrimitive.guaranteedRestriction(
 			rawFunction, listOf(aInRange.type, bInRange.type))
 		val semanticPrimitive = semanticInvocation(valueA, valueB)
 		val intWriter = intWrite(
 			setOf(semanticPrimitive),
-			restrictionForType(returnTypeIfInts.typeIntersection(range)))
+			restrictionIfInts.intersectionWithType(range))
 		val boxedWrite = boxedWrite(
 			setOf(semanticPrimitive),
-			restrictionForType(returnTypeIfInts))
+			restrictionIfInts)
 		val helper = BinaryIntGeneratorHelper(
 			intA = intA,
 			intB = intB,
@@ -185,7 +184,7 @@ interface Foldable
 			intSuccess = intSuccess,
 			intFailure = intFallback,
 			translator = this)
-		if (returnTypeIfInts.isSubtypeOf(range))
+		if (restrictionIfInts.type.isSubtypeOf(range))
 		{
 			// The result is guaranteed not to overflow, so emit an instruction
 			// that won't bother with an overflow check.  Note that both the

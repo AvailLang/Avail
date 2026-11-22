@@ -45,6 +45,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
 import avail.interpreter.levelTwoSimple.instructions.L2Simple_MoveConstant
@@ -90,13 +91,14 @@ object P_PushConstant : PrimitiveN(
 		literals: A_Tuple
 	): Boolean = true
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val value = rawFunction!!.literalAt(1)
-		return if (value.isNil) TOP() else instanceTypeOrMetaOn(value)
+		return restrictionForType(
+			if (value.isNil) TOP() else instanceTypeOrMetaOn(value))
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

@@ -910,8 +910,8 @@ class L1Translator private constructor(
 						}
 					val failedFunctionType =
 						rawFunction.returnTypeIfPrimitiveFails
-					val primResultType = primitive.guaranteedType(
-						rawFunction, intersectedArgumentTypes)
+					val primResultType = primitive.guaranteedRestriction(
+						rawFunction, intersectedArgumentTypes).type
 					when (primitive.fallibilityForArgumentTypes(
 						intersectedArgumentTypes))
 					{
@@ -1243,15 +1243,15 @@ class L1Translator private constructor(
 					// The primitive cannot fail at this site. Output code
 					// to run the primitive as simply as possible, feeding a
 					// register with as strong a type as possible.
-					var resultType = primitive.guaranteedType(
+					var resultRestriction = primitive.guaranteedRestriction(
 						rawFunction, argumentTypes)
-					if (resultType.isBottom)
+					if (resultRestriction.type.isBottom)
 					{
 						// Even though the P_InvokeWithTuple primitive can't
 						// fail, the ultimately called function won't return.
-						// In this case, weaken the resultType to avoid ⊥, just
-						// to keep the call machinery happy.
-						resultType = Types.ANY()
+						// In this case, weaken the result to avoid ⊥, just to
+						// keep the call machinery happy.
+						resultRestriction = restrictionForType(Types.ANY())
 					}
 					// Only a foldable primitive's result can be named by its
 					// invocation; any other result is just a temporary.
@@ -1262,8 +1262,7 @@ class L1Translator private constructor(
 							arguments.map(L2ReadBoxedOperand::semanticValue))
 						else -> newTemp("${primitive.name} result")
 					}
-					val writer = boxedWrite(
-						resultValue, restrictionForType(resultType))
+					val writer = boxedWrite(resultValue, resultRestriction)
 					val invoke = L2_RUN_INFALLIBLE_PRIMITIVE(
 						rawFunction,
 						primitive,
@@ -1301,13 +1300,15 @@ class L1Translator private constructor(
 				willAlwaysFailPrimitive -> CallSiteMustFail
 				else -> primitive.fallibilityForArgumentTypes(argumentTypes)
 			}
+			val successType by lazy {
+				primitive.guaranteedRestriction(rawFunction, argumentTypes).type
+			}
 			guaranteedResultType = when (fallibility)
 			{
-				CallSiteCannotFail -> primitive.guaranteedType(
-					rawFunction, argumentTypes)
+				CallSiteCannotFail -> successType
 				CallSiteMustFail -> rawFunction.returnTypeIfPrimitiveFails
 				else -> rawFunction.returnTypeIfPrimitiveFails.typeUnion(
-					primitive.guaranteedType(rawFunction, argumentTypes))
+					successType)
 			}
 		}
 		else

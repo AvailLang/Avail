@@ -128,10 +128,10 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM(), ANY()))),
 			mostGeneralObjectType)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange
@@ -140,7 +140,7 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 			|| !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  Give up.
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+			return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val tupleSize = tupleSizeLowerBound.extractInt
 		var fieldTypeMap = emptyMap
@@ -153,14 +153,14 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(
+				return super.restrictionGuaranteedByVM(
 					rawFunction, argumentTypes)
 			}
 			val keyValue = keyType.instance
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(
+				return super.restrictionGuaranteedByVM(
 					rawFunction, argumentTypes)
 			}
 			assert(keyValue.isAtom)
@@ -168,7 +168,7 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 			fieldTypeMap =
 				fieldTypeMap.mapAtPuttingCanDestroy(keyValue, valueType, true)
 		}
-		return objectTypeFromMap(fieldTypeMap)
+		return restrictionForType(objectTypeFromMap(fieldTypeMap))
 	}
 
 	override fun L2SimpleTranslator.attemptToGenerateSimpleInvocation(
@@ -212,7 +212,8 @@ object P_TupleToObject : Primitive1(CanInline), Foldable
 
 		// The tuple has statically known keys, and valueSources has the Reads
 		// for the corresponding values.
-		val guaranteedType = guaranteedType(rawFunction, listOf(tupleType))
+		val guaranteedType =
+			guaranteedRestriction(rawFunction, listOf(tupleType)).type
 		val variant = variantForFields(setFromCollection(keys))
 		val readsInVariantSlotOrder = variant.realSlots.map { atom ->
 			valueSources[keys.indexOf(atom)]

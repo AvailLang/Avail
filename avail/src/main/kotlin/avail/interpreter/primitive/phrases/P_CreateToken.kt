@@ -62,6 +62,8 @@ import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive4
 
@@ -98,10 +100,10 @@ object P_CreateToken : Primitive4(CanInline)
 			fiber().currentLexer)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val atomType = argumentTypes[0]
 		// final A_Type lexemeType = argumentTypes.get(1);
@@ -111,11 +113,12 @@ object P_CreateToken : Primitive4(CanInline)
 		if (atomType.instanceCount.equalsInt(1))
 		{
 			val atom = atomType.instance
-			return tokenType(
-				TokenType.lookupTokenType(
-					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt))
+			return restrictionForType(
+				tokenType(
+					TokenType.lookupTokenType(
+						atom.getAtomProperty(tokenTypeOrdinalKey).extractInt)))
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

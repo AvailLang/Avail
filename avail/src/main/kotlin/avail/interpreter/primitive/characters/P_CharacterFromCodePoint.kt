@@ -50,6 +50,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -69,14 +71,17 @@ object P_CharacterFromCodePoint : Primitive1(CannotFail, CanInline), Foldable
 		return fromCodePoint(codePoint.extractInt)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val intType = argumentTypes[0]
-		if (intType.equals(characterCodePoints)) return CHARACTER()
+		if (intType.equals(characterCodePoints))
+		{
+			return restrictionForType(CHARACTER())
+		}
 
 		var chars = emptySet
 		if (intType.isEnumeration)
@@ -99,7 +104,7 @@ object P_CharacterFromCodePoint : Primitive1(CannotFail, CanInline), Foldable
 					fromCodePoint(intValue), true)
 			}
 		}
-		return enumerationWith(chars)
+		return restrictionForType(enumerationWith(chars))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

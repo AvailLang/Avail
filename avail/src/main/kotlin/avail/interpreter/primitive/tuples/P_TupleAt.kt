@@ -63,6 +63,7 @@ import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.codePointIntRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
@@ -116,10 +117,10 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 				naturalNumbers),
 			ANY())
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (tupleType, subscripts) = argumentTypes
 		val lower = subscripts.lowerBound
@@ -128,7 +129,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 		val upperInt = if (upper.isInt) upper.extractInt else MAX_VALUE
 		val unionType = tupleType.unionOfTypesAtThrough(lowerInt, upperInt)
 		unionType.makeImmutable()
-		return unionType
+		return restrictionForType(unionType)
 	}
 
 	override fun privateFailureVariableType(): A_Type =
@@ -198,14 +199,13 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 			}
 			if (currentlyReachable())
 			{
-				val resultRestriction = restrictionForType(
-					guaranteedType(
-						rawFunction,
-						listOf(
-							argumentTypes[0],
-							currentManifest
-								.restrictionFor(subscriptReg.semanticValue())
-								.type)))
+				val resultRestriction = guaranteedRestriction(
+					rawFunction,
+					listOf(
+						argumentTypes[0],
+						currentManifest
+							.restrictionFor(subscriptReg.semanticValue())
+							.type))
 				val semanticResult = semanticInvocation(
 					tupleReg.semanticValue(),
 					subscriptReg.semanticValue())
@@ -263,9 +263,7 @@ object P_TupleAt : Primitive2(CanInline), Foldable
 		val lower = subscriptType.lowerBound
 		val upper = subscriptType.upperBound
 		val writer = boxedWriteTemp(
-			"element",
-			restrictionForType(
-				guaranteedType(rawFunction, argumentTypes)))
+			"element", guaranteedRestriction(rawFunction, argumentTypes))
 		if (lower.equals(upper))
 		{
 			// The subscript is a constant (and it's within range).

@@ -106,11 +106,12 @@ object P_TupleSize : Primitive1(CannotFail, CanInline), Foldable
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].sizeRange.typeIntersection(i31)
+	): TypeRestriction =
+		restrictionForType(argumentTypes[0].sizeRange.typeIntersection(i31))
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -122,7 +123,7 @@ object P_TupleSize : Primitive1(CannotFail, CanInline), Foldable
 	{
 		val tupleReg = arguments[0]
 
-		val returnType = guaranteedType(rawFunction, argumentTypes)
+		val returnType = guaranteedRestriction(rawFunction, argumentTypes).type
 		val lower = returnType.lowerBound
 		val upper = returnType.upperBound
 		when

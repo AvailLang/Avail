@@ -92,22 +92,24 @@ object P_ExtractObjectVariantId
 		invocation: L2SemanticPrimitiveInvocation
 	) = "Variant(" + invocation.argumentSemanticValues.single() + ")"
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].run {
-		when
-		{
-			isBottom -> bottom
-			// The exact objects are known, so their variants are too.  An
-			// object type does *not* determine the variant of its instances,
-			// since a subvariant's objects are instances of it as well.
-			isEnumeration && !isInstanceMeta -> enumerationWith(
-				setFromCollection(
-					instances.map { fromInt(it.objectVariant.variantId) }))
-			else -> i31
-		}
+	): TypeRestriction = argumentTypes[0].run {
+		restrictionForType(
+			when
+			{
+				isBottom -> bottom
+				// The exact objects are known, so their variants are too.  An
+				// object type does *not* determine the variant of its
+				// instances, since a subvariant's objects are instances of it
+				// as well.
+				isEnumeration && !isInstanceMeta -> enumerationWith(
+					setFromCollection(
+						instances.map { fromInt(it.objectVariant.variantId) }))
+				else -> i31
+			})
 	}
 
 	override fun propagateManifestRestrictions(

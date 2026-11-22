@@ -55,6 +55,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -85,10 +87,10 @@ object P_SetWith : Primitive2(CannotFail, CanInline), Foldable
 				naturalNumbers,
 				ANY()))
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (setType, newElementType) = argumentTypes
 		val setContentType = setType.contentType
@@ -107,6 +109,6 @@ object P_SetWith : Primitive2(CannotFail, CanInline), Foldable
 			false)
 		val unionType = setTypeForSizesContentType(
 			unionSize, setType.contentType.typeUnion(newElementType))
-		return unionType.makeImmutable()
+		return restrictionForType(unionType.makeImmutable())
 	}
 }

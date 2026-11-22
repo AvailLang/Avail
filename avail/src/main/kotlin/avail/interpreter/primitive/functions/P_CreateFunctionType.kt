@@ -52,6 +52,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -72,11 +74,11 @@ object P_CreateFunctionType : Primitive2(CannotFail, CanInline), Foldable
 		return functionType(argTypes, returnType)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val (argTypes, returnType) = argumentTypes
 
@@ -87,12 +89,16 @@ object P_CreateFunctionType : Primitive2(CannotFail, CanInline), Foldable
 			sizeRange.upperBound.equals(arity) && arity.isInt ->
 			{
 				// The function arity is known.
-				instanceMeta(
-					functionType(
-						createRepeatedElementTuple(arity.extractInt, bottom),
-						returnType.instance))
+				restrictionForType(
+					instanceMeta(
+						functionType(
+							createRepeatedElementTuple(
+								arity.extractInt, bottom),
+							returnType.instance)))
 			}
-			else -> instanceMeta(functionTypeReturning(returnType))
+			else ->
+				restrictionForType(
+					instanceMeta(functionTypeReturning(returnType)))
 		}
 	}
 

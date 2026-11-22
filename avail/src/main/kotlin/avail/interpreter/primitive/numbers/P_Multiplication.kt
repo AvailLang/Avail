@@ -63,6 +63,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.levelTwo.operation.numbers.L2_MULTIPLY_INT_BY_INT
@@ -105,24 +106,23 @@ object P_Multiplication : Primitive2(CanInline), Foldable
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (aType, bType) = argumentTypes
 
 		aType.makeImmutable()
 		bType.makeImmutable()
 
-		return if (aType.isIntegerRangeType && bType.isIntegerRangeType)
-		{
-			BoundCalculator(aType, bType).process()
-		}
-		else
-		{
-			binaryNumericOperationTypeBound(aType, bType)
-		}
+		return restrictionForType(
+			when
+			{
+				aType.isIntegerRangeType && bType.isIntegerRangeType ->
+					BoundCalculator(aType, bType).process()
+				else -> binaryNumericOperationTypeBound(aType, bType)
+			})
 	}
 
 	/**

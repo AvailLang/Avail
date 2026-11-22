@@ -50,6 +50,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -89,16 +91,16 @@ object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		// Keep it simple.
 		val castFunctionType = argumentTypes[1]
 		val elseFunctionType = argumentTypes[2]
-		return castFunctionType.returnType.typeUnion(
-			elseFunctionType.returnType)
+		return restrictionForType(
+			castFunctionType.returnType.typeUnion(elseFunctionType.returnType))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

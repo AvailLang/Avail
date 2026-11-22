@@ -68,6 +68,8 @@ import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shl
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Shr
@@ -123,11 +125,11 @@ object P_BitShiftRight : Primitive2(CanInline), Foldable
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val (baseIntegers: A_Type, shiftFactors: A_Type) = argumentTypes
 		if (baseIntegers.isEnumeration
@@ -146,7 +148,7 @@ object P_BitShiftRight : Primitive2(CanInline), Foldable
 							base.bitShift(leftShift, false), true)
 					}
 				}
-				return enumerationWith(results)
+				return restrictionForType(enumerationWith(results))
 			}
 		}
 		val lowBase = baseIntegers.lowerBound
@@ -159,7 +161,7 @@ object P_BitShiftRight : Primitive2(CanInline), Foldable
 		{
 			// Shifting 0 or -1 by any finite amount, left or right, should
 			// have no effect on the value.
-			return baseIntegers
+			return restrictionForType(baseIntegers)
 		}
 		// Shifting is monotonic, so calculate the four potential boundaries and
 		// use [min, max] of them, excluding infinities.  Also include whichever
@@ -201,7 +203,8 @@ object P_BitShiftRight : Primitive2(CanInline), Foldable
 		}
 		val min = bounds.reduce { a, b -> if (a.lessThan(b)) a else b }
 		val max = bounds.reduce { a, b -> if (a.greaterThan(b)) a else b }
-		return integerRangeType(min, min.isFinite, max, max.isFinite)
+		return restrictionForType(
+			integerRangeType(min, min.isFinite, max, max.isFinite))
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

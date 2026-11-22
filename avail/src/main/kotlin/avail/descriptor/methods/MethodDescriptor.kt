@@ -338,10 +338,10 @@ class MethodDescriptor private constructor(
 		 * *checked* at runtime.
 		 *
 		 * When the [L2Generator] inlines a [Primitive] method definition, it
-		 * asks the primitive what type it guarantees
-		 * ([Primitive.guaranteedType]) to return for the specific
-		 * provided argument types.  If that return type is sufficiently strong,
-		 * the above runtime check may be waived.
+		 * asks the primitive what restriction it guarantees
+		 * ([Primitive.guaranteedRestriction]) on its result for the specific
+		 * provided argument types.  If that restriction is sufficiently
+		 * strong, the above runtime check may be waived.
 		 */
 		SEMANTIC_RESTRICTIONS_SET,
 

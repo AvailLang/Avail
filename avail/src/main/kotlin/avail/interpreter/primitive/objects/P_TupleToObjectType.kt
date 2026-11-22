@@ -67,6 +67,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive1
@@ -101,10 +103,10 @@ object P_TupleToObjectType : Primitive1(CanInline), Foldable
 			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM(), anyMeta))),
 			mostGeneralObjectMeta)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange
@@ -113,7 +115,7 @@ object P_TupleToObjectType : Primitive1(CanInline), Foldable
 			|| !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  Give up.
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+			return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val tupleSize = tupleSizeLowerBound.extractInt
 		var fieldTypeMap = emptyMap
@@ -126,7 +128,7 @@ object P_TupleToObjectType : Primitive1(CanInline), Foldable
 			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(
+				return super.restrictionGuaranteedByVM(
 					rawFunction, argumentTypes)
 			}
 			val keyValue = keyType.instance
@@ -134,7 +136,7 @@ object P_TupleToObjectType : Primitive1(CanInline), Foldable
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(
+				return super.restrictionGuaranteedByVM(
 					rawFunction, argumentTypes)
 			}
 			val valueMeta = pairType.typeAtIndex(2)
@@ -143,7 +145,7 @@ object P_TupleToObjectType : Primitive1(CanInline), Foldable
 			fieldTypeMap =
 				fieldTypeMap.mapAtPuttingCanDestroy(keyValue, valueType, true)
 		}
-		return instanceMeta(objectTypeFromMap(fieldTypeMap))
+		return restrictionForType(instanceMeta(objectTypeFromMap(fieldTypeMap)))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

@@ -59,6 +59,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
@@ -93,18 +95,17 @@ object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val baseIntegers: A_Type = argumentTypes[0]
 		val shiftFactors: A_Type = argumentTypes[1]
 		val truncationBitsRange: A_Type = argumentTypes[2]
-		val beforeTruncation = P_BitShiftLeft.guaranteedType(
-			null,
-			listOf(baseIntegers, shiftFactors))
+		val beforeTruncation =
+			P_BitShiftLeft.binaryBound(baseIntegers, shiftFactors)
 		// We can cop out and use 0 as the lower bound, and say the result can
 		// grow as large as the minimum of the shifted value or the largest
 		// truncation mask.
@@ -112,11 +113,12 @@ object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
 		if (biggestTruncationBitCount.greaterThan(fromInt(1000)))
 		{
 			// Too expensive to create giant integers.  Ignore the truncation.
-			return integerRangeType(
-				zero,
-				true,
-				beforeTruncation.upperBound,
-				beforeTruncation.upperInclusive)
+			return restrictionForType(
+				integerRangeType(
+					zero,
+					true,
+					beforeTruncation.upperBound,
+					beforeTruncation.upperInclusive))
 		}
 		val maxMask = one.bitShift(biggestTruncationBitCount, false)
 			.minusCanDestroy(one, true)
@@ -126,12 +128,13 @@ object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
 		if (beforeUpper.lessOrEqual(minMask))
 		{
 			// Even the smallest mask won't alter the output.
-			return beforeTruncation
+			return restrictionForType(beforeTruncation)
 		}
-		return inclusive(
-			zero,
-			if (beforeUpper.lessThan(maxMask)) beforeUpper
-			else maxMask)
+		return restrictionForType(
+			inclusive(
+				zero,
+				if (beforeUpper.lessThan(maxMask)) beforeUpper
+				else maxMask))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

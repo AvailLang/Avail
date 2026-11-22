@@ -126,9 +126,8 @@ class L2_MULTIPLY_INT_BY_INT(
 			jumpTo(outOfRange.targetBlock())
 			return
 		}
-		var range = P_Multiplication.guaranteedType(
-			null,
-			listOf(multiplicand.type, multiplier.type))
+		var range = P_Multiplication.binaryBound(
+			multiplicand.type, multiplier.type)
 		// The result isn't a constant.  See if it has the form (y / x) * x.
 		for ((a, b) in
 			listOf(multiplicand to multiplier, multiplier to multiplicand))

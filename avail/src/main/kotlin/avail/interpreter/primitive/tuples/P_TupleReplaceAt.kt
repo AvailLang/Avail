@@ -60,6 +60,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
@@ -106,10 +108,10 @@ object P_TupleReplaceAt : Primitive3(CanInline), Foldable
 				ANY()),
 			mostGeneralTupleType)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (originalTupleType, subscripts, newElementType) = argumentTypes
 		val lowerBound = subscripts.lowerBound
@@ -120,7 +122,7 @@ object P_TupleReplaceAt : Primitive3(CanInline), Foldable
 				&& upperBound.greaterThan(maximumComplexity)))
 		{
 			// Too expensive.  Fall back on the primitive's basic type.
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+			return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val originalTypeTuple = originalTupleType.typeTuple
 		val originalTypeTupleSize = originalTypeTuple.tupleSize
@@ -165,10 +167,11 @@ object P_TupleReplaceAt : Primitive3(CanInline), Foldable
 			originalTupleType.defaultType
 		else
 			originalTupleType.defaultType.typeUnion(newElementType)
-		return tupleTypeForSizesTypesDefaultType(
-			originalTupleType.sizeRange,
-			tupleFromList(typeList),
-			newDefaultType)
+		return restrictionForType(
+			tupleTypeForSizesTypesDefaultType(
+				originalTupleType.sizeRange,
+				tupleFromList(typeList),
+				newDefaultType))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

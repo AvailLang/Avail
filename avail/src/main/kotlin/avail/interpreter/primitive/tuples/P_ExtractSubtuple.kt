@@ -70,6 +70,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
@@ -193,13 +194,14 @@ object P_ExtractSubtuple : Primitive3(CanInline), Foldable
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (tupleType, startIndexType, endIndexType) = argumentTypes
-		return computeSliceType(tupleType, startIndexType, endIndexType)
+		return restrictionForType(
+			computeSliceType(tupleType, startIndexType, endIndexType))
 	}
 
 	/**

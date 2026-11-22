@@ -58,6 +58,8 @@ import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLi
 import avail.descriptor.types.TokenTypeDescriptor
 import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -81,22 +83,24 @@ object P_CreateTokenType : Primitive1(CannotFail, CanInline), Foldable
 				type.getAtomProperty(tokenTypeOrdinalKey).extractInt))
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val atomType = argumentTypes[0]
 		if (atomType.instanceCount.equalsInt(1))
 		{
-			return instanceType(
-				tokenType(
-					TokenDescriptor.TokenType.lookupTokenType(
-						atomType.instance.getAtomProperty(tokenTypeOrdinalKey)
-							.extractInt)))
+			return restrictionForType(
+				instanceType(
+					tokenType(
+						TokenDescriptor.TokenType.lookupTokenType(
+							atomType.instance
+								.getAtomProperty(tokenTypeOrdinalKey)
+								.extractInt))))
 
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

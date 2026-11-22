@@ -46,6 +46,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -69,11 +71,12 @@ object P_SetSize : Primitive1(CannotFail, CanInline), Foldable
 			tuple(mostGeneralSetType()),
 			wholeNumbers)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].sizeRange.typeIntersection(i31)
+	): TypeRestriction =
+		restrictionForType(argumentTypes[0].sizeRange.typeIntersection(i31))
 
 	override val canDestroyArguments get() = false
 }

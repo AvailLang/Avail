@@ -67,6 +67,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.levelTwo.operation.tuples.L2_CONCATENATE_TUPLES
@@ -97,10 +98,10 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 			tuple(zeroOrMoreOf(mostGeneralTupleType)),
 			mostGeneralTupleType)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val tuplesType = argumentTypes[0]
 
@@ -113,7 +114,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 			if (lowerBound.greaterThan(fromInt(20)))
 			{
 				// Too expensive to compute here.
-				return super.returnTypeGuaranteedByVM(
+				return super.restrictionGuaranteedByVM(
 					rawFunction, argumentTypes)
 			}
 			// A (reasonably small) collection of tuple types.
@@ -121,7 +122,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 			val bound = lowerBound.extractInt
 			if (bound == 0)
 			{
-				return instanceType(emptyTuple)
+				return restrictionForType(instanceType(emptyTuple))
 			}
 			var concatenatedType = tuplesType.typeAtIndex(1)
 			for (i in 2 .. bound)
@@ -129,7 +130,7 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 				concatenatedType = concatenatingAnd(
 					concatenatedType, tuplesType.typeAtIndex(i))
 			}
-			return concatenatedType
+			return restrictionForType(concatenatedType)
 		}
 		// A variable number of subtuples.  See if it's homogeneous.
 		if (tuplesType.typeTuple.tupleSize == 0)
@@ -146,12 +147,13 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 					innerSizes.upperBound, false)
 				val newSizeRange = integerRangeType(
 					minSize, true, maxSize.plusCanDestroy(one, true), false)
-				return tupleTypeForSizesTypesDefaultType(
-					newSizeRange, emptyTuple, innerTupleType.defaultType)
+				return restrictionForType(
+					tupleTypeForSizesTypesDefaultType(
+						newSizeRange, emptyTuple, innerTupleType.defaultType))
 			}
 		}
 		// Too tricky to bother narrowing.
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
@@ -235,11 +237,9 @@ object P_ConcatenateTuples : Primitive1(CannotFail, CanInline), Foldable
 			1 -> callSiteHelper.useAnswer(adjustedSources[0])
 			else ->
 			{
-				val guaranteedType = guaranteedType(
-					rawFunction, argumentTypes)
 				val write = boxedWriteTemp(
 					"concatenated",
-					restrictionForType(guaranteedType))
+					guaranteedRestriction(rawFunction, argumentTypes))
 				+L2_CONCATENATE_TUPLES(
 					L2ReadBoxedVectorOperand(adjustedSources),
 					write)

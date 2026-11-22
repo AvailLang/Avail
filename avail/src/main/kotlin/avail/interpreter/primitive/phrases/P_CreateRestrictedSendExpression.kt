@@ -94,6 +94,8 @@ import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive3
@@ -333,10 +335,10 @@ object P_CreateRestrictedSendExpression : Primitive3(
 				zeroOrOneOf(SEND_PHRASE.mostGeneralType),
 				stringType))
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		assert(argumentTypes.size == 3)
 //		val messageNameType: A_Type = argumentTypes[0]
@@ -344,9 +346,10 @@ object P_CreateRestrictedSendExpression : Primitive3(
 		val returnTypeType = argumentTypes[2]
 
 		val returnType = returnTypeType.instance
-		return tupleTypeForTypes(
-			zeroOrOneOf(SEND_PHRASE.create(returnType)),
-			stringType)
+		return restrictionForType(
+			tupleTypeForTypes(
+				zeroOrOneOf(SEND_PHRASE.create(returnType)),
+				stringType))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

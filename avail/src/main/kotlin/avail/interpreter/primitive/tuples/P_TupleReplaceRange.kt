@@ -65,6 +65,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
@@ -177,10 +179,10 @@ object P_TupleReplaceRange : Primitive4(CanInline), Foldable
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (tupleType, startType, endType, replacementType) = argumentTypes
 		val tupleSizeRange = tupleType.sizeRange
@@ -200,9 +202,10 @@ object P_TupleReplaceRange : Primitive4(CanInline), Foldable
 				endType.upperBound.noFailPlusCanDestroy(one, false),
 				endType.upperInclusive),
 			tupleSizeRange)
-		return concatenatingAnd(
-			leftTupleType,
-			concatenatingAnd(replacementType, rightTupleType))
+		return restrictionForType(
+			concatenatingAnd(
+				leftTupleType,
+				concatenatingAnd(replacementType, rightTupleType)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

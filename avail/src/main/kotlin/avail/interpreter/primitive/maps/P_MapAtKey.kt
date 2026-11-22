@@ -49,6 +49,8 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
@@ -74,10 +76,10 @@ object P_MapAtKey : Primitive2(CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralMapType(), ANY()), ANY())
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (mapType, keyType) = argumentTypes
 		if (mapType.isEnumeration && keyType.isEnumeration)
@@ -93,10 +95,10 @@ object P_MapAtKey : Primitive2(CanInline), Foldable
 					}
 				}
 			}
-			return enumerationWith(values)
+			return restrictionForType(enumerationWith(values))
 		}
 		// Fall back on the map type's value type.
-		return mapType.valueType
+		return restrictionForType(mapType.valueType)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

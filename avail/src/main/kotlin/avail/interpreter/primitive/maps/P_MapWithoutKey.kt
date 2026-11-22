@@ -56,6 +56,8 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -79,10 +81,10 @@ object P_MapWithoutKey : Primitive2(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralMapType(), ANY()), mostGeneralMapType())
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (mapType, keyType) = argumentTypes
 
@@ -91,7 +93,7 @@ object P_MapWithoutKey : Primitive2(CannotFail, CanInline), Foldable
 		if (mapType.keyType.typeIntersection(keyType).isBottom)
 		{
 			// That key will not be found.
-			return mapType
+			return restrictionForType(mapType)
 		}
 		// It's possible that the new map will be smaller by one.
 		var minSize = mapSizes.lowerBound
@@ -101,7 +103,8 @@ object P_MapWithoutKey : Primitive2(CannotFail, CanInline), Foldable
 		}
 		val newSizeRange = integerRangeType(
 			minSize, true, mapSizes.upperBound, mapSizes.upperInclusive)
-		return mapTypeForSizesKeyTypeValueType(
-			newSizeRange, mapType.keyType, mapType.valueType)
+		return restrictionForType(
+			mapTypeForSizesKeyTypeValueType(
+				newSizeRange, mapType.keyType, mapType.valueType))
 	}
 }

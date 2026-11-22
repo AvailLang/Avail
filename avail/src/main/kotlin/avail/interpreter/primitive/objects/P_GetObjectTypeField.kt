@@ -57,6 +57,8 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
@@ -86,15 +88,15 @@ object P_GetObjectTypeField : Primitive2(CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralObjectMeta, ATOM()), anyMeta)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (objectMeta, fieldType) = argumentTypes
 		if (objectMeta.isBottom)
 		{
-			return bottom
+			return restrictionForType(bottom)
 		}
 		if (fieldType.isEnumeration)
 		{
@@ -105,13 +107,13 @@ object P_GetObjectTypeField : Primitive2(CanInline), Foldable
 			{
 				val newType = fieldTypeMap.mapAtOrNull(possibleField) ?:
 					// Unknown field, so the field type could be any type.
-					return anyMeta
+					return restrictionForType(anyMeta)
 				union = union.typeUnion(newType)
 			}
 			// Shift it up; a primitive invocation will return the field's type.
-			return instanceMeta(union)
+			return restrictionForType(instanceMeta(union))
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)

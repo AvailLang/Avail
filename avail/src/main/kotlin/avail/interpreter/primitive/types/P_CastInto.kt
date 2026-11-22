@@ -54,6 +54,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
@@ -107,11 +109,11 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 	// Keep it simple.  In theory, if we could show that the cast would not
 	// fail, and that the function was a primitive, we could ask the
 	// primitive what it would produce.
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[1].returnType
+	): TypeRestriction = restrictionForType(argumentTypes[1].returnType)
 
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility

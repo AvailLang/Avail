@@ -55,6 +55,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTyp
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.tuples.L2_APPEND_TO_TUPLE
 import avail.interpreter.primitive.Foldable
@@ -80,15 +81,16 @@ object P_TupleAppend : Primitive2(CannotFail, CanInline), Foldable
 		return tuple.appendCanDestroy(newElement, true, true)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (aTupleType, anElementType) = argumentTypes
 		val anElementTupleType = tupleTypeForSizesTypesDefaultType(
 			singleInt(1), emptyTuple, anElementType)
-		return concatenatingAnd(aTupleType, anElementTupleType)
+		return restrictionForType(
+			concatenatingAnd(aTupleType, anElementTupleType))
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

@@ -46,6 +46,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -88,15 +89,15 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 	/** Specific [A_RawFunction]s will have suitable signatures. */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		// We don't have the function closure, so we don't have the field atom,
 		// so we simply use the raw function's function type's return type.
-		return rawFunction!!.functionType().returnType
+		return restrictionForType(rawFunction!!.functionType().returnType)
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

@@ -50,6 +50,7 @@ import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.variables.GetClearMode.NeverClear
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
@@ -88,11 +89,12 @@ object P_GetGlobalVariableValue : Primitive1(
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = rawFunction!!.literalAt(1).kind().readType
+	): TypeRestriction =
+		restrictionForType(rawFunction!!.literalAt(1).kind().readType)
 
 	/**
 	 * This primitive is suitable for any function with any as the return type.

@@ -50,6 +50,7 @@ import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaField
@@ -205,13 +206,14 @@ internal constructor(
 		}
 
 		// Require all val and var properties that have a backing field to be
-		// L2Operands.
+		// L2Operands, unless they're marked as deliberately not operands.
 		val illegalFields = instructionClass.declaredMemberProperties
 			.filterIsInstance<KProperty1<I, *>>()
 			.filter { it.javaField != null }
 			.filterNot {
 				L2Operand::class.java.isAssignableFrom(it.javaField!!.type)
 			}
+			.filterNot { it.hasAnnotation<NonOperandField>() }
 		if (illegalFields.isNotEmpty())
 		{
 			val names = illegalFields.map {

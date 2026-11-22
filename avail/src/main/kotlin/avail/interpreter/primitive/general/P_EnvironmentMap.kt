@@ -45,6 +45,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
@@ -103,12 +105,12 @@ object P_EnvironmentMap : Primitive0(CannotFail, CanInline, HasSideEffect)
 		return result
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = mapTypeForSizesKeyTypeValueType(
-		wholeNumbers, stringType, stringType)
+	): TypeRestriction = restrictionForType(
+		mapTypeForSizesKeyTypeValueType(wholeNumbers, stringType, stringType))
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

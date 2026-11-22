@@ -55,6 +55,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive3
@@ -106,10 +108,10 @@ object P_TupleSwapElements : Primitive3(CanInline), Foldable
 				naturalNumbers),
 			mostGeneralTupleType)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (originalTupleType, indexRange1, indexRange2) = argumentTypes
 		val tupleSizeRange = originalTupleType.sizeRange
@@ -118,7 +120,7 @@ object P_TupleSwapElements : Primitive3(CanInline), Foldable
 		if (!lowerBound1.isInt || !lowerBound2.isInt)
 		{
 			// At least one subscript is always out of range of the primitive.
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+			return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val maxLowerBound =
 			max(lowerBound1.extractInt, lowerBound2.extractInt)
@@ -126,7 +128,7 @@ object P_TupleSwapElements : Primitive3(CanInline), Foldable
 		if (maxTupleSize.isInt && maxLowerBound > maxTupleSize.extractInt)
 		{
 			// One of the indices is always out of range of the tuple.
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+			return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val minLowerBound =
 			min(lowerBound1.extractInt, lowerBound2.extractInt)
@@ -135,11 +137,12 @@ object P_TupleSwapElements : Primitive3(CanInline), Foldable
 		val newLeadingTypes = generateObjectTupleFrom(startOfSmear - 1) {
 			originalTupleType.typeAtIndex(it)
 		}
-		return tupleTypeForSizesTypesDefaultType(
-			tupleSizeRange,
-			newLeadingTypes,
-			originalTupleType.unionOfTypesAtThrough(
-				startOfSmear, Integer.MAX_VALUE))
+		return restrictionForType(
+			tupleTypeForSizesTypesDefaultType(
+				tupleSizeRange,
+				newLeadingTypes,
+				originalTupleType.unionOfTypesAtThrough(
+					startOfSmear, Integer.MAX_VALUE)))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

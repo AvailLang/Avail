@@ -55,6 +55,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive2
@@ -90,21 +92,22 @@ object P_RepeatedElementTuple : Primitive2(CanInline), Foldable
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_EXCEEDS_VM_LIMIT))
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		assert(argumentTypes.size == 2)
 		val (sizeType, elementType) = argumentTypes
-		return if (sizeType.instanceCount.equalsInt(1)
-			&& elementType.instanceCount.equalsInt(1))
-		{
-			instanceType(
-				createRepeatedElementTuple(
-					sizeType.instance.extractInt, elementType.instance))
-		}
-		else tupleTypeForSizesTypesDefaultType(
-			sizeType, emptyTuple, elementType)
+		return restrictionForType(
+			if (sizeType.instanceCount.equalsInt(1)
+				&& elementType.instanceCount.equalsInt(1))
+			{
+				instanceType(
+					createRepeatedElementTuple(
+						sizeType.instance.extractInt, elementType.instance))
+			}
+			else tupleTypeForSizesTypesDefaultType(
+				sizeType, emptyTuple, elementType))
 	}
 }

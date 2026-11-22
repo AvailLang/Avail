@@ -49,6 +49,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCode
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CODEPOINT_TO_CHARACTER
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -91,21 +93,24 @@ object P_CharacterCodePoint : Primitive1(CannotFail, CanInline), Foldable
 		return false
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		val charType = argumentTypes[0]
-		if (charType.equals(CHARACTER())) return characterCodePoints
+		if (charType.equals(CHARACTER()))
+		{
+			return restrictionForType(characterCodePoints)
+		}
 		val characters = charType.instances
 		val charactersIterator = characters.iterator()
 		val codePoints = generateSetFrom(characters.setSize) {
 			fromInt(charactersIterator.next().codePoint)
 		}
 		assert(!charactersIterator.hasNext())
-		return enumerationWith(codePoints)
+		return restrictionForType(enumerationWith(codePoints))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

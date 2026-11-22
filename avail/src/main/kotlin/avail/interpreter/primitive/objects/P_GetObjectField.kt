@@ -62,6 +62,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
@@ -92,16 +93,16 @@ object P_GetObjectField : Primitive2(CanInline), Foldable
 		}
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (objectType, fieldType) = argumentTypes
 
 		if (objectType.isBottom)
 		{
-			return bottom
+			return restrictionForType(bottom)
 		}
 		val fieldTypeMap = objectType.fieldTypeMap
 		if (fieldType.isEnumeration)
@@ -111,12 +112,12 @@ object P_GetObjectField : Primitive2(CanInline), Foldable
 			{
 				val newType = fieldTypeMap.mapAtOrNull(possibleField) ?:
 					// Unknown field, so the type could be anything.
-					return ANY()
+					return restrictionForType(ANY())
 				union = union.typeUnion(newType)
 			}
-			return union
+			return restrictionForType(union)
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

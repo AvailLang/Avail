@@ -58,6 +58,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.PrimitiveN
 
@@ -100,10 +102,10 @@ object P_CreateLiteralToken : PrimitiveN(
 			generatingPhrase)
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val valueType = argumentTypes[0]
 		//val lexemeType = argumentTypes[1]
@@ -111,7 +113,7 @@ object P_CreateLiteralToken : PrimitiveN(
 		//val lineType = argumentTypes[3]
 		//val optionalGeneratingPhraseType = argumentTypes[4]
 
-		return literalTokenType(valueType)
+		return restrictionForType(literalTokenType(valueType))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

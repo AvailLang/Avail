@@ -52,6 +52,7 @@ import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACE
 import avail.exceptions.VariableGetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -92,14 +93,14 @@ object P_GetClearing : Primitive1(
 				mostGeneralVariableType),
 			ANY())
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val varType = argumentTypes[0]
 		val readType = varType.readType
-		return if (readType.isTop) ANY() else readType
+		return restrictionForType(if (readType.isTop) ANY() else readType)
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

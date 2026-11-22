@@ -59,6 +59,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Xor
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -90,11 +92,11 @@ object P_BitwiseXor : Primitive2(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers, integers), integers)
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type
+	): TypeRestriction
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -131,15 +133,16 @@ object P_BitwiseXor : Primitive2(CannotFail, CanInline), Foldable
 			val max = (1L shl (64 - minLead)) - 1
 			val low = if (canBeNegative) max.inv() else 0
 			val high = if (canBePositive) max else -1
-			return inclusive(low, high)
+			return restrictionForType(inclusive(low, high))
 		}
 		// Fall back on figuring out whether to reply (-∞..0), [0..∞), or the
 		// union of the two.
-		return integerRangeType(
-			if (canBeNegative) negativeInfinity else negativeOne,
-			false,
-			if (canBePositive) positiveInfinity else zero,
-			false)
+		return restrictionForType(
+			integerRangeType(
+				if (canBeNegative) negativeInfinity else negativeOne,
+				false,
+				if (canBePositive) positiveInfinity else zero,
+				false))
 	}
 
 	override fun L2GeneratorInterface.emitTransformedInfalliblePrimitive(
@@ -177,7 +180,7 @@ object P_BitwiseXor : Primitive2(CannotFail, CanInline), Foldable
 			argumentTypes,
 			callSiteHelper,
 			typeGuaranteeFunction = { restrictedArgTypes ->
-				guaranteedType(rawFunction, restrictedArgTypes)
+				guaranteedRestriction(rawFunction, restrictedArgTypes).type
 			},
 			fallbackBody = {
 				generateGeneralFunctionInvocation(

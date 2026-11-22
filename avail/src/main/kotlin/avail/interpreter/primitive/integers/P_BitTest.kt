@@ -64,6 +64,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.NumericComparator.Equal
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP
@@ -107,10 +108,10 @@ object P_BitTest : Primitive2(CannotFail, CanInline), Foldable
 		return objectFromBoolean(a.bitTest(bLong))
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -119,7 +120,7 @@ object P_BitTest : Primitive2(CannotFail, CanInline), Foldable
 		{
 			// It can be either arbitrarily large or arbitrarily small, or both.
 			// Therefore, the bit position at *any* finite index will vary.
-			return booleanType
+			return restrictionForType(booleanType)
 		}
 		// If the integer's bounds look the same at and to the left of the
 		// lowest potentially tested bit, then we know the range won't have
@@ -147,15 +148,18 @@ object P_BitTest : Primitive2(CannotFail, CanInline), Foldable
 					else limit
 				for (i in 1L .. min(maxShiftedBitLong, limit))
 				{
-					if (shiftedLow.bitTest(i) != firstBit) return booleanType
+					if (shiftedLow.bitTest(i) != firstBit)
+					{
+						return restrictionForType(booleanType)
+					}
 				}
 			}
 			// The potentially addressed bits of `a` all have the same value.
-			return if (firstBit) trueType else falseType
+			return restrictionForType(if (firstBit) trueType else falseType)
 		}
 		// Counting up from the low integer to the high integer had to cause the
 		// low potentially accessed bit to change at least once.
-		return booleanType
+		return restrictionForType(booleanType)
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(

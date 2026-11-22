@@ -220,8 +220,8 @@ private constructor(
 		}
 		if (argumentRestrictions.any { it.isImpossible })
 			return TypeRestriction.bottomRestriction
-		return result.restriction().intersectionWithType(
-			primitive.constant.guaranteedType(
+		return result.restriction().intersection(
+			primitive.constant.guaranteedRestriction(
 				rawFunctionOrNull,
 				argumentRestrictions.map(TypeRestriction::type)))
 	}

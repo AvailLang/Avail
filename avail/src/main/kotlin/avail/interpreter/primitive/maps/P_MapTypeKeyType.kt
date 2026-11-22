@@ -45,6 +45,8 @@ import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.TypeDescriptor
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -64,19 +66,20 @@ object P_MapTypeKeyType : Primitive1(CannotFail, CanInline), Foldable
 		return mapType.keyType
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val mapMetaType = argumentTypes[0]
 		if (mapMetaType.isInstanceMeta)
 		{
 			// The argument is exactly one known map type, so the answer is
 			// exactly its key type.
-			return instanceMeta(mapMetaType.instance.keyType)
+			return restrictionForType(
+				instanceMeta(mapMetaType.instance.keyType))
 		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

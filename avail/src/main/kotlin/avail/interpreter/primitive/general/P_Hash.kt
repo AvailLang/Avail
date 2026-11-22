@@ -46,6 +46,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -67,20 +69,22 @@ object P_Hash : Primitive1(CannotFail, CanInline), Foldable
 		return fromInt(value.hash())
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].run {
-		when
-		{
-			// Well-behaved enumerations produce a tight bound for the hash
-			// values, by asking the instances for their hash values.
-			isEnumeration && (!isInstanceMeta || equals(bottomMeta)) ->
-				enumerationWith(
-					setFromCollection(instances.map { fromInt(it.hash()) }))
-			else -> i32
-		}
+	): TypeRestriction = argumentTypes[0].run {
+		restrictionForType(
+			when
+			{
+				// Well-behaved enumerations produce a tight bound for the hash
+				// values, by asking the instances for their hash values.
+				isEnumeration && (!isInstanceMeta || equals(bottomMeta)) ->
+					enumerationWith(
+						setFromCollection(
+							instances.map { fromInt(it.hash()) }))
+				else -> i32
+			})
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

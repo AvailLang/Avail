@@ -104,8 +104,7 @@ class L2_ADD_INT_TO_INT(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		val outputRange = P_Addition.guaranteedType(
-			null, listOf(augend.type, addend.type))
+		val outputRange = P_Addition.binaryBound(augend.type, addend.type)
 		if (outputRange.isSubtypeOf(i64))
 		{
 			// It can't overflow, so use the unchecked addition.

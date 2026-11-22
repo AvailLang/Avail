@@ -58,6 +58,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import avail.interpreter.primitive.Foldable
@@ -87,10 +88,10 @@ object P_TupleToSet : Primitive1(CannotFail, CanInline), Foldable
 				mostGeneralTupleType),
 			mostGeneralSetType())
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val tupleType = argumentTypes[0]
 
@@ -115,7 +116,8 @@ object P_TupleToSet : Primitive1(CannotFail, CanInline), Foldable
 			true,
 			tupleSizes.upperBound,
 			tupleSizes.upperInclusive)
-		return setTypeForSizesContentType(setSizes, unionType)
+		return restrictionForType(
+			setTypeForSizesContentType(setSizes, unionType))
 	}
 
 	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
@@ -146,10 +148,9 @@ object P_TupleToSet : Primitive1(CannotFail, CanInline), Foldable
 
 		// Create the set directly from the values.  This may turn the tuple
 		// creation instruction into dead code.
-		val restriction = guaranteedType(rawFunction, argumentTypes)
+		val restriction = guaranteedRestriction(rawFunction, argumentTypes)
 		val semanticResult = semanticInvocation(tupleReg.semanticValue())
-		val write = boxedWrite(
-			semanticResult, restrictionForType(restriction))
+		val write = boxedWrite(semanticResult, restriction)
 		+L2_CREATE_SET(L2ReadBoxedVectorOperand(elementRegs), write)
 		callSiteHelper.useAnswer(readBoxed(write))
 		return true

@@ -67,6 +67,7 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.StateOfL1
@@ -154,12 +155,18 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		return CallSiteCanFail
 	}
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (functionType, argTupleType) = argumentTypes
+		// Either the invoked function returns, or this primitive fails.
+		val fallBack by lazy {
+			restrictionForType(
+				functionType.returnType.typeUnion(
+					rawFunction!!.returnTypeIfPrimitiveFails))
+		}
 		val paramsType = functionType.argsTupleType
 		val argCountRange = argTupleType.sizeRange
 		val argCount = argCountRange.upperBound
@@ -169,8 +176,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		{
 			// The arguments that will be supplied to the inner function might
 			// not have the right count, or might have the wrong types.
-			return functionType.returnType.typeUnion(
-				rawFunction!!.returnTypeIfPrimitiveFails)
+			return fallBack
 		}
 		// The argument types are hereby guaranteed to be compatible. Therefore
 		// the invoke itself will succeed, so we can rely on the invoked
@@ -179,8 +185,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		if (!functionType.instanceCount.equalsInt(1))
 		{
 			// The exact function being invoked isn't known.
-			return functionType.returnType.typeUnion(
-				rawFunction!!.returnTypeIfPrimitiveFails)
+			return fallBack
 		}
 		// The actual function being invoked is known.
 		val function = functionType.instance
@@ -189,8 +194,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		if (primitive === null)
 		{
 			// The function being invoked isn't a primitive, so fall back.
-			return functionType.returnType.typeUnion(
-				rawFunction!!.returnTypeIfPrimitiveFails)
+			return fallBack
 		}
 		// The function being invoked is itself a primitive. Dig deeper to find
 		// out whether that primitive would itself always succeed, and if so,
@@ -201,8 +205,7 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		{
 			// The invocation of the inner function might not have the
 			// right number of arguments. Fall back.
-			return functionType.returnType.typeUnion(
-				rawFunction!!.returnTypeIfPrimitiveFails)
+			return fallBack
 		}
 		val innerArgTypes = (1 .. primArgCount).map {
 			argTupleType.typeAtIndex(it)
@@ -213,17 +216,17 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 			CallSiteCannotFail ->
 			{
 				// The inner invocation of the primitive function will always
-				// succeed. Ask the primitive what type it guarantees to return.
-				primitive.guaranteedType(code, innerArgTypes)
+				// succeed. Ask the primitive what it guarantees to return.
+				primitive.guaranteedRestriction(code, innerArgTypes)
 			}
 			CallSiteMustFail ->
 			{
-				code.returnTypeIfPrimitiveFails
+				restrictionForType(code.returnTypeIfPrimitiveFails)
 			}
 			else ->
 			{
-				code.returnTypeIfPrimitiveFails.typeUnion(
-					primitive.guaranteedType(code, innerArgTypes))
+				restrictionForType(code.returnTypeIfPrimitiveFails).union(
+					primitive.guaranteedRestriction(code, innerArgTypes))
 			}
 		}
 	}

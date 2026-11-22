@@ -1,5 +1,5 @@
 /*
- * GuaranteedTypeTest.kt
+ * GuaranteedRestrictionTest.kt
  * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -36,6 +36,9 @@ import avail.AvailThread
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_Number.Companion.lessThan
+import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instanceCount
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -48,10 +51,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.doubles.P_DoubleToLongBits
 import avail.interpreter.primitive.functions.P_ParamsType
+import avail.interpreter.primitive.general.P_ExtractTagOrdinal
 import avail.interpreter.primitive.integers.P_BitShiftWithTruncation
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.interpreter.primitive.numbers.P_Division
@@ -67,14 +72,15 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 
 /**
- * Tests of [Primitive.guaranteedType], which narrows a foldable primitive's
- * guaranteed result type to the enumeration of its results when every
- * argument type is a small enumeration.
+ * Tests of [Primitive.guaranteedRestriction], which narrows a foldable
+ * primitive's guaranteed result to the enumeration of its results when every
+ * argument type is a small enumeration, and of restrictions that a type alone
+ * could not express.
  *
  * Folding runs the primitive, which needs the current [Interpreter], so each
  * test that expects narrowing runs its computation on an [AvailThread].
  */
-class GuaranteedTypeTest
+class GuaranteedRestrictionTest
 {
 	/** The helper that supplies the runtime whose threads fold primitives. */
 	private lateinit var helper: OptimizerTestHelper
@@ -151,14 +157,14 @@ class GuaranteedTypeTest
 	{
 		val doubles = enumerationWith(set(fromDouble(1.0), fromDouble(-0.5)))
 		val guaranteed = onAvailThread {
-			P_DoubleToLongBits.guaranteedType(null, listOf(doubles))
+			P_DoubleToLongBits.guaranteedRestriction(null, listOf(doubles))
 		}
 		assertEquals(
 			enumerationWith(
 				set(
 					fromLong(1.0.toRawBits()),
 					fromLong((-0.5).toRawBits()))),
-			guaranteed)
+			guaranteed.type)
 	}
 
 	/**
@@ -170,9 +176,9 @@ class GuaranteedTypeTest
 	{
 		assertNull(Interpreter.currentOrNull())
 		val doubles = enumerationWith(set(fromDouble(1.0), fromDouble(-0.5)))
-		assertEquals(
-			i64,
-			P_DoubleToLongBits.guaranteedType(null, listOf(doubles)))
+		val guaranteed =
+			P_DoubleToLongBits.guaranteedRestriction(null, listOf(doubles))
+		assertEquals(i64, guaranteed.type)
 	}
 
 	/**
@@ -185,13 +191,13 @@ class GuaranteedTypeTest
 	fun failingCombinationsAreExcluded()
 	{
 		val guaranteed = onAvailThread {
-			P_Division.guaranteedType(
+			P_Division.guaranteedRestriction(
 				null,
 				listOf(
 					intEnumeration(listOf(6)),
 					intEnumeration(listOf(0, 2, 4))))
 		}
-		assertEquals(intEnumeration(listOf(1, 3)), guaranteed)
+		assertEquals(intEnumeration(listOf(1, 3)), guaranteed.type)
 	}
 
 	/**
@@ -207,9 +213,9 @@ class GuaranteedTypeTest
 		assertTrue(functionMeta.isEnumeration && functionMeta.isInstanceMeta)
 		assertTrue(wider.isInstanceOf(functionMeta))
 		val guaranteed = onAvailThread {
-			P_ParamsType.guaranteedType(null, listOf(functionMeta))
+			P_ParamsType.guaranteedRestriction(null, listOf(functionMeta))
 		}
-		assertTrue(tupleTypeForTypes(ANY()).isInstanceOf(guaranteed))
+		assertTrue(tupleTypeForTypes(ANY()).isInstanceOf(guaranteed.type))
 	}
 
 	/**
@@ -227,8 +233,8 @@ class GuaranteedTypeTest
 		assertTrue(sixteens.instanceCount.equals(fromInt(16)))
 		assertTrue(moreSixteens.instanceCount.equals(fromInt(17)))
 		val (atLimit, aboveLimit) = onAvailThread {
-			P_Addition.guaranteedType(null, listOf(units, sixteens)) to
-				P_Addition.guaranteedType(null, listOf(units, moreSixteens))
+			P_Addition.binaryBound(units, sixteens) to
+				P_Addition.binaryBound(units, moreSixteens)
 		}
 		assertEquals(intEnumeration(0 .. 255), atLimit)
 		assertFalse(aboveLimit.isEnumeration)
@@ -243,13 +249,38 @@ class GuaranteedTypeTest
 	fun threeArgumentFoldNarrows()
 	{
 		val guaranteed = onAvailThread {
-			P_BitShiftWithTruncation.guaranteedType(
+			P_BitShiftWithTruncation.guaranteedRestriction(
 				null,
 				listOf(
 					intEnumeration(listOf(1, 3)),
 					intEnumeration(listOf(0, 4)),
 					intEnumeration(listOf(3))))
 		}
-		assertEquals(intEnumeration(listOf(0, 1, 3)), guaranteed)
+		assertEquals(intEnumeration(listOf(0, 1, 3)), guaranteed.type)
+	}
+
+	/**
+	 * The tag of a value whose type is a metatype may be ⊥'s tag, since ⊥ is
+	 * an instance of every metatype, even though ⊥'s tag lies outside the
+	 * range of the metatype's instance tag.  The guarantee adds just ⊥'s tag,
+	 * not the tags between, which only a restriction can express.  A value
+	 * that can't be a type can't be ⊥, so its tags exclude ⊥'s.
+	 */
+	@Test
+	fun metatypeTagIncludesBottom()
+	{
+		val tupleType = tupleTypeForTypes(ANY())
+		val metaTags = P_ExtractTagOrdinal.guaranteedRestriction(
+			null, listOf(instanceMeta(tupleType)))
+		val bottomTag = BOTTOM_TYPE_TAG.ordinalInteger
+		val tupleTypeTag = fromInt(tupleType.typeTag.ordinal)
+		assertTrue(tupleTypeTag.lessThan(bottomTag))
+		assertTrue(metaTags.containsValue(tupleTypeTag))
+		assertTrue(metaTags.containsValue(bottomTag))
+		assertFalse(
+			metaTags.containsValue(tupleTypeTag.plusCanDestroy(one, false)))
+		val nonTypeTags = P_ExtractTagOrdinal.guaranteedRestriction(
+			null, listOf(i64))
+		assertFalse(nonTypeTags.containsValue(bottomTag))
 	}
 }

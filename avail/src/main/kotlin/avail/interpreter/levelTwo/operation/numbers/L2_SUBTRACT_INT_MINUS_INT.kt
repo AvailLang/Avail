@@ -124,8 +124,8 @@ class L2_SUBTRACT_INT_MINUS_INT(
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		val outputRange = P_Subtraction.guaranteedType(
-			null, listOf(minuend.type, subtrahend.type))
+		val outputRange =
+			P_Subtraction.binaryBound(minuend.type, subtrahend.type)
 		if (outputRange.isSubtypeOf(i64))
 		{
 			// It can't overflow, so use the unchecked subtraction.

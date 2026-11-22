@@ -51,6 +51,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
@@ -77,10 +79,10 @@ object P_SetUnion : Primitive2(CannotFail, CanInline), Foldable
 				mostGeneralSetType()),
 			mostGeneralSetType())
 
-	context(_: GuaranteeContext)
-	override fun returnTypeGuaranteedByVM(
+	context(_: Protected)
+	override fun restrictionGuaranteedByVM(
 		rawFunction: A_RawFunction?,
-		argumentTypes: List<A_Type>): A_Type
+		argumentTypes: List<A_Type>): TypeRestriction
 	{
 		val (setType1, setType2) = argumentTypes
 
@@ -105,6 +107,6 @@ object P_SetUnion : Primitive2(CannotFail, CanInline), Foldable
 			minSize, true, maxSize.plusCanDestroy(one, false), false)
 		val unionType = setTypeForSizesContentType(
 			unionSize, setType1.contentType.typeUnion(setType2.contentType))
-		return unionType.makeImmutable()
+		return restrictionForType(unionType.makeImmutable())
 	}
 }
