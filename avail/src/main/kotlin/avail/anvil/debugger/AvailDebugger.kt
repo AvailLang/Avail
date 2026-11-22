@@ -98,6 +98,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import avail.descriptor.types.LabelTypeDescriptor.Companion.mostGeneralLabelType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -304,6 +305,8 @@ class AvailDebugger internal constructor (
 			value.isCharacter -> value.toString()
 			value.isInstanceOf(mostGeneralVariableType) ->
 				"var(${stringIfSimple(value.getValueForDebugger(), depth + 1)})"
+			// A label prints as "label for <method>", naming its invocation.
+			value.isInstanceOf(mostGeneralLabelType) -> value.toString()
 			!value.isType -> "(${value.typeTag.shorterName})"
 			value.isTop -> value.toString()
 			value.isBottom -> value.toString()

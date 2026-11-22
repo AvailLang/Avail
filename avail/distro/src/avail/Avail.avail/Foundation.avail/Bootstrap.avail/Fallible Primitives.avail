@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/20/26, 12:04 AM
+ * * Last Generated: 11/21/26, 6:52 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -48,7 +48,6 @@ Uses
 	"Special Objects",
 	"Primitives" =
 	(
-		"$_@pc=_stack=_[_]caller=_",
 		"Abstract method_is_",
 		"After the current module is loaded,⁇do_",
 		"After the current module is unloaded,⁇do_",
@@ -570,48 +569,6 @@ Primitive "_→function" is
 		block-compilation-failed code}ᵀ);
 	Failed primitive with failureCode
 ] : function;
-
-/**
- * Construct and answer a continuation whose current function, Level One
- * program counter, local stack, local stack pointer, and calling continuation
- * are specified by the arguments.
- *
- * @category "Primitives" "Continuations" "Constructors"
- * @method "$_@pc=_stack=_[_]caller=_"
- * @param "aFunction" "[…]→⊤"
- *        The new continuation's current function.
- * @param "programCounter" "𝕎"
- *        @param "aFunction"'s program counter. This is the index of the
- *        next Level One instruction to execute when the new continuation is
- *        resumed.
- * @param "stack" "tuple"
- *        @param "aFunction"'s stack. This tuple contains the arguments, local
- *        variables, and temporaries.
- * @param "stackPointer" "ℕ"
- *        @param "aFunction"'s stack pointer. This is the index of the
- *        top of the stack.
- * @param "caller" "↑continuation"
- *        A variable holding the new continuation's calling continuation.
- *        If the variable is unassigned, then create a root continuation (i.e.,
- *        one without a caller).
- * @returns "continuation"
- *    The requested continuation.
- * @raises "incorrect-continuation-stack-size code"
- * @raises "cannot-create-continuation-for-infallible-primitive-function code"
- */
-Primitive "$_@pc=_stack=_[_]caller=_" is
-[
-	aFunction : function,
-	programCounter : whole number,
-	stack : tuple,
-	stackPointer : natural number,
-	caller : continuation variable
-|
-	Primitive CreateContinuation (failureCode : {
-		incorrect-continuation-stack-size code,
-		cannot-create-continuation-for-infallible-primitive-function code}ᵀ);
-	Failed primitive with failureCode
-] : continuation;
 
 /**
  * If the provided boolean is true, exit the label and answer the specified

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/20/26, 12:04 AM
+ * * Last Generated: 11/21/26, 6:52 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -46,7 +46,6 @@ Uses
 	"Origin"
 Names
 	"$_",
-	"$_@pc=_stack=_[_]caller=_",
 	"<_,_`…`|_>",
 	"Abstract method_is_",
 	"After the current module is loaded,⁇do_",

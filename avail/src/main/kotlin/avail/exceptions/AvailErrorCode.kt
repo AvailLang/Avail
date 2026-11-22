@@ -436,11 +436,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	// E_?? (60)
 
-	/**
-	 * A continuation was being constructed, but the wrong number of stack slots
-	 * was provided for the given function.
-	 */
-	E_INCORRECT_CONTINUATION_STACK_SIZE(61),
+	// E_?? (61)
 
 	/**
 	 * The module is currently in a setPhase where it's compiling (or loading)
@@ -535,12 +531,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_INCONSISTENT_PREFIX_FUNCTION(75),
 
-	/**
-	 * The VM does not normally instantiate continuations for infallible
-	 * primitive functions, so for conceptual consistency such continuations are
-	 * disallowed.
-	 */
-	E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION(76),
+	// E_?? (76)
 
 	/**
 	 * An attempt to transition the current [fiber][FiberDescriptor]'s trace
