@@ -1112,6 +1112,8 @@ constructor(
 					// the manifest from the jump edge.
 					predecessorBlock.debugNote.appendLine(
 						"Eliding jump to ${block.name()}")
+					// Keep what was noted about the elided block.
+					predecessorBlock.debugNote.append(block.debugNote)
 					currentManifest =
 						L2ValueManifest(predecessorEdge.manifest())
 					predecessorBlock.instructions().removeAt(
@@ -1581,7 +1583,10 @@ constructor(
 			contingentValues.setWithElementCanDestroy(contingentValue, true)
 	}
 
-	override fun createChunk(code: A_RawFunction): L2Chunk
+	override fun createChunk(
+		code: A_RawFunction,
+		inlinableGraph: L2ControlFlowGraph?
+	): L2Chunk
 	{
 		assert(chunk === null)
 		val instructions = mutableListOf<L2Instruction>()
@@ -1600,6 +1605,7 @@ constructor(
 			afterPrimitiveOffset,
 			instructions,
 			controlFlowGraph,
+			inlinableGraph,
 			optimizationLevel.countdown < Long.MAX_VALUE,
 			contingentValues)
 		code.setStartingChunkAndReoptimizationCountdown(

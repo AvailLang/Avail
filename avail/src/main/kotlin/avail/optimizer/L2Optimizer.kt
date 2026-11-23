@@ -38,6 +38,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
@@ -78,6 +79,7 @@ import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.jvm.CodeLoggingPathData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.reoptimizer.L2Inliner
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
@@ -133,6 +135,14 @@ class L2Optimizer internal constructor(
 
 	/** The register coloring algorithm. */
 	private var colorer: L2RegisterColorer? = null
+
+	/**
+	 * The graph as it stood at [OptimizationPhase.CAPTURE_INLINABLE_GRAPH], in
+	 * SSA form and keyed by semantic value, or `null` before that phase has
+	 * run.  The chunk keeps it as its [L2JVMChunk.inlinableGraph], so that
+	 * [L2Inliner] can embed it at a call site in another chunk.
+	 */
+	var inlinableGraph: L2ControlFlowGraph? = null
 
 	/**
 	 * Set each of the specified [StateFlag]s in the [controlFlowGraph].
@@ -226,6 +236,14 @@ class L2Optimizer internal constructor(
 		val analyzer = DeadCodeAnalyzer(dataCouplingMode, controlFlowGraph)
 		analyzer.analyzeReads()
 		val liveInstructions = analyzer.liveInstructions
+		// Values that only circulate through phis, moves, and strips are
+		// dropped from the instructions that shuffle or capture them.
+		val shuffledOnly = when
+		{
+			dataCouplingMode.considersRegisters ->
+				analyzer.shuffledOnlyRegisters()
+			else -> emptySet()
+		}
 		regenerateGraph(
 			mode = BySemanticValue,
 			isRemovingDeadCode = true,
@@ -233,7 +251,8 @@ class L2Optimizer internal constructor(
 		) { sourceInstruction ->
 			if (sourceInstruction in liveInstructions)
 			{
-				addInstruction(basicTransformInstruction(sourceInstruction))
+				sourceInstruction.withoutShuffledOnlyValues(shuffledOnly)
+					?.let { addInstruction(basicTransformInstruction(it)) }
 			}
 			else
 			{
@@ -649,6 +668,8 @@ class L2Optimizer internal constructor(
 	 *   present, it should not be split.
 	 * @param transformer
 	 *   What to do with each [L2Instruction] encountered in the old graph.
+	 * @return
+	 *   The old graph, which regeneration reads but leaves unchanged.
 	 */
 	private fun regenerateGraph(
 		mode: GenerationMode,
@@ -656,7 +677,8 @@ class L2Optimizer internal constructor(
 		collapseUnconditionalJumps: Boolean = true,
 		interestingConditionsByOldBlock:
 			Map<L2BasicBlock, Set<L2SplitCondition>> = emptyMap(),
-		transformer: L2Regenerator.(L2Instruction)->Unit)
+		transformer: L2Regenerator.(L2Instruction)->Unit
+	): L2ControlFlowGraph
 	{
 		// Use an L2Regenerator to do the substitution.  First empty the CFG
 		// into oldGraph, then scan oldGraph to regenerate (with substitutions)
@@ -713,6 +735,31 @@ class L2Optimizer internal constructor(
 		generator.specialBlocks.clear()
 		regenerator.processSourceGraph(
 			oldGraph, interestingConditionsByOldBlock)
+		return oldGraph
+	}
+
+	/**
+	 * Keep the current graph as the [inlinableGraph].  Regenerating the graph
+	 * moves its blocks into a new graph that nothing else touches, and
+	 * rebuilds an equivalent graph for the remaining phases to transform, so
+	 * the kept graph stays as it was at this phase.
+	 */
+	fun captureInlinableGraph()
+	{
+		inlinableGraph = regenerateGraph(
+			mode = BySemanticValue,
+			collapseUnconditionalJumps = true)
+		{ sourceInstruction ->
+			with(sourceInstruction) {
+				if (populateFromSourceInstructionIfPossible())
+					return@regenerateGraph
+			}
+			basicTransformInstruction(sourceInstruction)
+				.cloneFor(generator)
+				.run {
+					emitTransformedInstruction()
+				}
+		}
 	}
 
 	/**
@@ -1107,6 +1154,16 @@ class L2Optimizer internal constructor(
 				if (!knowsEverything) continue
 				changed = true
 				inEdge.switchTargetBlockNonSSA(jumpTarget, isBackward)
+				if (isBackward)
+				{
+					// The edge now closes a loop in place of the jump's back
+					// edge, so it carries what that edge kept, which is what
+					// liveness analysis starts from along a back edge.
+					inEdge.forcedClampedRegisters =
+						jumpEdge.forcedClampedRegisters
+					inEdge.forcedClampedSemanticValues =
+						jumpEdge.forcedClampedSemanticValues
+				}
 			}
 			if (block.predecessorEdges().isEmpty() && !block.isIrremovable)
 			{

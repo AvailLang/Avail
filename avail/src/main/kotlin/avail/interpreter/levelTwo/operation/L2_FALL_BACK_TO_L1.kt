@@ -36,12 +36,13 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.fallBackToL1Method
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Inliner
 import org.objectweb.asm.Opcodes
 
 /**
@@ -56,14 +57,24 @@ import org.objectweb.asm.Opcodes
  * reify when the [DefaultL1Chunk] says to, so all should continue to work as
  * expected.
  *
- * Note that it implicitly uses the [Interpreter.function] and
- * [Interpreter.theReifiedContinuation].
+ * Note that it implicitly uses the [Interpreter.theReifiedContinuation].  The
+ * frame's [function] is read explicitly, since the frame may be one embedded
+ * by [L2Inliner], not the chunk's own.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property function
+ *   The function whose frame continues running in L1.
+ * @property pc
+ *   The L1 program counter at which to continue.
+ * @property stackp
+ *   The L1 stack pointer at which to continue.
+ * @property frameValues
+ *   The values of the frame's slots.
  */
-@ReadsHiddenVariable(CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_FUNCTION::class)
 class L2_FALL_BACK_TO_L1(
+	var function: L2ReadBoxedOperand,
 	var pc: L2IntImmediateOperand,
 	var stackp: L2IntImmediateOperand,
 	var frameValues: L2ReadBoxedVectorOperand
@@ -80,6 +91,7 @@ class L2_FALL_BACK_TO_L1(
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
+		append(" function: ${function.registerString()},")
 		append(" pc: ${pc.value}, stackp: ${stackp.value},")
 		append("\n\tframe data:")
 		frameValues.elements.joinTo(this) { "\n\t\t" + it.registerString() }
@@ -89,14 +101,16 @@ class L2_FALL_BACK_TO_L1(
 	{
 		loadInterpreter()
 		// :: interpreter
+		load(function)
+		// :: interpreter, function
 		intConstant(pc.intValue)
-		// :: interpreter, pc
+		// :: interpreter, function, pc
 		intConstant(stackp.intValue)
-		// :: interpreter, pc, stackp
+		// :: interpreter, function, pc, stackp
 		objectArray(
 			frameValues.elements,
 			A_BasicObject::class.java)
-		// :: interpreter, pc, stackp, frameValues
+		// :: interpreter, function, pc, stackp, frameValues
 		generateCall(fallBackToL1Method)
 		// :: return value or null
 		method.visitInsn(Opcodes.ARETURN)

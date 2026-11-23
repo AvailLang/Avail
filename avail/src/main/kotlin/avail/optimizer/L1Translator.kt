@@ -203,6 +203,7 @@ import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.START
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.reoptimizer.L2Inliner
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
@@ -561,10 +562,19 @@ class L1Translator private constructor(
 	 * afterward.
 	 */
 	private val currentFunction: L2ReadBoxedOperand
-		get() = generator.currentFunction(
-			topFrame,
-			exactFunctionOrNull,
-			code.functionType())
+		get() = exactFunctionOrNull?.let(::boxedConstant)
+			?: readBoxed(topFrame.function())
+
+	/**
+	 * Answer a fresh write of the top frame's function, as captured on entry
+	 * by [L2_ENTER_L2_CHUNK_FOR_CALL] and carried across restarts by each
+	 * [L2_STRIP_MANIFEST].
+	 *
+	 * @return
+	 *   The [L2WriteBoxedOperand] for the function.
+	 */
+	private fun functionWrite(): L2WriteBoxedOperand = boxedWrite(
+		topFrame.function(), restrictionForType(code.functionType()))
 
 	/**
 	 * Write instructions to extract a numbered outer from the current function,
@@ -806,10 +816,12 @@ class L1Translator private constructor(
 		val tempWrites = indices.map { i ->
 			boxedWrite(temps[i], restrictions[i])
 		}
-		// For safety, first copy the arguments into temps.
+		// For safety, first copy the arguments into temps.  The function
+		// passes through both strips unchanged, since a restart keeps it.
+		val function = topFrame.function()
 		+L2_STRIP_MANIFEST(
-			L2ReadBoxedVectorOperand(restartArguments),
-			L2WriteBoxedVectorOperand(tempWrites))
+			L2ReadBoxedVectorOperand(restartArguments + readBoxed(function)),
+			L2WriteBoxedVectorOperand(tempWrites + functionWrite()))
 		// Now copy from the temps into the arguments.
 		val finalSlots = indices.map { i -> createSemanticSlot(i + 1, 1) }
 		val finalWrites = indices.map { i ->
@@ -818,18 +830,21 @@ class L1Translator private constructor(
 				restrictions[i])
 		}
 		+L2_STRIP_MANIFEST(
-			L2ReadBoxedVectorOperand(tempWrites.map(::readBoxed)),
-			L2WriteBoxedVectorOperand(finalWrites))
+			L2ReadBoxedVectorOperand(
+				tempWrites.map(::readBoxed) + readBoxed(function)),
+			L2WriteBoxedVectorOperand(finalWrites + functionWrite()))
 
 		// Jump back to the RESTART_LOOP_HEAD, where only the n@1 semantic slots
-		// and registers will be live and added to the phis.
+		// and the function, and their registers, will be live and added to
+		// the phis.
 		+L2_JUMP_BACK(
 			backEdgeTo(
 				specialBlocks[RESTART_LOOP_HEAD]!!,
 				// Registers will be (re)generated from finalSlots reads.
 				emptySet(),
-				finalSlots.toSet()),
-			L2ReadBoxedVectorOperand(finalSlots.map(::readBoxed)))
+				(finalSlots + function).toSet()),
+			L2ReadBoxedVectorOperand(
+				(finalSlots + function).map(::readBoxed)))
 	}
 
 	/**
@@ -1163,6 +1178,47 @@ class L1Translator private constructor(
 		arguments: List<L2ReadBoxedOperand>,
 		willAlwaysFailPrimitive: Boolean = false)
 	{
+		// Any answer produced in place comes from this function, until the
+		// generation of some nested invocation says otherwise.
+		val outerInvokedFunction = callSiteHelper.invokedFunction
+		callSiteHelper.invokedFunction = functionToCallRead
+		try
+		{
+			generateInvocation(
+				functionToCallRead,
+				tryToGenerateSpecialPrimitiveInvocation,
+				callSiteHelper,
+				arguments,
+				willAlwaysFailPrimitive)
+		}
+		finally
+		{
+			callSiteHelper.invokedFunction = outerInvokedFunction
+		}
+	}
+
+	/**
+	 * Generate the invocation for [generateGeneralFunctionInvocation], once it
+	 * has recorded the [CallSiteHelper.invokedFunction].
+	 *
+	 * @param functionToCallRead
+	 *   The [L2ReadBoxedOperand] containing the function to invoke.
+	 * @param tryToGenerateSpecialPrimitiveInvocation
+	 *   Whether to try generating a customized sequence for a [Primitive].
+	 * @param callSiteHelper
+	 *   Information about the call being generated.
+	 * @param arguments
+	 *   The [L2ReadBoxedOperand]s that supply arguments to the function.
+	 * @param willAlwaysFailPrimitive
+	 *   Whether the primitive is known to fail.
+	 */
+	private fun generateInvocation(
+		functionToCallRead: L2ReadBoxedOperand,
+		tryToGenerateSpecialPrimitiveInvocation: Boolean,
+		callSiteHelper: CallSiteHelper,
+		arguments: List<L2ReadBoxedOperand>,
+		willAlwaysFailPrimitive: Boolean)
+	{
 		assert(functionToCallRead.type.isSubtypeOf(mostGeneralFunctionType))
 
 		// Sanity check the number of arguments against the function.  The
@@ -1313,7 +1369,20 @@ class L1Translator private constructor(
 		}
 		else
 		{
-			// Exact function was unknown, or it wasn't a primitive.
+			// Exact function was unknown, or it wasn't a primitive.  If it's
+			// known, try to embed its code here instead of calling it.
+			if (rawFunction !== null
+				&& optimizationLevel.inlinesCallees
+				&& L2Inliner.tryToInline(
+					this,
+					rawFunction,
+					functionToCallRead,
+					arguments,
+					callSiteHelper))
+			{
+				assert(!currentlyReachable())
+				return
+			}
 			guaranteedResultType = functionToCallRead.type.returnType
 		}
 
@@ -1371,9 +1440,15 @@ class L1Translator private constructor(
 		startBlock(successBlock)
 		if (currentlyReachable())
 		{
-			jumpTo(
-				if (skipCheck) callSiteHelper[AfterEverything]
-				else callSiteHelper[AfterCallWithCheck])
+			if (skipCheck)
+			{
+				jumpTo(callSiteHelper[AfterEverything])
+			}
+			else
+			{
+				callSiteHelper.captureReturningFunction()
+				jumpTo(callSiteHelper[AfterCallWithCheck])
+			}
 			assert(!currentlyReachable())
 		}
 	}
@@ -1395,8 +1470,13 @@ class L1Translator private constructor(
 	 *
 	 * @param expectedType
 	 *   The [A_Type] to check the value against.
+	 * @param returningFunction
+	 *   The [L2SemanticValue] of the function that produced the value, for
+	 *   reporting a failed check (see [CallSiteHelper.returningFunction]).
 	 */
-	fun generateReturnTypeCheck(expectedType: A_Type)
+	fun generateReturnTypeCheck(
+		expectedType: A_Type,
+		returningFunction: L2SemanticValue)
 	{
 		// The unchecked return value is associated with the nybble just before
 		// the instruction after the call (which takes at least three nybbles).
@@ -1444,6 +1524,8 @@ class L1Translator private constructor(
 			// emitting a dead end.
 			val oldSlots = semanticSlots.clone()
 			+L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
+				currentFunction,
+				readBoxed(returningFunction),
 				uncheckedValueRead,
 				L2ConstantOperand(expectedType),
 				L2IntImmediateOperand(pc),
@@ -1457,7 +1539,8 @@ class L1Translator private constructor(
 							stackp -> boxedConstant(expectedType)
 							else -> readSlot(it)
 						}
-					}))
+					}),
+				L2PcVectorOperand(emptyList()))
 			// Restore the semantic slots so the success path is unaffected.
 			System.arraycopy(oldSlots, 0, semanticSlots, 0, oldSlots.size)
 		}
@@ -1786,6 +1869,7 @@ class L1Translator private constructor(
 				boxedConstant(nil).semanticValue()
 		}
 		+L2_FALL_BACK_TO_L1(
+			currentFunction,
 			L2IntImmediateOperand(pcOfCurrentInstruction),
 			L2IntImmediateOperand(originalStackp),
 			L2ReadBoxedVectorOperand(restoredSemanticSlots.map(::readBoxed)))
@@ -1886,6 +1970,7 @@ class L1Translator private constructor(
 
 		startBlock(failure)
 		+L2_FALL_BACK_TO_L1(
+			currentFunction,
 			L2IntImmediateOperand(pcOfCurrentInstruction),
 			L2IntImmediateOperand(stackpOfCurrentInstruction),
 			L2ReadBoxedVectorOperand(semanticSlots.map(::readBoxed)))
@@ -1969,6 +2054,7 @@ class L1Translator private constructor(
 		if (currentlyReachable())
 		{
 			+L2_FALL_BACK_TO_L1(
+				currentFunction,
 				L2IntImmediateOperand(pcOfCurrentInstruction),
 				L2IntImmediateOperand(stackpOfCurrentInstruction),
 				L2ReadBoxedVectorOperand(semanticSlots.map(::readBoxed)))
@@ -2089,6 +2175,8 @@ class L1Translator private constructor(
 		// Capture the arguments, but don't consume them, in case the
 		// decrement-and-reoptimize has to create and run a different chunk.
 		val tupleType = code.functionType().argsTupleType
+		// Capture the function as well, as the top frame's function.  Dead
+		// code elimination removes the write if nothing reads it.
 		+L2_ENTER_L2_CHUNK_FOR_CALL(
 			L2CommentOperand(
 				"If invalid, reenter «default» at the beginning."),
@@ -2097,18 +2185,22 @@ class L1Translator private constructor(
 					boxedWrite(
 						semanticSlot(i),
 						restrictionForType(tupleType.typeAtIndex(i)))
-				}))
+				}),
+			L2WriteBoxedVectorOperand(listOf(functionWrite())))
 		// Insulate the jump to the loop head, so that the original registers
 		// won't be used.  Note that the same semantic values are being written,
 		// but strip-manifest clears the whole manifest before adding them, so
-		// they won't interfere with the ones populated above.
+		// they won't interfere with the ones populated above.  The function
+		// passes through as well, since it doesn't change across restarts.
 		+L2_STRIP_MANIFEST(
-			L2ReadBoxedVectorOperand((1..numArgs).map(::readSlot)),
-			L2WriteBoxedVectorOperand((1..numArgs).map { i ->
-				boxedWrite(
-					semanticSlot(i),
-					restrictionForType(tupleType.typeAtIndex(i)))
-			}))
+			L2ReadBoxedVectorOperand(
+				(1..numArgs).map(::readSlot) + readBoxed(topFrame.function())),
+			L2WriteBoxedVectorOperand(
+				(1..numArgs).map { i ->
+					boxedWrite(
+						semanticSlot(i),
+						restrictionForType(tupleType.typeAtIndex(i)))
+				} + functionWrite()))
 
 		// Do any reoptimization before capturing arguments.
 		val optimization = optimizationLevel
@@ -2228,7 +2320,7 @@ class L1Translator private constructor(
 		val optimizer = L2Optimizer(generator, code)
 		optimizer.optimize(interpreter)
 		val beforeChunkGeneration = AvailRuntimeSupport.captureNanos()
-		val chunk = createChunk(code)
+		val chunk = createChunk(code, optimizer.inlinableGraph)
 		optimizer.postOptimizationCleanup()  // Remove to debug.
 
 		L2Generator.finalGenerationStat.record(
@@ -2348,6 +2440,7 @@ class L1Translator private constructor(
 			if (currentlyReachable())
 			{
 				+L2_FALL_BACK_TO_L1(
+					currentFunction,
 					L2IntImmediateOperand(pcOfCurrentInstruction),
 					L2IntImmediateOperand(stackpOfCurrentInstruction),
 					L2ReadBoxedVectorOperand(semanticSlots.map(::readBoxed)))

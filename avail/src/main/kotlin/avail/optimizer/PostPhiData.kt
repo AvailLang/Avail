@@ -37,6 +37,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticValue
 
 /**
@@ -128,6 +129,23 @@ constructor(
 	 */
 	val L2ReadOperand<*>.constantOrNull: AvailObject?
 		get() = semanticValue().constant ?: restriction.constantOrNull
+
+	/**
+	 * Answer the same data with each [L2SemanticValue] replaced through the
+	 * given transformation, as when a callee's graph is embedded in a caller's
+	 * under another [Frame].
+	 *
+	 * @param semanticValueTransformer
+	 *   How to transform each [L2SemanticValue].
+	 * @return
+	 *   The transformed [PostPhiData].
+	 */
+	fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue
+	): PostPhiData = PostPhiData(
+		restrictionsBySynonym.entries.associate { (synonym, restriction) ->
+			synonym.transform(semanticValueTransformer) to restriction
+		})
 
 	/**
 	 * Describe the data one synonym per line, each followed by its

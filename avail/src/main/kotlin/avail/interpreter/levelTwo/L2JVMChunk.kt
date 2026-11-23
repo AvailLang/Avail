@@ -43,8 +43,10 @@ import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.module
 import avail.descriptor.representation.A_Set
 import avail.optimizer.L2ControlFlowGraph
+import avail.optimizer.OptimizationPhase
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Inliner
 
 /**
  * A Level Two chunk represents an optimized implementation of a
@@ -79,6 +81,11 @@ import avail.optimizer.jvm.JVMTranslator
  * @property controlFlowGraph
  *   The optimized, non-SSA [L2ControlFlowGraph] from which the chunk was
  *   created.  Useful for debugging.
+ * @property inlinableGraph
+ *   The [L2ControlFlowGraph] as it stood at
+ *   [OptimizationPhase.CAPTURE_INLINABLE_GRAPH], in SSA form and keyed by
+ *   semantic value, for [L2Inliner] to embed at a call site in another chunk,
+ *   or `null` if none was captured.
  * @property contingentValues
  *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
  *   depends. If one of these changes significantly, this chunk must be
@@ -98,8 +105,8 @@ import avail.optimizer.jvm.JVMTranslator
  *   The instructions to execute.
  * @param controlFlowGraph
  *   The optimized, non-SSA [L2ControlFlowGraph].  Useful for debugging.
- *   Eventually we'll want to capture a copy of the graph prior to conversion
- *   from SSA to support inlining.
+ * @param inlinableGraph
+ *   The SSA [L2ControlFlowGraph] for [L2Inliner] to embed, or `null`.
  * @param contingentValues
  *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
  *   depends. If one of these changes significantly, this chunk must be
@@ -113,6 +120,7 @@ constructor(
 	offsetAfterInitialTryPrimitive: Int,
 	override val instructions: List<L2Instruction>,
 	val controlFlowGraph: L2ControlFlowGraph,
+	val inlinableGraph: L2ControlFlowGraph?,
 	contingentValues: A_Set,
 	override val executableChunk: JVMChunk
 ) : L2Chunk(code, offsetAfterInitialTryPrimitive, contingentValues)
@@ -166,8 +174,10 @@ constructor(
 		 *   level one nybblecodes.
 		 * @param controlFlowGraph
 		 *   The optimized, non-SSA [L2ControlFlowGraph].  Useful for debugging.
-		 *   Eventually we'll want to capture a copy of the graph prior to
-		 *   conversion from SSA to support inlining.
+		 * @param inlinableGraph
+		 *   The SSA [L2ControlFlowGraph] for [L2Inliner] to embed at call
+		 *   sites in other chunks, or `null` if this chunk's code should not be
+		 *   inlined.
 		 * @param trackBranches
 		 *   Whether to emit bytecodes that track directions taken by branches.
 		 * @param contingentValues
@@ -181,6 +191,7 @@ constructor(
 			offsetAfterInitialTryPrimitive: Int,
 			theInstructions: List<L2Instruction>,
 			controlFlowGraph: L2ControlFlowGraph,
+			inlinableGraph: L2ControlFlowGraph?,
 			trackBranches: Boolean,
 			contingentValues: A_Set
 		): L2JVMChunk
@@ -220,6 +231,7 @@ constructor(
 				offsetAfterInitialTryPrimitive,
 				theInstructions,
 				controlFlowGraph,
+				inlinableGraph,
 				contingentValues,
 				jvmTranslator.jvmChunk())
 			for (value in contingentValues)

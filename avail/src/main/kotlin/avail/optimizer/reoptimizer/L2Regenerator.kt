@@ -80,6 +80,7 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.fakeCondition
 import avail.optimizer.L2SplitCondition.Companion.reducedConditions
 import avail.optimizer.L2Synonym
+import avail.optimizer.PostPhiData
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
@@ -586,20 +587,28 @@ constructor(
 	 *   (old block, split set), where the split set is a subset of conditions
 	 *   to be preserved at this old block, and was actually ensured by some
 	 *   regenerated edge.
+	 * @param entryBlock
+	 *   The block of the target graph that stands for the first block of the
+	 *   [oldGraph], which the client has already jumped to, or `null` to create
+	 *   an irremovable block for it, as when the target graph is a fresh graph
+	 *   that starts there.
 	 */
 	fun processSourceGraph(
 		oldGraph: L2ControlFlowGraph,
 		interestingConditionsByOldBlock:
-			Map<L2BasicBlock, Set<L2SplitCondition>>)
+			Map<L2BasicBlock, Set<L2SplitCondition>>,
+		entryBlock: L2BasicBlock? = null)
 	{
 		val firstSourceBlock = oldGraph.basicBlockOrder[0]
-		val start = L2BasicBlock(firstSourceBlock.name())
-		start.isIrremovable = true
+		val start = entryBlock
+			?: L2BasicBlock(firstSourceBlock.name()).apply {
+				isIrremovable = true
+			}
 		oldGraph.basicBlockOrder.forEach { originalBlock ->
 			val newBlock = L2BasicBlock(
 				name = originalBlock.name(),
 				zone = originalBlock.zone,
-				isLoopHead = originalBlock.isLoopHead,
+				isLoopHead = isLoopHead(originalBlock),
 				isCold = originalBlock.isCold)
 			newBlock.debugNote.append(originalBlock.debugNote)
 			blockMap[originalBlock] = mutableMapOf(
@@ -672,9 +681,10 @@ constructor(
 						val newBlock = L2BasicBlock(
 							name = originalBlock.name() + suffix,
 							zone = originalBlock.zone,
-							isLoopHead = originalBlock.isLoopHead,
+							isLoopHead = isLoopHead(originalBlock),
 							isCold = originalBlock.isCold)
 						newBlock.isIrremovable = originalBlock.isIrremovable
+						newBlock.debugNote.append(originalBlock.debugNote)
 						newBlock
 					}
 					if (betterBlock !== incomingEdge.targetBlock())
@@ -694,7 +704,7 @@ constructor(
 						|| targetBlock.isIrremovable)
 					startBlock(targetBlock)
 					currentManifest.applyPostPhiData(
-						originalBlock.postPhiData!!)
+						postPhiDataOf(originalBlock)!!)
 					processBlock(
 						originalBlock,
 						originalBlock in impossibleBlocks)
@@ -832,7 +842,7 @@ constructor(
 		}
 		else
 		{
-			val postPhiData = originalBlock.postPhiData
+			val postPhiData = postPhiDataOf(originalBlock)
 			originalBlock.instructions().forEach {
 				if (currentlyReachable())
 				{
@@ -854,6 +864,36 @@ constructor(
 			}
 		}
 	}
+
+	/**
+	 * Answer the [PostPhiData] to replay at the top of each block regenerated
+	 * from the given block of the source graph, or `null` if it has none.  By
+	 * default this is the source block's own; a regenerator whose source graph
+	 * names its values differently from the target graph, like [L2Inliner],
+	 * translates it.
+	 *
+	 * @param sourceBlock
+	 *   The [L2BasicBlock] of the source graph.
+	 * @return
+	 *   The [PostPhiData] to replay, or `null`.
+	 */
+	open fun postPhiDataOf(sourceBlock: L2BasicBlock): PostPhiData? =
+		sourceBlock.postPhiData
+
+	/**
+	 * Answer whether the blocks regenerated from the given block of the
+	 * source graph are loop heads.  By default they are exactly when the
+	 * source block is.  A loop head merges what reaches it as though a back
+	 * edge could bring anything, so a regenerator whose source graph is known
+	 * to have no back edges, like [L2Inliner], answers `false`.
+	 *
+	 * @param sourceBlock
+	 *   The [L2BasicBlock] of the source graph.
+	 * @return
+	 *   Whether to regenerate it as a loop head.
+	 */
+	open fun isLoopHead(sourceBlock: L2BasicBlock): Boolean =
+		sourceBlock.isLoopHead
 
 	/**
 	 * Process the single instruction from the source graph, transforming it as

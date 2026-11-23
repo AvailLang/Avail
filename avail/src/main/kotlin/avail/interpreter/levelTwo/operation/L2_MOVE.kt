@@ -95,6 +95,15 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		manifest: L2ValueManifest
 	): Boolean = true
 
+	/** Drop a move whose destination is never really used. */
+	override fun withoutShuffledOnlyValues(
+		shuffledOnly: Set<L2Register<*>>
+	): L2Instruction? = when (destination.register())
+	{
+		in shuffledOnly -> null
+		else -> this
+	}
+
 	/**
 	 * The source of this move.  Subclasses further strengthen this property.
 	 */

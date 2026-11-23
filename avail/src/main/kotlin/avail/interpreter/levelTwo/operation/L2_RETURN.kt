@@ -45,6 +45,12 @@ import org.objectweb.asm.Opcodes
  * value to return will be stored in [Interpreter.setLatestResult], so the
  * caller will need to look there.
  *
+ * Record the running chunk's function as the
+ * [Interpreter.returningFunction], so that a caller whose check of the value
+ * fails can say which function produced it.  The interpreter's
+ * [function][Interpreter.function] is the running chunk's whenever its code
+ * runs, since each call restores it on return.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -77,6 +83,11 @@ class L2_RETURN(
 
 	override fun JVMTranslator.translateToJVM()
 	{
+		// :: interpreter.returningFunction = interpreter.function;
+		loadInterpreter()
+		loadInterpreter()
+		load(Interpreter.interpreterFunctionField)
+		store(Interpreter.returningFunctionField)
 		// :: return returnValue
 		load(returnValue)
 		method.visitInsn(Opcodes.ARETURN)

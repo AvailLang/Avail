@@ -42,7 +42,9 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Inliner
 
 /**
  * Extract a captured "outer" variable from a function.  If the outer
@@ -98,6 +100,41 @@ class L2_MOVE_OUTER_VARIABLE(
 			// two uses have been encountered, say for extracting two outers).
 			// Therefore the outers are also already immutable.
 			return
+		}
+	}
+
+	/**
+	 * Trace the function back to where it was made.  If it is a constant,
+	 * its outer is a constant too.  If this graph created it with an
+	 * [L2_CREATE_FUNCTION], the outer is the value that was captured, and the
+	 * function might not have to be created at all.  This is what lets a
+	 * callee embedded by [L2Inliner] read its outers straight from the
+	 * caller's values.  Otherwise, extract the outer at runtime.
+	 */
+	override fun L2GeneratorInterface.emitTransformedInstruction()
+	{
+		val index = outerIndex.intValue
+		val destinations = destination.semanticValues()
+		val constantFunction = function.constantOrNull
+		if (constantFunction !== null)
+		{
+			moveConstant(constantFunction.outerVarAt(index), destinations)
+			return
+		}
+		when (val creation = function.definitionSkippingMoves(currentManifest))
+		{
+			is L2_CREATE_FUNCTION, is L2_MOVE_CONSTANT_BOXED ->
+			{
+				val outer = creation.run {
+					extractFunctionOuter(
+						function, index, destination.restriction().type)
+				}
+				move(outer.semanticValue(), destinations)
+				currentManifest.updateRestriction(destinations.first()) {
+					intersection(destination.restriction())
+				}
+			}
+			else -> analyzeAndOptionallyRewrite()?.let { +it }
 		}
 	}
 

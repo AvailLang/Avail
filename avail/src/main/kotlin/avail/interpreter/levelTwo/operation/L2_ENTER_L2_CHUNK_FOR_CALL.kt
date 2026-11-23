@@ -31,40 +31,84 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
+import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint.AFTER_PRIMITIVE_FAILURE
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Inliner
+import avail.utility.cast
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
- * arguments are expected to be in the [Interpreter.argsBuffer].  Set up fresh
- * registers for this chunk, but do not write to them yet.
+ * arguments are expected to be in the [Interpreter.argsBuffer], and the
+ * function being invoked in [Interpreter.function].  Capture the arguments
+ * into the [writeArguments], and the function into the [writeFunction], if
+ * it has a write.
  *
- * This instruction also occurs at places that a reified continuation can be
- * re-entered, such as returning into it, restarting it, or continuing it after
- * an interrupt has been handled.
+ * Capturing the function here, rather than reading the interpreter's
+ * current function wherever the code needs it, leaves no instruction that
+ * depends on the interpreter's notion of the current function at an arbitrary
+ * point in the chunk.  That would be wrong in code embedded by [L2Inliner],
+ * and in a chunk that resumed a continuation of an embedded frame.  The write
+ * is optional so that a chunk that never uses its function keeps no register
+ * for it: translation from level one always provides one, and dead code
+ * elimination removes it when nothing reads it.
+ *
+ * @property chunkEntryPointName
+ *   A description of the entry point, for display.
+ * @property writeArguments
+ *   Where to write the arguments, in order.
+ * @property writeFunction
+ *   Either empty, or a single write for the function being invoked.
  */
-@ReadsHiddenVariable(CURRENT_CONTINUATION::class)
+@ReadsHiddenVariable(
+	CURRENT_CONTINUATION::class,
+	CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 class L2_ENTER_L2_CHUNK_FOR_CALL(
 	@Suppress("unused")
 	var chunkEntryPointName: L2CommentOperand,
 	var writeArguments: L2WriteBoxedVectorOperand,
+	var writeFunction: L2WriteBoxedVectorOperand
 ) : L2Instruction()
 {
+	init
+	{
+		assert(writeFunction.elements.size <= 1)
+	}
+
 	override val isEntryPoint get() = true
 
 	override val hasSideEffect get() = true
+
+	/** Stop capturing the function if it's never really used. */
+	override fun withoutShuffledOnlyValues(
+		shuffledOnly: Set<L2Register<*>>
+	): L2Instruction?
+	{
+		if (writeFunction.elements.none { it.register() in shuffledOnly })
+		{
+			return this
+		}
+		return adoptAsSource(
+			L2_ENTER_L2_CHUNK_FOR_CALL(
+				chunkEntryPointName.clone().cast(),
+				writeArguments.clone(),
+				L2WriteBoxedVectorOperand(emptyList())))
+	}
 
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
@@ -77,6 +121,11 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 			append(write.registerString())
 			append(" = arg #")
 			append(i + 1)
+		}
+		writeFunction.elements.forEach { write ->
+			append("\n\t")
+			append(write.registerString())
+			append(" = function")
 		}
 	}
 
@@ -125,5 +174,14 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 			}
 		}
 		// []  – i.e., last occurrence of argsBuffer has been popped.
+		writeFunction.elements.forEach { write ->
+			// :: register = interpreter.function;
+			loadInterpreter()
+			load(Interpreter.interpreterFunctionField)
+			method.visitTypeInsn(
+				Opcodes.CHECKCAST,
+				Type.getInternalName(AvailObject::class.java))
+			store(write.register())
+		}
 	}
 }

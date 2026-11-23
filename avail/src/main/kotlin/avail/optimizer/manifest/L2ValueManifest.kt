@@ -3684,7 +3684,10 @@ class L2ValueManifest
 		val newManifest = L2ValueManifest(mode)
 		for (oldSynonym in synonymsArray())
 		{
-			newManifest.introduceSynonym(
+			// A synonym restricted to a constant joins that constant's class,
+			// which a later synonym may name too, so merge rather than assume
+			// each synonym is new.
+			newManifest.agglomerateSynonym(
 				oldSynonym.semanticValues().map(semanticValueTransformer),
 				restrictionFor(oldSynonym.pickSemanticValue()))
 		}

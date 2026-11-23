@@ -54,6 +54,7 @@ import avail.descriptor.representation.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instance
@@ -146,6 +147,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
+import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
@@ -1142,6 +1144,33 @@ class SimpleOptimizerTest
 				it !is L2_CREATE_VARIABLE || it.isInFreezeBlock
 			},
 			"Expected the local to be created only when frozen")
+		val result = helper.executeRawFunction(rawFunction, listOf(fromInt(21)))
+		assertEquals(fromInt(42), result)
+	}
+
+	/**
+	 * A function without outers is known exactly, so its chunk uses the
+	 * function as a constant, and the function captured on entry only passes
+	 * through the strips.  Dead code elimination must notice that, and stop
+	 * capturing it, so that no register holds it.
+	 */
+	@Test
+	fun testExactFunctionIsNotCaptured()
+	{
+		val rawFunction = helper.rawFunction(integers) {
+			argumentTypes(integers)
+			L1_doPushLocal(1)
+			L1_doPushLocal(1)
+			call("_+_", integers)
+		}
+		assertEquals(0, rawFunction.numOuters)
+		helper.testOptimize(rawFunction)
+		val entries = rawFunction.l2Instructions
+			.filterIsInstance<L2_ENTER_L2_CHUNK_FOR_CALL>()
+		assertEquals(1, entries.size, "Expected one entry for a call")
+		assertTrue(
+			entries.single().writeFunction.elements.isEmpty(),
+			"Expected the unused function not to be captured")
 		val result = helper.executeRawFunction(rawFunction, listOf(fromInt(21)))
 		assertEquals(fromInt(42), result)
 	}

@@ -116,6 +116,16 @@ internal enum class OptimizationPhase constructor(
 	DO_CODE_SPLITTING_2(L2Optimizer::doCodeSplitting),
 
 	/**
+	 * Keep the graph as it stands here, in SSA form and keyed by semantic
+	 * value, as the [L2Optimizer.inlinableGraph] that a caller's chunk can
+	 * later embed at a call site.  Any [L2_VIRTUAL_CREATE_LABEL] is still
+	 * unexpanded.  This phase does nothing else, so the capture point can move
+	 * by moving this phase.
+	 */
+	@Requires(IS_SSA::class)
+	CAPTURE_INLINABLE_GRAPH(L2Optimizer::captureInlinableGraph),
+
+	/**
 	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
 	 * replace them with the rather complex code that will reify the caller if
 	 * necessary, and create the label.  By now each placeholder has

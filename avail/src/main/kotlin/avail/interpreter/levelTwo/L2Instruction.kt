@@ -58,6 +58,7 @@ import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
@@ -66,6 +67,7 @@ import avail.interpreter.levelTwo.operation.variables.L2_SET_ELIDABLE_LOCAL_VARI
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.DeadCodeAnalyzer
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
@@ -78,6 +80,7 @@ import avail.optimizer.L2Synonym
 import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.reoptimizer.L2Inliner
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.PublicCloneable
@@ -179,6 +182,63 @@ constructor() :
 			operand.addDestinationRegistersTo(destinationRegisters)
 		}
 	}
+
+	/**
+	 * Answer a copy of this instruction with each operand replaced through
+	 * the given transformation.  The copy claims this instruction's
+	 * [basicBlock] without being added to it, so an [L2Regenerator] can
+	 * process the copy as though it were this instruction in the source graph.
+	 * [L2Inliner] uses this to give a callee's instructions the semantic
+	 * values of the inlined frame before regenerating them.
+	 *
+	 * @param transform
+	 *   How to replace each (already cloned) [L2Operand].
+	 * @return
+	 *   The copy, standing in for this instruction.
+	 */
+	fun sourceCopyWithOperands(
+		transform: (L2Operand) -> L2Operand
+	): L2Instruction = clone().also { copy ->
+		copy.layout.updateOperands(copy, transform)
+		adoptAsSource(copy)
+	}
+
+	/**
+	 * Make the given new instruction, built from clones of this instruction's
+	 * operands, stand in for this instruction as a source instruction of an
+	 * [L2Regenerator]: it claims this instruction's [basicBlock] without being
+	 * added to it, and its operands refer to it.
+	 *
+	 * @param copy
+	 *   The new, unemitted [L2Instruction].
+	 * @return
+	 *   The same [copy].
+	 */
+	protected fun adoptAsSource(copy: L2Instruction): L2Instruction
+	{
+		copy.basicBlock = basicBlock
+		copy.operands.forEach { it.setInstruction(copy) }
+		return copy
+	}
+
+	/**
+	 * Answer this instruction, or a copy standing in for it as a source
+	 * instruction (see [adoptAsSource]), with every operand for the given
+	 * registers removed, or `null` if nothing of the instruction remains.
+	 * Those registers' values only pass through phis, moves, and
+	 * [L2_STRIP_MANIFEST]s without ever being used (see
+	 * [DeadCodeAnalyzer.shuffledOnlyRegisters]), so the regeneration that
+	 * removes dead code drops them.  Only instructions that shuffle values,
+	 * or capture one that might be shuffled, have such operands.
+	 *
+	 * @param shuffledOnly
+	 *   The registers whose operands to remove.
+	 * @return
+	 *   The instruction to regenerate in place of this one, or `null`.
+	 */
+	open fun withoutShuffledOnlyValues(
+		shuffledOnly: Set<L2Register<*>>
+	): L2Instruction? = this
 
 	/**
 	 * Replace the receiver in its [basicBlock] with the given [newInstruction].

@@ -67,8 +67,7 @@ import avail.optimizer.reoptimizer.L2Regenerator
  *   1.  [L2_ENTER_L2_CHUNK] (start of reification area),
  *   1.  [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
  *   1.  [L2_GET_CURRENT_CONTINUATION],
- *   1.  [L2_GET_CURRENT_FUNCTION],
- *   1.  [L2_CREATE_CONTINUATION],
+ *   1.  [L2_CREATE_CONTINUATION], for the [function],
  *   1.  [L2_RETURN_FROM_REIFICATION_HANDLER], then outside the reification
  *       area,
  *   1.  [L2_ENTER_L2_CHUNK].
@@ -181,10 +180,6 @@ constructor(
 			val tempCaller = boxedWrite(
 				setOf(topFrame.reifiedCaller()),
 				restrictionForType(Types.CONTINUATION()))
-			val readCurrentFunction = currentFunction(
-				topFrame,
-				function.restriction.constantOrNull,
-				function.restriction.type)
 			val dummyContinuation = boxedWriteTemp(
 				"dummy continuation",
 				restrictionForType(Types.CONTINUATION()))
@@ -192,7 +187,7 @@ constructor(
 			val dummyCreated = createBasicBlock(
 				"return dummy continuation", zone)
 			+L2_CREATE_CONTINUATION(
-				function = readCurrentFunction,
+				function = function,
 				code = code,
 				caller = readBoxed(tempCaller),
 				levelOnePc = L2IntImmediateOperand(Int.MAX_VALUE),

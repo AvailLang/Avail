@@ -42,6 +42,7 @@ import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgument
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.cast
 
 /**
  * This is a special operation which limits which [L2Register]s and
@@ -109,6 +110,23 @@ constructor(
 		inputs.instructionWasAdded(manifest)
 		manifest.retainRegisters(emptySet())
 		outputs.instructionWasAdded(manifest)
+	}
+
+	/** Drop each pair whose output is never really used. */
+	override fun withoutShuffledOnlyValues(
+		shuffledOnly: Set<L2Register<*>>
+	): L2Instruction?
+	{
+		val kept = outputs.elements.indices.filter {
+			outputs.elements[it].register() !in shuffledOnly
+		}
+		if (kept.size == outputs.elements.size) return this
+		return adoptAsSource(
+			L2_STRIP_MANIFEST(
+				L2ReadBoxedVectorOperand(
+					kept.map { inputs.elements[it].clone().cast() }),
+				L2WriteBoxedVectorOperand(
+					kept.map { outputs.elements[it].clone().cast() })))
 	}
 
 	override val producesAnyJvmCode: Boolean

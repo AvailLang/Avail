@@ -37,6 +37,7 @@ import avail.descriptor.representation.A_RawFunction.Companion.countdownToReopti
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.optimizer.reoptimizer.L2Inliner
 
 /**
  * [OptimizationLevel] is an enum class indicating the possible degrees of
@@ -48,12 +49,17 @@ import avail.interpreter.levelTwoSimple.L2SimpleTranslator
  *   The value to use for the countdown after the translation at this level has
  *   taken place (i.e., how many calls to endure before the next level of
  *   optimization is attempted).
+ * @property inlinesCallees
+ *   Whether translation at this level embeds suitable callees' graphs at
+ *   their call sites, through [L2Inliner].
  *
  * @constructor
  * Construct the enum value.
  */
 enum class OptimizationLevel
-constructor(val countdown: Long)
+constructor(
+	val countdown: Long,
+	val inlinesCallees: Boolean = false)
 {
 	/**
 	 * Unoptimized code, interpreted via Level One machinery.  Technically the
@@ -96,7 +102,7 @@ constructor(val countdown: Long)
 	 * primitive attempts avoid having to reify the calling continuation in the
 	 * case that they're successful, but have to reify if the primitive fails.
 	 */
-	FIRST_JVM_TRANSLATION(10_000_000L)
+	FIRST_JVM_TRANSLATION(10_000_000L, inlinesCallees = true)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
@@ -116,7 +122,7 @@ constructor(val countdown: Long)
 	 * primitive attempts avoid having to reify the calling continuation in the
 	 * case that they're successful, but have to reify if the primitive fails.
 	 */
-	SECOND_JVM_TRANSLATION(Long.MAX_VALUE)
+	SECOND_JVM_TRANSLATION(Long.MAX_VALUE, inlinesCallees = true)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{

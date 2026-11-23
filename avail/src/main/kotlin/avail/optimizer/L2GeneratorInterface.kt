@@ -52,8 +52,6 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -295,38 +293,6 @@ interface L2GeneratorInterface : L2Visualizable
 	fun moveConstant(
 		integer: Int,
 		targetSemanticValues: Iterable<L2SemanticValue>)
-
-	/**
-	 * Write instructions to extract the current function, and answer an
-	 * [L2ReadBoxedOperand] for the register that will hold the function
-	 * afterward.
-	 */
-	@Override
-	fun currentFunction(
-		frame: Frame,
-		exactFunctionOrNull: A_Function?,
-		functionType: A_Type
-	): L2ReadBoxedOperand
-	{
-		val semanticFunction = frame.function()
-		if (currentManifest.hasSemanticValue(semanticFunction))
-		{
-			// Note the current function can't ever be an int or float.
-			return readBoxed(semanticFunction)
-		}
-		// We have to get it into a register.
-		if (exactFunctionOrNull !== null)
-		{
-			// The exact function is known.
-			return boxedConstant(exactFunctionOrNull)
-		}
-		// The exact function isn't known, but we know the raw function, so
-		// we statically know the function type.
-		val restriction = restrictionForType(functionType)
-		val functionWrite = boxedWrite(semanticFunction, restriction)
-		+L2_GET_CURRENT_FUNCTION(functionWrite)
-		return readBoxed(functionWrite)
-	}
 
 	/**
 	 * Cause a tuple to be constructed from the given [L2ReadBoxedOperand]s.
@@ -831,10 +797,15 @@ interface L2GeneratorInterface : L2Visualizable
 	 *
 	 * @param code
 	 *   The [A_RawFunction] which is the source of chunk creation.
+	 * @param inlinableGraph
+	 *   The [L2Optimizer.inlinableGraph] for the chunk to keep, or `null`.
 	 * @return
 	 *   The [L2Chunk] that was created and installed.
 	 */
-	fun createChunk(code: A_RawFunction): L2Chunk
+	fun createChunk(
+		code: A_RawFunction,
+		inlinableGraph: L2ControlFlowGraph?
+	): L2Chunk
 
 	/**
 	 * Given an [L2ReadBoxedOperand] that will hold a tuple and a fixed index

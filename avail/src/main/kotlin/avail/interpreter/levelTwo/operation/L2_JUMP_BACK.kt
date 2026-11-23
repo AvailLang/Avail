@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -41,6 +42,7 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.cast
 import avail.utility.mapToSet
 
 /**
@@ -123,6 +125,21 @@ class L2_JUMP_BACK(
 	 * uses.
 	 */
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
+	/** Keep only what the loop head really uses. */
+	override fun withoutShuffledOnlyValues(
+		shuffledOnly: Set<L2Register<*>>
+	): L2Instruction?
+	{
+		val kept = registersToKeep.elements.filter {
+			it.register() !in shuffledOnly
+		}
+		if (kept.size == registersToKeep.elements.size) return this
+		return adoptAsSource(
+			L2_JUMP_BACK(
+				target.clone().cast(),
+				L2ReadBoxedVectorOperand(kept.map { it.clone().cast() })))
+	}
 
 	override fun JVMTranslator.translateToJVM()
 	{

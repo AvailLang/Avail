@@ -37,14 +37,17 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportWrongReturnTypeMethod
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Inliner
 import org.objectweb.asm.Opcodes
 
 /**
@@ -52,22 +55,57 @@ import org.objectweb.asm.Opcodes
  * function, via [Interpreter.reportWrongReturnType], which takes responsibility
  * for assembling an [A_Continuation] in the event of reification.
  *
- * Note that it implicitly uses the [Interpreter.function] and
- * [Interpreter.returningFunction].
+ * The calling frame's [function], and the [returningFunction] that produced
+ * the value, are read explicitly, since either may be a function embedded in
+ * the chunk by [L2Inliner], which neither runs as the interpreter's current
+ * function nor returns through the interpreter.
+ *
+ * The handler always reifies, after which the stacked action builds the
+ * calling frame.  If that frame is embedded in the running chunk's frame, the
+ * running chunk's own frame must be built too, beneath it.  Since no
+ * exception handler is ever embedded, the reification continues past both, so
+ * the [onReification] edge, when present, leads to the reification path that
+ * builds the running chunk's frame.  When absent, the calling frame is the
+ * running chunk's own, and the chunk just returns.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property function
+ *   The function of the frame that received the wrong value.
+ * @property returningFunction
+ *   The function that produced the wrong value.
+ * @property returnedValue
+ *   The value that disagreed with the expected type.
+ * @property expectedType
+ *   The type the value was expected to have.
+ * @property pc
+ *   The L1 program counter of the calling frame, for its continuation.
+ * @property stackp
+ *   The L1 stack pointer of the calling frame, for its continuation.
+ * @property frameValues
+ *   The values of the calling frame's slots, for its continuation.
+ * @property onReification
+ *   Either empty, or a single edge to the reification path of the running
+ *   chunk's frame, when the calling frame is embedded in it.
  */
-@ReadsHiddenVariable(CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_FUNCTION::class)
 class
 L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
+	var function: L2ReadBoxedOperand,
+	var returningFunction: L2ReadBoxedOperand,
 	var returnedValue: L2ReadBoxedOperand,
 	var expectedType: L2ConstantOperand,
 	var pc: L2IntImmediateOperand,
 	var stackp: L2IntImmediateOperand,
-	var frameValues: L2ReadBoxedVectorOperand
+	var frameValues: L2ReadBoxedVectorOperand,
+	@On(OFF_RAMP) var onReification: L2PcVectorOperand
 ) : L2ControlFlowInstruction()
 {
+	init
+	{
+		assert(onReification.edges.size <= 1)
+	}
+
 	override val isCold: Boolean get() = true
 
 	// Never remove this.
@@ -79,7 +117,11 @@ L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble()
-		append(" got: ")
+		append(" function: ")
+		append(function.registerString())
+		append(", returner: ")
+		append(returningFunction.registerString())
+		append(", got: ")
 		append(returnedValue.registerString())
 		append(", expected: ")
 		append(expectedType.constant.typeTag)
@@ -95,17 +137,29 @@ L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 	{
 		loadInterpreter()
 		// :: interpreter
+		load(function)
+		load(returningFunction)
 		load(returnedValue)
 		loadLiteralObject(expectedType.constant)
 		intConstant(pc.intValue)
 		intConstant(stackp.intValue)
-		// :: interpreter, value, expected, pc, stackp
+		// :: interpreter, function, returner, value, expected, pc, stackp
 		objectArray(frameValues.elements, AvailObject::class.java)
-		// :: interpreter, value, expected, pc, stackp, frameArray
+		// :: interpreter, function, returner, value, expected, pc, stackp,
+		// ::    frameArray
 		generateCall(reportWrongReturnTypeMethod)
 		// :: valueMustBeNull
 		// Note that the above call took responsibility for creating the
 		// reified continuation as needed.
-		method.visitInsn(Opcodes.ARETURN)
+		when (val edge = onReification.edges.singleOrNull())
+		{
+			null -> method.visitInsn(Opcodes.ARETURN)
+			else ->
+			{
+				method.visitInsn(Opcodes.POP)
+				// :: []
+				generateReificationPreamble(edge)
+			}
+		}
 	}
 }

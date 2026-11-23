@@ -43,12 +43,16 @@ import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operation.L2_GET_RETURNING_FUNCTION
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheck
 import avail.optimizer.CallSiteHelper.JunctionType.AfterEverything
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE
+import avail.optimizer.reoptimizer.L2Inliner
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.structures.EnumMap.Companion.enumMap
 
@@ -173,6 +177,7 @@ class CallSiteHelper internal constructor(
 							translator.getLatestReturnValue(
 								"unchecked result",
 								unionOfPossibleResults))
+						captureReturningFunction()
 						generator.jumpTo(this[AfterCallWithCheck])
 					}
 				}
@@ -241,7 +246,8 @@ class CallSiteHelper internal constructor(
 				// just after the call MINUS ONE.  Check it, moving it to a
 				// register that's bound to the L2SemanticSlot for the stackp
 				// and pc just after the call.
-				translator.generateReturnTypeCheck(expectedType)
+				translator.generateReturnTypeCheck(
+					expectedType, returningFunction)
 				generator.jumpTo(this[AfterEverything])
 			}),
 
@@ -323,6 +329,43 @@ class CallSiteHelper internal constructor(
 	val generator: L2Generator get() = translator.generator
 
 	/**
+	 * The semantic value holding the function that produced the value being
+	 * checked at [AfterCallWithCheck], so a failed check can name it.  Each
+	 * path to that junction supplies it: after a call that actually returned,
+	 * an [L2_GET_RETURNING_FUNCTION] reads it from the interpreter, and an
+	 * answer produced without a return, such as by a primitive generated in
+	 * place or a callee embedded by [L2Inliner], is attributed to the
+	 * [invokedFunction].
+	 */
+	val returningFunction: L2SemanticValue by lazy {
+		generator.newTemp("returning function")
+	}
+
+	/**
+	 * The function whose invocation is being generated at this call site,
+	 * which produced any answer given to [useAnswer], or `null` outside the
+	 * generation of an invocation.  A primitive generated in place may
+	 * generate the invocation of another function, whose answer is that
+	 * function's, so [L1Translator.generateGeneralFunctionInvocation] sets
+	 * this and restores it afterward.
+	 */
+	var invokedFunction: L2ReadBoxedOperand? = null
+
+	/**
+	 * Generate code to capture which function returned the value about to be
+	 * checked, after a call that returned through the interpreter.
+	 */
+	fun captureReturningFunction()
+	{
+		generator.run {
+			+L2_GET_RETURNING_FUNCTION(
+				boxedWrite(
+					returningFunction,
+					restrictionForType(mostGeneralFunctionType)))
+		}
+	}
+
+	/**
 	 * Record the fact that this call has produced a value in a particular
 	 * [answerReg] which is to represent the new top-of-stack value.
 	 *
@@ -353,9 +396,12 @@ class CallSiteHelper internal constructor(
 			else ->
 			{
 				// Capture it as the unchecked return value SemanticSlot by
-				// using pc - 1.
+				// using pc - 1, and attribute it to the invoked function.
 				translator.forceSlotMove(
 					translator.stackp, translator.pc - 1, answerReg)
+				generator.move(
+					invokedFunction!!.semanticValue(),
+					listOf(returningFunction))
 				generator.jumpTo(this[AfterCallWithCheck])
 			}
 		}

@@ -32,7 +32,10 @@
 package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.manifest.L2Liveness
 import avail.optimizer.values.L2SemanticValue
@@ -151,5 +154,79 @@ internal class DeadCodeAnalyzer constructor(
 				}
 			}
 		}
+	}
+
+	/**
+	 * Answer the registers whose values only ever pass through [L2_PHI]s,
+	 * [L2_MOVE]s, and [L2_STRIP_MANIFEST]s, without being used by anything
+	 * else.  Liveness alone keeps such a value, since a strip has a side
+	 * effect and reads all of its inputs, and the [L2_JUMP_BACK] of a loop
+	 * keeps what its loop head's phis need; the function and the arguments of
+	 * a frame circulate around its loops this way even when nothing reads
+	 * them.  The registers are found by following uses backward from every
+	 * read of a [live][liveInstructions] instruction that is not one of these
+	 * shuffles, through the shuffles, around loops as well.  The reads of an
+	 * [L2_JUMP_BACK] are not uses, since what they keep is consumed by the
+	 * loop head's phis.
+	 *
+	 * This must follow [analyzeReads], and only makes sense when registers
+	 * are considered.
+	 *
+	 * @return
+	 *   The [Set] of registers that are written but never really used.
+	 */
+	fun shuffledOnlyRegisters(): Set<L2Register<*>>
+	{
+		assert(dataCouplingMode.considersRegisters)
+		val written = mutableSetOf<L2Register<*>>()
+		val sourcesByDestination =
+			mutableMapOf<L2Register<*>, MutableList<L2Register<*>>>()
+		val used = mutableSetOf<L2Register<*>>()
+		val toVisit = mutableListOf<L2Register<*>>()
+		fun use(register: L2Register<*>)
+		{
+			if (!register.isConstant && used.add(register))
+			{
+				toVisit.add(register)
+			}
+		}
+		fun shuffle(source: L2Register<*>, destination: L2Register<*>)
+		{
+			sourcesByDestination.getOrPut(destination, ::mutableListOf)
+				.add(source)
+		}
+		controlFlowGraph.basicBlockOrder.forEach { block ->
+			block.instructions().forEach { instruction ->
+				instruction.writeOperands.forEach { written.add(it.register()) }
+				when (instruction)
+				{
+					is L2_PHI<*> ->
+						instruction.sources.elements.forEach {
+							shuffle(
+								it.register(),
+								instruction.destination.register())
+						}
+					is L2_MOVE<*> -> shuffle(
+						instruction.source.register(),
+						instruction.destination.register())
+					is L2_STRIP_MANIFEST ->
+						instruction.inputs.elements
+							.zip(instruction.outputs.elements)
+							.forEach { (input, output) ->
+								shuffle(input.register(), output.register())
+							}
+					is L2_JUMP_BACK -> Unit
+					else -> if (instruction in liveInstructions)
+					{
+						instruction.readOperands.forEach { use(it.register()) }
+					}
+				}
+			}
+		}
+		while (toVisit.isNotEmpty())
+		{
+			sourcesByDestination[toVisit.removeLast()]?.forEach(::use)
+		}
+		return written - used
 	}
 }

@@ -177,6 +177,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator.Companion.callTraceL2AfterEveryInstruction
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.optimizer.reoptimizer.L2Inliner
 import avail.performance.Statistic
 import avail.performance.StatisticReport
 import avail.performance.StatisticReport.TOP_LEVEL_STATEMENTS
@@ -951,6 +952,8 @@ final class Interpreter(
 	 * used for statistics collection and reporting errors when returning a
 	 * value that disagrees with semantic restrictions.
 	 */
+	@ReferencedInGeneratedCode
+	@JvmField
 	var returningFunction: A_Function? = null
 
 	/**
@@ -2488,14 +2491,20 @@ final class Interpreter(
 	 * saving during creation and memory saving ongoing, but may also increase
 	 * HotSpot's effectiveness.
 	 *
-	 * This [Interpreter]'s [function] and [returningFunction] are expected to
-	 * contain the calling and returning functions, respectively.
+	 * The calling and returning functions are passed explicitly, since either
+	 * may be embedded in the running chunk (see [L2Inliner]), in which case
+	 * neither the interpreter's [function] nor its [returningFunction] says
+	 * which it is.
 	 *
 	 * Note that if the handler ([HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE])
 	 * asks to reify, this method will construct a continuation representing the
 	 * Avail calling function.  The continuation frame can't be resumed, so it
 	 * will use the [DefaultL1Chunk]'s [DefaultEntryPoint.UNREACHABLE_ENTRY].
 	 *
+	 * @param callerFunction
+	 *   The [A_Function] of the frame that received the value.
+	 * @param returner
+	 *   The [A_Function] that produced the value.
 	 * @param returnedValueOrNil
 	 *   The value that was actually returned, which may be [nil].
 	 * @param expectedReturnType
@@ -2515,6 +2524,8 @@ final class Interpreter(
 	 */
 	@ReferencedInGeneratedCode
 	fun reportWrongReturnType(
+		callerFunction: A_Function,
+		returner: A_Function,
 		returnedValueOrNil: A_BasicObject,
 		expectedReturnType: A_Type,
 		pc: Int,
@@ -2522,8 +2533,6 @@ final class Interpreter(
 		vararg slots: A_BasicObject
 	): A_BasicObject?
 	{
-		val returner = returningFunction!!
-		val callerFunction = function!!
 		val wrappedReturnValue = newVariableWithContentType(
 			Types.ANY(),
 			returnedValueOrNil)
@@ -2586,6 +2595,12 @@ final class Interpreter(
 	 * will be handled the same as if it was never running the current L2
 	 * chunk and had always been running the unoptimized L1.
 	 *
+	 * The frame's function is passed explicitly, since the code falling back
+	 * may belong to a function embedded in the chunk's own (see [L2Inliner]),
+	 * and is not necessarily the [function] the chunk was invoked with.
+	 *
+	 * @param frameFunction
+	 *   The [A_Function] whose frame continues running in L1.
 	 * @param pc
 	 *   The Level One program counter to set in the continuation.
 	 * @param stackp
@@ -2600,14 +2615,16 @@ final class Interpreter(
 	 */
 	@ReferencedInGeneratedCode
 	fun fallBackToL1(
+		frameFunction: A_Function,
 		pc: Int,
 		stackp: Int,
 		slots: Array<A_BasicObject>
 	) : AvailObject?
 	{
+		function = frameFunction
 		setReifiedContinuation(
 			createContinuationWithFrame(
-				function = function!!,
+				function = frameFunction,
 				caller = getReifiedContinuation()!!,
 				registerDump = nil,
 				pc = pc,
@@ -2619,6 +2636,42 @@ final class Interpreter(
 		chunk = DefaultL1Chunk
 		offset = DefaultEntryPoint.RESUME.offset
 		return runChunk()
+	}
+
+	/**
+	 * Like [fallBackToL1], but for a frame embedded by [L2Inliner] in the
+	 * running chunk's frame, whose code continues after the embedded frame
+	 * finishes in L1.  The interpreter's [chunk] and [function] are restored
+	 * afterward, since they still describe the running chunk: either it
+	 * continues with the returned value, or it starts reifying its own frame
+	 * when the embedded frame's L1 code reified.
+	 *
+	 * @param frameFunction
+	 *   The [A_Function] of the embedded frame that continues in L1.
+	 * @param pc
+	 *   The Level One program counter to set in the continuation.
+	 * @param stackp
+	 *   The Level One stack pointer to set in the continuation.
+	 * @param slots
+	 *   The (boxed) [AvailObject]s used to set up the continuation's slots.
+	 * @return
+	 *   The value the embedded frame returned, or `null` if reification
+	 *   started, after setting up the [currentReifier].
+	 */
+	@ReferencedInGeneratedCode
+	fun inlinedFallBackToL1(
+		frameFunction: A_Function,
+		pc: Int,
+		stackp: Int,
+		slots: Array<A_BasicObject>
+	) : AvailObject?
+	{
+		val runningChunk = chunk
+		val runningFunction = function
+		val result = fallBackToL1(frameFunction, pc, stackp, slots)
+		chunk = runningChunk
+		function = runningFunction
+		return result
 	}
 
 	/**
@@ -3121,6 +3174,10 @@ final class Interpreter(
 		/** The [CheckedField] for the field [function]. */
 		val interpreterFunctionField = instanceField(Interpreter::function)
 
+		/** The [CheckedField] for the field [returningFunction]. */
+		val returningFunctionField =
+			instanceField(Interpreter::returningFunction)
+
 		/** Access to the field [chunk]. */
 		val chunkField = instanceField(Interpreter::chunk)
 
@@ -3244,6 +3301,8 @@ final class Interpreter(
 		 */
 		val reportWrongReturnTypeMethod = instanceMethod(
 			Interpreter::reportWrongReturnType,
+			A_Function::class.java,
+			A_Function::class.java,
 			A_BasicObject::class.java,
 			A_Type::class.java,
 			int,
@@ -3255,6 +3314,17 @@ final class Interpreter(
 		 */
 		val fallBackToL1Method = instanceMethod(
 			Interpreter::fallBackToL1,
+			A_Function::class.java,
+			int,
+			int,
+			Array<A_BasicObject>::class.java)
+
+		/**
+		 * Access the [inlinedFallBackToL1] method.
+		 */
+		val inlinedFallBackToL1Method = instanceMethod(
+			Interpreter::inlinedFallBackToL1,
+			A_Function::class.java,
 			int,
 			int,
 			Array<A_BasicObject>::class.java)

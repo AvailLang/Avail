@@ -100,19 +100,28 @@ import kotlin.concurrent.withLock
  *   The level two offset at which to start if the corresponding [A_RawFunction]
  *   is a primitive, and it has already been attempted and failed.  If it's not
  *   a primitive, this is the offset of the start of the code (0).
- * @property contingentValues
- *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
- *   depends. If one of these changes significantly, this chunk must be
- *   invalidated (at which time this set will be emptied).
  *
  * @constructor
  * Create a new [L2Chunk] with the given information.
+ *
+ * @param contingentValues
+ *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
+ *   depends.
  */
 abstract class L2Chunk protected constructor(
 	val code: A_RawFunction?,
 	val offsetAfterInitialTryPrimitive: Int,
-	private var contingentValues: A_Set)
+	contingentValues: A_Set)
 {
+	/**
+	 * The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
+	 * depends.  If one of these changes significantly, this chunk must be
+	 * invalidated, at which time this set is emptied.  A chunk that embeds
+	 * this chunk's code at a call site depends on all of them as well.
+	 */
+	var contingentValues: A_Set = contingentValues
+		private set
+
 	/** The [ExecutableChunk] to run. */
 	abstract val executableChunk: ExecutableChunk
 
