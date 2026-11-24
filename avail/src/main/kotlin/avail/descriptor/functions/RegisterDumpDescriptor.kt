@@ -69,10 +69,11 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
  *
  * An [L2_SAVE_ALL_AND_PC_TO_INT] creates the dump, saving the registers that
  * are live where the continuation will resume.  When the continuation it
- * feeds has elided variables, that instruction also reserves room after its
+ * feeds has a freeze subgraph, that instruction also reserves room after its
  * own values, which the [L2_CREATE_CONTINUATION] fills with the registers
  * that its freeze subgraph needs, and records in [FREEZE_OFFSET] where that
- * subgraph starts (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
+ * subgraph starts (doc/Optimization/Level_Two/Variable_elision.md
+ * §Freezing.The freeze method).
  *
  * @constructor
  * @property fallbackEntryPoint
@@ -203,12 +204,13 @@ class RegisterDumpDescriptor private constructor(
 
 		init
 		{
-			val size = DefaultEntryPointCatalog.maxEntryPointOffset + 2
+			val maxOffset = DefaultEntryPointCatalog.maxEntryPointOffset
+			val size = maxOffset + 2
 			mutables = arrayOfNulls(size)
 			immutables = arrayOfNulls(size)
 			shareds = arrayOfNulls(size)
 			emptyRegisterDumps = arrayOfNulls(size)
-			(-1..DefaultEntryPointCatalog.maxEntryPointOffset).forEach { entry ->
+			(-1 .. maxOffset).forEach { entry ->
 				mutables[entry + 1] =
 					RegisterDumpDescriptor(MUTABLE, entry)
 				immutables[entry + 1] =

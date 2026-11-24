@@ -178,10 +178,10 @@ import java.util.IdentityHashMap
  * [L2_CREATE_CONTINUATION] of the callee gets a freeze subgraph, and each of
  * those ends at the [freezeBlock], which builds the caller's frame as an L1
  * continuation and slides it beneath the continuation being frozen
- * (doc/Optimization/Level_Two/Variable_elision.md §Freezing).  A callee that
- * embeds callees of its own was built the same way, so its freeze subgraphs
- * build their callers' frames before reaching its exits, which build this
- * caller's frame in turn.
+ * (doc/Optimization/Level_Two/Variable_elision.md
+ * §Freezing.Embedded frames).  A callee that embeds callees of its own was
+ * built the same way, so its freeze subgraphs build their callers' frames
+ * before reaching its exits, which build this caller's frame in turn.
  *
  * A callee that runs a loop, creates a label, restarts, or catches exceptions
  * is not embedded (see [inlinableChunkFor]).

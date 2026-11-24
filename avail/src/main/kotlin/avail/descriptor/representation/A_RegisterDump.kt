@@ -35,6 +35,7 @@ import avail.descriptor.functions.RegisterDumpDescriptor
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.interpreter.JavaLibrary.int
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.ExecutableChunk
@@ -89,11 +90,11 @@ interface A_RegisterDump : A_BasicObject
 	companion object {
 		/**
 		 * Answer the L2 offset within the creating chunk's
-		 * [freeze][ExecutableChunk.freeze] method at which to start creating
-		 * the elided variables of the continuation that holds this register
-		 * dump, or -1 if no variable creation was postponed past the
-		 * continuation's creation.  See
-		 * doc/Optimization/Level_Two/Variable_elision.md §Freezing.
+		 * [freeze][ExecutableChunk.freeze] method at which to start freezing
+		 * the continuation that holds this register dump, or -1 if its
+		 * [L2_CREATE_CONTINUATION] has no freeze subgraph.  See
+		 * doc/Optimization/Level_Two/Variable_elision.md §Freezing.The freeze
+		 * method.
 		 */
 		val A_RegisterDump.freezeOffset: Int
 			get() = dispatch { o_FreezeOffset(it) }

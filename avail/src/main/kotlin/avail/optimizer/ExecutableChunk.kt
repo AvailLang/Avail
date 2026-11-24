@@ -88,15 +88,17 @@ interface ExecutableChunk
 	 * was invalidated, so it will continue in the [DefaultL1Chunk].  Create
 	 * the local variables whose creation the chunk postponed past the
 	 * continuation's creation, and write them into the continuation's frame
-	 * slots, which hold [nil] until then.  The continuation's register dump
-	 * says where to start, as its [A_RegisterDump.freezeOffset], and holds the
-	 * values the variables need.  A freeze offset of -1 means there is nothing
-	 * to create.
+	 * slots, which hold [nil] until then.  Then build the frames of the calls
+	 * that were inlined around the continuation, and slide them beneath it.
+	 * The continuation's register dump says where to start, as its
+	 * [A_RegisterDump.freezeOffset], and holds the values all of this needs.
+	 * A freeze offset of -1 means there is nothing to do.
 	 *
 	 * This runs without an [Interpreter], since a continuation can become
-	 * immutable or shared on any thread.  Only a chunk that postpones
-	 * variable creation has anything to do here, so the default does nothing.
-	 * See doc/Optimization/Level_Two/Variable_elision.md §Freezing.
+	 * immutable or shared on any thread.  Only a chunk with freeze subgraphs
+	 * has anything to do here, so the default does nothing.  See
+	 * doc/Optimization/Level_Two/Variable_elision.md §Freezing.The freeze
+	 * method.
 	 *
 	 * @param continuation
 	 *   The mutable continuation whose elided variables should be created.

@@ -806,7 +806,8 @@ class L1Translator private constructor(
 	 * beneath the frames built so far, then
 	 * [exit][L2GeneratorInterface.exitFreeze] the freeze, which builds the
 	 * frames of any calls inlined around this one in turn
-	 * (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
+	 * (doc/Optimization/Level_Two/Variable_elision.md
+	 * §Freezing.Embedded frames).
 	 *
 	 * Reading the frame's slots forces the postponed creations of the
 	 * variables they hold, so those creations happen here, and only when
@@ -1015,7 +1016,7 @@ class L1Translator private constructor(
 					"Couldn't look up method by its own signature" +
 						"\n  Bundle: ${bundle.message}" +
 						"\n  Sole definition: " +
-						"${method.definitionsTuple.tupleAt(1).bodySignature()}" +
+						method.definitionsTuple.tupleAt(1).bodySignature() +
 						"\n  Argument restrictions: $argumentRestrictions" +
 						"\n  Semantic arguments: $semanticArguments")
 			}

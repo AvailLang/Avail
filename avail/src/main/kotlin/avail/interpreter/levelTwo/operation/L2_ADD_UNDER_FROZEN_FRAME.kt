@@ -50,7 +50,8 @@ import avail.optimizer.jvm.JVMTranslator
  * freeze subgraph builds those frames innermost first, so each slides beneath
  * the one built before it, and the last slid is the outermost frame of the
  * chunk, whose caller is the continuation that the frozen one had as its
- * caller (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
+ * caller (doc/Optimization/Level_Two/Variable_elision.md
+ * §Freezing.Embedded frames).
  *
  * It has a side effect, which keeps the slides in order.
  *

@@ -90,7 +90,14 @@ the left.
   the registers it needs from the dump.
 - **`UpdateSlots`** — [L2_UPDATE_SLOTS].  Write variables into the frame
   slots of the continuation being frozen.
-- **`ExitFreeze`** — [L2_EXIT_FREEZE].  End a freeze subgraph.
+- **`ExitFreeze`** — [L2_EXIT_FREEZE].  End a freeze subgraph.  In a callee
+  embedded in another chunk, it becomes a jump to the call site's freeze
+  block instead (see [Embedded frames](#embedded-frames)).
+- **`CreateL1Continuation`** — [L2_CREATE_L1_CONTINUATION].  In a freeze
+  subgraph, build the frame of a call that was inlined around the continuation
+  being frozen, as level one would have reified it.
+- **`AddUnderFrozenFrame`** — [L2_ADD_UNDER_FROZEN_FRAME].  Slide such a frame
+  beneath the frames built so far.
 - **`Invoke`** — [L2_INVOKE] or [L2_INVOKE_CONSTANT_FUNCTION]: a call that is
   not inlined.
 - **`Return`** — [L2_RETURN].
@@ -251,11 +258,15 @@ nowhere else along this path.
 A `CreateContinuation` starts with no freeze edge, and gains one, with its
 freeze subgraph, the first time it is emitted by translation or by a
 regeneration that tracks semantic values with some creation still postponed
-there.  After that, each regeneration regenerates the freeze subgraph along
-with the rest of the graph, since the `Create`s it forces exist nowhere else
-along this path.  A creation that reaches a `CreateContinuation` that already
-has a freeze edge, as when a later regeneration postpones it further, is
-emitted before the `CreateContinuation` instead.
+there.  While a callee's graph is being embedded in another chunk, it gains
+one even with nothing postponed there (see
+[Embedded frames](#embedded-frames)).  After that, each regeneration
+regenerates the freeze subgraph along with the rest of the graph, since the
+`Create`s it forces exist nowhere else along this path.  A creation that
+reaches a `CreateContinuation` that already has a freeze edge, as when a later
+regeneration postpones it further, is emitted before the `CreateContinuation`
+instead, as is any postponed instruction that cannot run in a freeze (see
+[The freeze method](#the-freeze-method)).
 
 Control never flows along the freeze edge.  Like the reference edge of
 `SaveAll`, it carries the manifest and determines which registers are live,
@@ -264,8 +275,9 @@ and JVM translation turns it into saved and restored registers (see
 
 ## Freezing
 
-A continuation is *frozen* when its elided locals are created, and it is
-switched to resume in the L1 interpreter.
+A continuation is *frozen* when its elided locals are created, the frames of
+any calls inlined around it are built, and it is switched to resume in the L1
+interpreter.
 `ContinuationDescriptor.createElidedVariables` freezes a continuation.  It
 runs:
 
@@ -284,14 +296,83 @@ through it the locals, which exposes them to concurrent modification.  Either
 way the locals have escaped, so they are created, and the continuation
 resumes in the L1 interpreter, whose execution only uses real variables.  An
 invalidated chunk cannot be resumed at all, so its frame likewise resumes in
-L1, with real variables.
+L1, with real variables.  A frozen continuation whose enclosing frames were
+built cannot resume in L2 either: its chunk would go on to run the code of
+those frames itself, and the frozen frame would then return into the frames
+that were built, running that code a second time.
 
 It calls the `freeze` method of the continuation's chunk
 (`ExecutableChunk.freeze`), then sets the continuation's chunk to the
 [DefaultL1Chunk], at the dump's `fallbackEntryPoint`.  It does nothing for a
 continuation of the [DefaultL1Chunk] or of an [L2SimpleChunk], neither of
-which elides locals, for a function with no locals, whose continuation can
-keep resuming in L2, or for a continuation without a register dump.
+which elides locals, or for a continuation without a register dump.  It also
+does nothing when the dump has no freeze subgraph (a `FREEZE_OFFSET` of -1)
+and the function has no locals: nothing was postponed and no enclosing frame
+is missing, so the continuation can keep resuming in L2.
+
+### Embedded frames
+
+When the optimizer embeds a callee's graph in its caller's chunk
+(`L2Inliner`), the callee's frame exists only as registers of that chunk.  A
+reification inside the embedded code builds one continuation for the whole
+chunk.  It is the frame of the innermost embedded call, its dump holds every
+register live there, including those of the frames around it, and its caller
+is the chunk's own caller.  Resumed in L2, it restores all of those
+registers.  Level one, however, resumes one frame per continuation, so
+freezing it must build the frames that the embedding left out.
+
+While a callee's graph is being embedded, every `CreateContinuation` gets a
+freeze subgraph, even one with nothing postponed there
+(`L2GeneratorInterface.freezesBuildEnclosingFrames`).  The callee's
+`ExitFreeze` does not end the freeze: it becomes a jump to the freeze block
+of the call site (`L2Inliner.exitFreeze`), which
+`L1Translator.generateFreezeOfCaller` fills with:
+
+- a `CreateL1Continuation`, which builds the caller's frame as level one would
+  have reified it during the call: its slots, with the call's expected type
+  at its stack pointer, resuming in the [DefaultL1Chunk] at
+  `REENTRY_FROM_REIFIED_CALL`, with no dump and no caller;
+- an `AddUnderFrozenFrame`, which slides that frame beneath the outermost
+  frame built so far;
+- an `ExitFreeze`, which, when the caller is itself embedded in another
+  chunk, becomes a jump to the freeze block of the caller's own call site in
+  turn.
+
+The frames are therefore built innermost first.  Each one slides between the
+frame built before it and that frame's caller, so the last one, the frame of
+the chunk's own function, takes the frozen continuation's original caller.
+Reading a caller's slots for its `CreateL1Continuation` forces the postponed
+`Create`s and `Set`s of the caller's elided locals, so they are emitted in
+that freeze block, just as the frozen frame's own are emitted before its
+`UpdateSlots`.
+
+```mermaid
+---
+title: Freezing inside C, embedded in B, embedded in A's chunk
+---
+flowchart LR
+ subgraph Subgraph["Freeze subgraph"]
+  direction TB
+  FreezeC["EnterFreeze<br>UpdateSlots <i>(C's slots)</i>"]
+  FreezeB["CreateL1Continuation (B)<br>AddUnderFrozenFrame"]
+  FreezeA["CreateL1Continuation (A)<br>AddUnderFrozenFrame<br>ExitFreeze"]
+  FreezeC -->|"C's ExitFreeze"| FreezeB
+  FreezeB -->|"B's ExitFreeze"| FreezeA
+ end
+ subgraph Frames["Resulting frames"]
+  direction TB
+  FrameC["frozen continuation <i>(C)</i>"]
+  FrameB["B's frame"]
+  FrameA["A's frame"]
+  Caller["original caller"]
+  FrameC -->|caller| FrameB
+  FrameB -->|caller| FrameA
+  FrameA -->|caller| Caller
+ end
+ Subgraph .-> Frames
+```
+
+### The freeze method
 
 A chunk translated to JVM code has a `freeze` method if it has any freeze
 subgraphs; every other chunk inherits one that does nothing.  The freeze
@@ -303,6 +384,21 @@ continuation in place of the interpreter, which it does not have, since a
 continuation can be frozen on any thread.  Code in the freeze subgraph that
 would use the interpreter only as an optimization does without: boxing an int
 does not use the interpreter's recycling pool.
+
+The method keeps the outermost frame built so far in a JVM local, which
+starts as the continuation being frozen.  Each `AddUnderFrozenFrame` replaces
+it with the frame it slides.  `UpdateSlots` comes before any of them, and
+writes into the continuation being frozen.
+
+Only an instruction that can run without an interpreter may travel along a
+freeze edge.  `L2Instruction.canRunInFreeze` says whether a postponed
+instruction can.  For an `L2_RUN_INFALLIBLE_PRIMITIVE` it is true only when
+the primitive is `Isolated`, needing nothing of what runs it but a way to
+fail.  Whenever a `CreateContinuation` has a freeze subgraph, each postponed
+instruction that cannot run in a freeze is emitted before it, where there is
+an interpreter.  An isolated primitive runs in the freeze method with
+`FreezePrimitiveContext` as its context.  Its invocation was infallible where
+it was translated, so a failure there is a broken invariant of the optimizer.
 
 The dump holds what the freeze subgraph needs.  When JVM translation finds a
 `CreateContinuation` with a freeze edge, it finds the `SaveAll` whose dump that
@@ -326,7 +422,9 @@ since it must hold its `FREEZE_OFFSET`.  The shared empty dumps have a
 [L1Translator]: ../../../src/main/kotlin/avail/optimizer/L1Translator.kt
 [L2SimpleChunk]: ../../../src/main/kotlin/avail/interpreter/levelTwo/L2SimpleChunk.kt
 [L2ValueManifest]: ../../../src/main/kotlin/avail/optimizer/manifest/L2ValueManifest.kt
+[L2_ADD_UNDER_FROZEN_FRAME]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_ADD_UNDER_FROZEN_FRAME.kt
 [L2_CREATE_CONTINUATION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_CREATE_CONTINUATION.kt
+[L2_CREATE_L1_CONTINUATION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_CREATE_L1_CONTINUATION.kt
 [L2_CREATE_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CREATE_VARIABLE.kt
 [L2_ENTER_FREEZE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_ENTER_FREEZE.kt
 [L2_EXIT_FREEZE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_EXIT_FREEZE.kt

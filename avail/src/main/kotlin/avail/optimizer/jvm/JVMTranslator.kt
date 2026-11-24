@@ -1520,7 +1520,8 @@ class JVMTranslator constructor(
 			in Int.MIN_VALUE..Int.MAX_VALUE ->
 			{
 				intConstant(value.toInt())
-				// Emit a conversion, so that we end up with a long on the stack.
+				// Emit a conversion, so that we end up with a long on the
+				// stack.
 				method.visitInsn(I2L)
 			}
 			// This should emit an ldc2_w instruction, whose result type
@@ -2286,7 +2287,8 @@ class JVMTranslator constructor(
 	 * an offset of -1 returns immediately.  Its parameters occupy the same
 	 * locals as runChunk's, so the register locals are shared, with the
 	 * continuation in place of the [Interpreter], which it does not have.
-	 * See doc/Optimization/Level_Two/Variable_elision.md §Freezing.
+	 * See doc/Optimization/Level_Two/Variable_elision.md §Freezing.The freeze
+	 * method.
 	 */
 	fun generateFreeze()
 	{
@@ -2987,7 +2989,8 @@ class JVMTranslator constructor(
 		 * [CodeLoggingPathData] from [code] first.
 		 *
 		 * @param code
-		 *   The [A_RawFunction] being compiled, or `null` for the default chunk.
+		 *   The [A_RawFunction] being compiled, or `null` for the default
+		 *   chunk.
 		 * @return
 		 *   A [Triple] of `(classInternalName, dir, baseFileName)`.
 		 */
