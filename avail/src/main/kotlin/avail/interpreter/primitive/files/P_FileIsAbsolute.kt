@@ -44,10 +44,10 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.io.IOSystem
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
@@ -58,12 +58,13 @@ import java.nio.file.Path
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileIsAbsolute : Primitive1(CanInline, HasSideEffect)
+object P_FileIsAbsolute : PrimitiveIsolated1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		filename: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val path: Path =
 			try
 			{
@@ -71,7 +72,7 @@ object P_FileIsAbsolute : Primitive1(CanInline, HasSideEffect)
 			}
 			catch (e: InvalidPathException)
 			{
-				return fail(E_INVALID_PATH)
+				return context.fail(E_INVALID_PATH)
 			}
 		return objectFromBoolean(path.isAbsolute)
 	}

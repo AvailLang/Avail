@@ -60,7 +60,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CatchException
 import avail.interpreter.primitive.Primitive.Flag.PreserveArguments
 import avail.interpreter.primitive.Primitive.Flag.PreserveGuardVariable
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Always fail. The Avail failure code invokes the bodyBlock, and
@@ -79,24 +80,25 @@ import avail.interpreter.primitive.Primitive3
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CatchException : Primitive3(
+object P_CatchException : PrimitiveIsolated3(
 	CatchException, PreserveGuardVariable, PreserveArguments, CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		bodyBlock: AvailObject,
 		handlerBlocks: AvailObject,
 		ensureBlock: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		for (block in handlerBlocks)
 		{
 			if (!block.kind().argsTupleType.typeAtIndex(1).isSubtypeOf(
 					exceptionType))
 			{
-				return fail(E_INCORRECT_ARGUMENT_TYPE)
+				return context.fail(E_INCORRECT_ARGUMENT_TYPE)
 			}
 		}
-		return fail(E_REQUIRED_FAILURE)
+		return context.fail(E_REQUIRED_FAILURE)
 	}
 
 	override fun L2SimpleTranslator.simplePrimitiveNilpotentInvocation(

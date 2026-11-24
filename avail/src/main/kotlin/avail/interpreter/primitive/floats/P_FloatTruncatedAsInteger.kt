@@ -45,29 +45,30 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Convert a [float][FloatDescriptor] to an
  * [integer][IntegerDescriptor], rounding towards zero.
  */
 @Suppress("unused")
-object P_FloatTruncatedAsInteger : Primitive1(CanInline), Foldable
+object P_FloatTruncatedAsInteger : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		a: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
 		val f = a.extractFloat
 		return when
 		{
 			f.isNaN() ->
-				fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
+				context.fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
 			else -> doubleTruncatedToExtendedInteger(f.toDouble())
 		}
 	}

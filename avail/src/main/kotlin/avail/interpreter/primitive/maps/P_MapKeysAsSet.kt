@@ -45,25 +45,26 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer the keys of this [map][MapDescriptor] as a
  * [set][SetDescriptor].
  */
 @Suppress("unused")
-object P_MapKeysAsSet : Primitive1(CannotFail, CanInline), Foldable
+object P_MapKeysAsSet : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		map: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return map.keysAsSet
 	}
 

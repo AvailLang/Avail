@@ -42,11 +42,11 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Create a variation of a
@@ -54,15 +54,16 @@ import avail.interpreter.primitive.Primitive2
  * of the same [kind][PhraseKind] but with the specified expression type.
  */
 @Suppress("unused")
-object P_CreatePhraseType : Primitive2(
+object P_CreatePhraseType : PrimitiveIsolated2(
 	CanInline,
 	CannotFail), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		baseType: AvailObject,
 		expressionType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (baseType.isBottom) return baseType
 		val kind = baseType.phraseKind
 		val intersected =

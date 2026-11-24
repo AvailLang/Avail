@@ -47,10 +47,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer a [set][SetDescriptor] of all currently defined
@@ -60,12 +60,13 @@ import avail.interpreter.primitive.Primitive1
  * forward signatures.
  */
 @Suppress("unused")
-object P_BundleSignatures : Primitive1(CannotFail, CanInline)
+object P_BundleSignatures : PrimitiveIsolated1(CannotFail, CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		bundle: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val method = bundle.bundleMethod
 		val definitions = method.definitionsTuple.asSet
 		return definitions.makeImmutable()

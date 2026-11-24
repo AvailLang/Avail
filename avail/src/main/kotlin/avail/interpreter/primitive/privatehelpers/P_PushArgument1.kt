@@ -38,7 +38,6 @@ import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
@@ -51,7 +50,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
-import avail.interpreter.primitive.PrimitiveN
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolatedN
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -59,13 +59,14 @@ import avail.optimizer.L1Translator
  * **Primitive:** The first argument is being returned.
  */
 @Suppress("unused")
-object P_PushArgument1 : PrimitiveN(
+object P_PushArgument1 : PrimitiveIsolatedN(
 	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		args: Array<AvailObject>
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val argument = args[0]
 		return argument
 	}

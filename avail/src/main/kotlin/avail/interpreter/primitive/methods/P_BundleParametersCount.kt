@@ -42,11 +42,11 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer the number of arguments expected by the specified
@@ -55,12 +55,14 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BundleParametersCount : Primitive1(CannotFail, CanInline), Foldable
+object P_BundleParametersCount
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		bundle: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 
 		val splitter = bundle.messageSplitter
 		return fromInt(splitter.numberOfArguments)

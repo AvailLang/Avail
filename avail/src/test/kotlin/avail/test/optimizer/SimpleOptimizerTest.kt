@@ -3816,7 +3816,6 @@ class SimpleOptimizerTest
 				null,
 				helper.createDummyRawFunction(returnType = TOP()),
 				0,
-				"test frame",
 				"test frame"),
 			name,
 			uniqueId)

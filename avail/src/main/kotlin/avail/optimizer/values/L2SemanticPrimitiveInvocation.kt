@@ -100,6 +100,11 @@ internal constructor(
 		return L2SemanticPrimitiveInvocation(foldable, newArguments.cast())
 	}
 
+	override fun makeShared()
+	{
+		argumentSemanticValues.forEach(L2SemanticValue::makeShared)
+	}
+
 	override val defaultRestriction: TypeRestriction
 		get() = restrictionForType(
 			primitive.blockTypeRestriction().returnType)

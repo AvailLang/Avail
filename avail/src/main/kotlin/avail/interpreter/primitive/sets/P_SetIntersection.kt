@@ -39,23 +39,24 @@ import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Answer the intersection of two [sets][SetDescriptor].
  */
 @Suppress("unused")
-object P_SetIntersection : Primitive2(CannotFail, CanInline), Foldable
+object P_SetIntersection : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		set1: AvailObject,
 		set2: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return set1.setIntersectionCanDestroy(set2, true)
 	}
 

@@ -44,13 +44,13 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive0
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated0
 import avail.interpreter.primitive.general.P_EnvironmentMap.environmentMap
 import java.lang.ref.SoftReference
 
@@ -61,11 +61,11 @@ import java.lang.ref.SoftReference
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_EnvironmentMap : Primitive0(CannotFail, CanInline, HasSideEffect)
+object P_EnvironmentMap
+	: PrimitiveIsolated0(CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject? = interpreter.run {
+	override fun attemptIsolated(context: PrimitiveContext): A_BasicObject?
+	{
 		return getEnvironmentMap()
 	}
 

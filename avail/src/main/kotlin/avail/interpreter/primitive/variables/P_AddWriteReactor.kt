@@ -51,9 +51,9 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.descriptor.variables.VariableDescriptor
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Add a [write&#32;reactor][VariableAccessReactor] to the
@@ -63,19 +63,20 @@ import avail.interpreter.primitive.Primitive3
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AddWriteReactor : Primitive3(
+object P_AddWriteReactor : PrimitiveIsolated3(
 	HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variable: AvailObject,
 		key: AvailObject,
 		reactorFunction: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{
-			return fail(E_SPECIAL_ATOM)
+			return context.fail(E_SPECIAL_ATOM)
 		}
 		val sharedFunction = reactorFunction.makeShared()
 		val writeReactor = VariableAccessReactor(sharedFunction)

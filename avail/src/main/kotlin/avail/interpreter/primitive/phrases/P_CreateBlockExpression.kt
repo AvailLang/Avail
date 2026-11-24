@@ -60,10 +60,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.PrimitiveHolder.Companion.primitiveByName
-import avail.interpreter.primitive.PrimitiveN
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolatedN
 
 /**
 * **Primitive:** Create a [block&#32;expression][BlockPhraseDescriptor] from
@@ -73,15 +73,16 @@ import avail.interpreter.primitive.PrimitiveN
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateBlockExpression : PrimitiveN(
+object P_CreateBlockExpression : PrimitiveIsolatedN(
 	5,
 	CanInline)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		args: Array<AvailObject>
-	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(5)
+	): A_BasicObject?
+	{
+		assert(args.size == 5)
 		val (argDecls, primitiveName, statements, resultType, exceptions) =
 			args
 		// Verify that each element of "statements" is actually a statement,
@@ -93,11 +94,11 @@ object P_CreateBlockExpression : PrimitiveN(
 		{
 			0 -> null
 			else -> primitiveByName(primitiveName.asNativeString())
-				?: return fail(E_INVALID_PRIMITIVE_NAME)
+				?: return context.fail(E_INVALID_PRIMITIVE_NAME)
 		}
 		if (!containsOnlyStatements(flat, resultType))
 		{
-			return fail(E_BLOCK_CONTAINS_INVALID_STATEMENTS)
+			return context.fail(E_BLOCK_CONTAINS_INVALID_STATEMENTS)
 		}
 		// Approximate where the block's "first line" is.
 		val allTokens = mutableSetOf<A_Token>()

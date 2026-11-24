@@ -46,14 +46,14 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -62,13 +62,14 @@ import avail.optimizer.L1Translator
  * [set][SetDescriptor].
  */
 @Suppress("unused")
-object P_ElementInSet : Primitive2(CannotFail, CanInline), Foldable
+object P_ElementInSet : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		element: AvailObject,
 		set: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return objectFromBoolean(set.hasElement(element))
 	}
 

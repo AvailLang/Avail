@@ -55,9 +55,9 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousSocketChannel
@@ -71,16 +71,17 @@ import java.nio.channels.ClosedChannelException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketLocalPeer : Primitive1(CanInline)
+object P_SocketLocalPeer : PrimitiveIsolated1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		handle: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return fail(
+			return context.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -92,11 +93,11 @@ object P_SocketLocalPeer : Primitive1(CanInline)
 		}
 		catch (e: ClosedChannelException)
 		{
-			return fail(E_INVALID_HANDLE)
+			return context.fail(E_INVALID_HANDLE)
 		}
 		catch (e: IOException)
 		{
-			return fail(E_IO_ERROR)
+			return context.fail(E_IO_ERROR)
 		}
 		return tuple(
 			tupleForByteArray(peer.address.address),

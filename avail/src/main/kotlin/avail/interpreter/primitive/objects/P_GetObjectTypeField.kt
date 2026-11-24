@@ -56,14 +56,14 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 
 /**
@@ -71,16 +71,17 @@ import avail.optimizer.values.L2SemanticPrimitiveInvocation
  * [object&#32;type][ObjectTypeDescriptor].
  */
 @Suppress("unused")
-object P_GetObjectTypeField : Primitive2(CanInline), Foldable
+object P_GetObjectTypeField : PrimitiveIsolated2(CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		objectType: AvailObject,
 		field: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return when (val fieldType = objectType.fieldTypeAtOrNull(field))
 		{
-			null -> fail(E_NO_SUCH_FIELD)
+			null -> context.fail(E_NO_SUCH_FIELD)
 			else -> fieldType
 		}
 	}

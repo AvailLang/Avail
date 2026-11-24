@@ -57,12 +57,12 @@ import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Atomically read and update the specified
@@ -71,30 +71,31 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_AtomicFetchAndAdd : Primitive2(
+object P_AtomicFetchAndAdd : PrimitiveIsolated2(
 	CanInline,
 	HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variable: AvailObject,
 		addend: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		try
 		{
 			return variable.fetchAndAddValue(addend)
 		}
 		catch (e: VariableGetException)
 		{
-			return fail(e.errorCode)
+			return context.fail(e.errorCode)
 		}
 		catch (e: VariableSetException)
 		{
-			return fail(e.errorCode)
+			return context.fail(e.errorCode)
 		}
 		catch (e: ArithmeticException)
 		{
-			return fail(e.errorCode)
+			return context.fail(e.errorCode)
 		}
 	}
 

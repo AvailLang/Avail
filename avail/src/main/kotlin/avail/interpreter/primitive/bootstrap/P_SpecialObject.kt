@@ -46,11 +46,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.interpreter.primitive.style.P_SpecialObjectStyler
 
 /**
@@ -58,16 +58,17 @@ import avail.interpreter.primitive.style.P_SpecialObjectStyler
  * specified ordinal.
  */
 @Suppress("unused")
-object P_SpecialObject : Primitive1(CanInline, Bootstrap), Foldable
+object P_SpecialObject : PrimitiveIsolated1(CanInline, Bootstrap), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		ordinalLiteral: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val ordinal = ordinalLiteral.token.literal()
 		if (!ordinal.isInt)
 		{
-			return fail(E_NO_SPECIAL_OBJECT)
+			return context.fail(E_NO_SPECIAL_OBJECT)
 		}
 		val i = ordinal.extractInt
 		val result: AvailObject
@@ -77,12 +78,12 @@ object P_SpecialObject : Primitive1(CanInline, Bootstrap), Foldable
 		}
 		catch (e: ArrayIndexOutOfBoundsException)
 		{
-			return fail(E_NO_SPECIAL_OBJECT)
+			return context.fail(E_NO_SPECIAL_OBJECT)
 		}
 
 		if (result.isNil)
 		{
-			return fail(E_NO_SPECIAL_OBJECT)
+			return context.fail(E_NO_SPECIAL_OBJECT)
 		}
 
 		return syntheticLiteralNodeFor(result)

@@ -63,7 +63,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
@@ -77,7 +76,8 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -90,16 +90,17 @@ import avail.optimizer.PostPhiData
  * **Primitive:** Divide a number by another number.
  */
 @Suppress("unused")
-object P_Division : Primitive2(CanInline), Foldable
+object P_Division : PrimitiveIsolated2(CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		a: AvailObject,
 		b: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (b.equalsInt(0) && a.isInstanceOf(integers))
 		{
-			return fail(E_CANNOT_DIVIDE_BY_ZERO)
+			return context.fail(E_CANNOT_DIVIDE_BY_ZERO)
 		}
 		return try
 		{
@@ -107,7 +108,7 @@ object P_Division : Primitive2(CanInline), Foldable
 		}
 		catch (e: ArithmeticException)
 		{
-			fail(e.errorCode)
+			context.fail(e.errorCode)
 		}
 	}
 

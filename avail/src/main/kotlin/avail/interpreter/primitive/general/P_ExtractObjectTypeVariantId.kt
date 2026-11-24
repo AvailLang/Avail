@@ -48,7 +48,6 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
@@ -56,7 +55,8 @@ import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
@@ -80,14 +80,12 @@ import avail.optimizer.values.L2SemanticValue
  */
 @Suppress("unused")
 object P_ExtractObjectTypeVariantId
-	: Primitive1(Private, CannotFail, CanInline), Foldable
+	: PrimitiveIsolated1(Private, CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		objectType: AvailObject
-	): A_BasicObject = interpreter.run {
-		fromInt(objectType.objectTypeVariant.variantId)
-	}
+	): A_BasicObject = fromInt(objectType.objectTypeVariant.variantId)
 
 
 	override fun printSemanticInvocation(

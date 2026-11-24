@@ -40,24 +40,25 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LabelTypeDescriptor
 import avail.descriptor.types.LabelTypeDescriptor.Companion.labelMeta
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer the [function&#32;type][FunctionTypeDescriptor]
  * corresponding to the given [label&#32;type][LabelTypeDescriptor].
  */
 @Suppress("unused")
-object P_LabelTypeToFunctionType : Primitive1(
+object P_LabelTypeToFunctionType : PrimitiveIsolated1(
 	CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		labelType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return labelType.functionType()
 	}
 

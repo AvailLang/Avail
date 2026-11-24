@@ -55,7 +55,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeT
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -69,7 +68,8 @@ import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
@@ -85,20 +85,21 @@ import avail.utility.notNullAnd
  * **Primitive:** Add two [numbers][AbstractNumberDescriptor].
  */
 @Suppress("unused")
-object P_Addition : Primitive2(CanInline), Foldable
+object P_Addition : PrimitiveIsolated2(CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		a: AvailObject,
 		b: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return try
 		{
 			a.plusCanDestroy(b, true)
 		}
 		catch (e: ArithmeticException)
 		{
-			fail(e.errorCode)
+			context.fail(e.errorCode)
 		}
 	}
 

@@ -43,13 +43,13 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** There are two possibilities.  The
@@ -62,16 +62,17 @@ import avail.interpreter.primitive.Primitive2
  * If the variable is unassigned, answer the default value instead.
  */
 @Suppress("unused")
-object P_GetValueElse : Primitive2(
+object P_GetValueElse : PrimitiveIsolated2(
 	CannotFail,
 	CanInline,
 	HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variable: AvailObject,
 		defaultValue: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		var value = variable.value()
 		if (value.isNil) value = defaultValue
 		return value

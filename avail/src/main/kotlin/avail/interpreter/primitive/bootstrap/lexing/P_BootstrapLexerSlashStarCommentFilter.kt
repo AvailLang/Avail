@@ -41,12 +41,12 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * The `P_BootstrapLexerSlashStarCommentFilter` primitive is used for deciding
@@ -57,12 +57,13 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_BootstrapLexerSlashStarCommentFilter
-	: Primitive1(CannotFail, CanInline, Bootstrap), Foldable
+	: PrimitiveIsolated1(CannotFail, CanInline, Bootstrap), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		character: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val codePoint = character.codePoint
 		return objectFromBoolean(codePoint == '/'.code)
 	}

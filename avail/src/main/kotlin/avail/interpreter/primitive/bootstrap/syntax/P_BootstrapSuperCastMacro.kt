@@ -49,11 +49,11 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * The `P_BootstrapSuperCastMacro` primitive is used to create a
@@ -65,13 +65,14 @@ import avail.interpreter.primitive.Primitive2
  */
 @Suppress("unused")
 object P_BootstrapSuperCastMacro
-	: Primitive2(CannotFail, CanInline, Bootstrap)
+	: PrimitiveIsolated2(CannotFail, CanInline, Bootstrap)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		expressionNode: AvailObject,
 		typeLiteral: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val type = typeLiteral.token.literal()
 		if (type.isTop || type.isBottom)
 		{

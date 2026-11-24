@@ -99,6 +99,19 @@ constructor(
 			?: restrictionsBySynonym[synonym]!!
 
 	/**
+	 * Make every [AvailObject] that this holds
+	 * [shared][AvailObject.makeShared]: those in its synonyms'
+	 * [L2SemanticValue]s and in their [TypeRestriction]s.
+	 */
+	fun makeAllShared()
+	{
+		restrictionsBySynonym.forEach { (synonym, restriction) ->
+			synonym.semanticValues().forEach(L2SemanticValue::makeShared)
+			restriction.makeShared()
+		}
+	}
+
+	/**
 	 * Answer the [TypeRestriction] of the given [L2SemanticValue]: the
 	 * constant's restriction if it is a semantic constant, otherwise the
 	 * restriction recorded for its synonym.

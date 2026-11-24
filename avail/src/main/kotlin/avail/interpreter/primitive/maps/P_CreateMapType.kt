@@ -42,25 +42,26 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Answer a [map][MapTypeDescriptor] with the given type
  * constraints.
  */
 @Suppress("unused")
-object P_CreateMapType : Primitive3(CannotFail, CanInline), Foldable
+object P_CreateMapType : PrimitiveIsolated3(CannotFail, CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		keyType: AvailObject,
 		valueType: AvailObject,
 		sizes: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return mapTypeForSizesKeyTypeValueType(sizes, keyType, valueType)
 	}
 

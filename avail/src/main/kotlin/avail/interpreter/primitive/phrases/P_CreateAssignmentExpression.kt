@@ -52,9 +52,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRAS
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Transform a variable reference and an expression into an inner
@@ -62,24 +62,25 @@ import avail.interpreter.primitive.Primitive2
  * assigned value as its result, so it can be embedded as a subexpression.
  */
 @Suppress("unused")
-object P_CreateAssignmentExpression : Primitive2(CanInline)
+object P_CreateAssignmentExpression : PrimitiveIsolated2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variable: AvailObject,
 		expression: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val declaration = variable.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
-			return fail(
+			return context.fail(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT)
 		}
 		if (!expression.phraseExpressionType.isSubtypeOf(
 				variable.phraseExpressionType))
 		{
-			return fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			return context.fail(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
 		return newAssignment(variable, expression, true)
 	}

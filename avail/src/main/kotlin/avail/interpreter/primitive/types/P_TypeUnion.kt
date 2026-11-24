@@ -44,7 +44,6 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
@@ -53,7 +52,8 @@ import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.PostPhiData
@@ -65,13 +65,14 @@ import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
  * [types][TypeDescriptor].
  */
 @Suppress("unused")
-object P_TypeUnion : Primitive2(CannotFail, CanInline), Foldable
+object P_TypeUnion : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		type1: AvailObject,
 		type2: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return type1.typeUnion(type2).makeImmutable()
 	}
 

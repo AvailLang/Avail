@@ -42,22 +42,24 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Set the priority of a fiber.
  */
 @Suppress("unused")
-object P_SetFiberPriority : Primitive2(CannotFail, WritesToHiddenGlobalState)
+object P_SetFiberPriority
+	: PrimitiveIsolated2(CannotFail, WritesToHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		fiber: AvailObject,
 		priority: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val priorityInt = priority.extractInt
 		fiber.priority = priorityInt
 		return nil

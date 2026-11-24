@@ -49,10 +49,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import java.io.IOException
 import java.nio.channels.AsynchronousSocketChannel
 
@@ -64,16 +64,17 @@ import java.nio.channels.AsynchronousSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketShutdownInput : Primitive1(CanInline, HasSideEffect)
+object P_SocketShutdownInput : PrimitiveIsolated1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		handle: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return fail(
+			return context.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -84,11 +85,11 @@ object P_SocketShutdownInput : Primitive1(CanInline, HasSideEffect)
 		}
 		catch (e: IllegalStateException)
 		{
-			fail(E_INVALID_HANDLE)
+			context.fail(E_INVALID_HANDLE)
 		}
 		catch (e: IOException)
 		{
-			fail(E_IO_ERROR)
+			context.fail(E_IO_ERROR)
 		}
 	}
 

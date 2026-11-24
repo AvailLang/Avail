@@ -46,9 +46,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive**: Close the specified anonymous [module][A_Module],
@@ -56,16 +56,17 @@ import avail.interpreter.primitive.Primitive1
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_CloseModule : Primitive1(CanInline)
+object P_CloseModule : PrimitiveIsolated1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		module: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (module.moduleState != Loading)
 		{
 			// TODO Should rename error code.
-			return fail(E_MODULE_IS_CLOSED)
+			return context.fail(E_MODULE_IS_CLOSED)
 		}
 		module.moduleState = Loaded
 		return nil

@@ -62,11 +62,11 @@ import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
 * **Primitive:** Create a [send&#32;expression][SendPhraseDescriptor] from the
@@ -78,15 +78,16 @@ import avail.interpreter.primitive.Primitive3
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateSendExpression : Primitive3(
+object P_CreateSendExpression : PrimitiveIsolated3(
 	CanInline)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		messageName: AvailObject,
 		argsListPhrase: AvailObject,
 		returnType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val argExpressions = argsListPhrase.expressionsTuple
 		val argsCount = argExpressions.tupleSize
 		try
@@ -95,18 +96,18 @@ object P_CreateSendExpression : Primitive3(
 			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
-				return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+				return context.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			if (!splitter.checkListStructure(argsListPhrase))
 			{
-				return fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				return context.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			}
 			return newSendNode(
 				emptyTuple, emptyTuple, bundle, argsListPhrase, returnType)
 		}
 		catch (e: MalformedMessageException)
 		{
-			return fail(e.errorCode)
+			return context.fail(e.errorCode)
 		}
 	}
 

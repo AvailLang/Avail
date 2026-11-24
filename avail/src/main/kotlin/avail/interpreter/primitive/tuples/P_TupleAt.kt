@@ -60,7 +60,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -78,7 +77,8 @@ import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_SIZE
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.interpreter.primitive.characters.P_CharacterCodePoint
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -91,21 +91,22 @@ import java.lang.Integer.MAX_VALUE
  * **Primitive:** Look up an element in the [tuple][TupleDescriptor].
  */
 @Suppress("unused")
-object P_TupleAt : Primitive2(CanInline), Foldable
+object P_TupleAt : PrimitiveIsolated2(CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tuple: AvailObject,
 		indexObject: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (!indexObject.isInt)
 		{
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = indexObject.extractInt
 		return if (index > tuple.tupleSize)
 		{
-			fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		else tuple.tupleAt(index)
 	}

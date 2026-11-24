@@ -43,10 +43,10 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.io.IOSystem.FileHandle
 
 /**
@@ -57,16 +57,17 @@ import avail.io.IOSystem.FileHandle
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FileGetAlignment : Primitive1(CanInline, HasSideEffect)
+object P_FileGetAlignment : PrimitiveIsolated1(CanInline, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		atom: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return fail(E_INVALID_HANDLE)
+			return context.fail(E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		return fromInt(handle.alignment)

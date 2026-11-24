@@ -52,9 +52,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Create a [first-of-sequence][FirstOfSequencePhraseDescriptor]
@@ -63,12 +63,13 @@ import avail.interpreter.primitive.Primitive1
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateFirstOfSequenceOfStatements : Primitive1(CanInline)
+object P_CreateFirstOfSequenceOfStatements : PrimitiveIsolated1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		statements: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val statementsSize = statements.tupleSize
 		val flat = mutableListOf<A_Phrase>()
 		for (i in 2 .. statementsSize)
@@ -77,7 +78,7 @@ object P_CreateFirstOfSequenceOfStatements : Primitive1(CanInline)
 		}
 		if (!containsOnlyStatements(flat, TOP()))
 		{
-			return fail(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
+			return context.fail(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
 		}
 		flat.add(0, statements.tupleAt(1))
 		return newFirstOfSequenceNode(statements)

@@ -80,7 +80,7 @@ object P_CreateLiteralToken : PrimitiveN(
 		interpreter: Interpreter,
 		args: Array<AvailObject>
 	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(5)
+		assert(args.size == 5)
 		val (value, lexeme, start, line, optionalGeneratingPhrase) = argsBuffer
 		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
 		{

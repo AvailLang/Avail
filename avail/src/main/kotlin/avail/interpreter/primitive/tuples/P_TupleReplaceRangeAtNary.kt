@@ -55,10 +55,10 @@ import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.AvailException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.PrimitiveN
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolatedN
 
 /**
  * **Primitive:** Replace the range of values in a tuple given a replacement
@@ -68,13 +68,14 @@ import avail.interpreter.primitive.PrimitiveN
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleReplaceRangeAtNary : PrimitiveN(5, CanInline), Foldable
+object P_TupleReplaceRangeAtNary : PrimitiveIsolatedN(5, CanInline), Foldable
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		args: Array<AvailObject>
-	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(5)
+	): A_BasicObject?
+	{
+		assert(args.size == 5)
 		val targetTuple = args[0]
 		val pathTuple = args[1]
 		val sliceStartIndex = args[2]
@@ -82,11 +83,11 @@ object P_TupleReplaceRangeAtNary : PrimitiveN(5, CanInline), Foldable
 		val newValues = args[4]
 
 		if (!sliceStartIndex.isInt || !sliceEndIndex.isInt)
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		val startInt = sliceStartIndex.extractInt
 		val endInt = sliceEndIndex.extractInt
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
-			return fail(E_NEGATIVE_SIZE)
+			return context.fail(E_NEGATIVE_SIZE)
 		return try
 		{
 			targetTuple.recursivelyUpdate(pathTuple.iterator()) {
@@ -108,7 +109,7 @@ object P_TupleReplaceRangeAtNary : PrimitiveN(5, CanInline), Foldable
 		}
 		catch (e: AvailException)
 		{
-			fail(e.errorCode)
+			context.fail(e.errorCode)
 		}
 	}
 

@@ -42,23 +42,25 @@ import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer this [definition's][DefinitionDescriptor]
  * [body][FunctionDescriptor]'s [type][FunctionTypeDescriptor].
  */
 @Suppress("unused")
-object P_DefinitionBodySignature : Primitive1(CannotFail, CanInline), Foldable
+object P_DefinitionBodySignature
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		definition: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return definition.bodySignature().makeImmutable()
 	}
 

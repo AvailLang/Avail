@@ -66,7 +66,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -82,7 +81,8 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 import avail.interpreter.primitive.numbers.P_Subtraction
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
@@ -99,28 +99,29 @@ import kotlin.math.min
  * elements.
  */
 @Suppress("unused")
-object P_ExtractSubtuple : Primitive3(CanInline), Foldable
+object P_ExtractSubtuple : PrimitiveIsolated3(CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tuple: AvailObject,
 		start: AvailObject,
 		end: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (!start.isInt || !end.isInt)
 		{
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = start.extractInt
 		val endInt = end.extractInt
 		return when
 		{
 			startInt < 1 ->
-				fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			startInt > endInt + 1 ->
-				fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			endInt > tuple.tupleSize ->
-				fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+				context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			else -> tuple.copyTupleFromToCanDestroy(startInt, endInt, true)
 		}
 	}

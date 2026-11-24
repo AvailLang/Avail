@@ -47,12 +47,12 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import avail.descriptor.variables.VariableSharedGlobalDescriptor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
-import avail.interpreter.primitive.PrimitiveN
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolatedN
 
 /**
  * **Primitive:** Create a
@@ -60,13 +60,14 @@ import avail.interpreter.primitive.PrimitiveN
  * registering it with the given module.
  */
 object P_PrivateCreateModuleVariable
-	: PrimitiveN(5, CanInline, Private, CannotFail), Foldable
+	: PrimitiveIsolatedN(5, CanInline, Private, CannotFail), Foldable
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		args: Array<AvailObject>
-	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(5)
+	): A_BasicObject?
+	{
+		assert(args.size == 5)
 		val (module, name, varType, isConstantObject, stablyComputedObject) =
 			args
 

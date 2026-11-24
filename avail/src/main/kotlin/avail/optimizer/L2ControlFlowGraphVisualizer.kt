@@ -51,6 +51,7 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2ControlFlowGraph.ZoneType.FREEZING
 import avail.optimizer.L2Synonym.Companion.appendSemanticValues
 import avail.optimizer.manifest.L2Liveness
 import avail.optimizer.manifest.L2ValueManifest
@@ -837,6 +838,11 @@ class L2ControlFlowGraphVisualizer constructor(
 						if (sourceBlock.zone === null) "#9070ff/6050ff"
 						else "#20b040/60ff70")
 					style("dashed")
+				}
+				else if (sourceBlock.zone?.zoneType == FREEZING)
+				{
+					// Edge between two freeze zones, due to inlining.
+					color("#202090/6060f0")
 				}
 				else
 				{

@@ -92,7 +92,7 @@ object P_ExecuteAttachedExternalProcess : PrimitiveN(
 		interpreter: Interpreter,
 		args: Array<AvailObject>
 	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(6)
+		assert(args.size == 6)
 		val processArgsTuple = args[0]
 		val optDir = args[1]
 		val optEnvironment = args[2]

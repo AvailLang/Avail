@@ -118,6 +118,11 @@ constructor(
 		elements.forEach { it.addDestinationRegistersTo(destinationRegisters) }
 	}
 
+	override fun makeOperandShared()
+	{
+		elements.forEach(L2Operand::makeOperandShared)
+	}
+
 	override fun setInstruction(theInstruction: L2Instruction?)
 	{
 		super.setInstruction(theInstruction)

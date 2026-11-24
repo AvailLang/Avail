@@ -69,25 +69,34 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operation.L2_ADD_UNDER_FROZEN_FRAME
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
+import avail.interpreter.levelTwo.operation.L2_CREATE_L1_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_CREATE_LABEL
 import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
+import avail.interpreter.levelTwo.operation.L2_EXIT_FREEZE
 import avail.interpreter.levelTwo.operation.L2_FALL_BACK_TO_L1
-import avail.interpreter.levelTwo.operation.L2_FINISH_FREEZE
+import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.operation.L2_GET_LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.operation.L2_GET_RETURNING_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INLINED_FALL_BACK_TO_L1
+import avail.interpreter.levelTwo.operation.L2_INVOKE
+import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_ALREADY_REIFIED
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_REIFY_IF_INTERRUPT
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
 import avail.interpreter.levelTwo.operation.L2_RETURN
+import avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE
+import avail.interpreter.levelTwo.operation.L2_UPDATE_SLOTS
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.primitive.Primitive.Flag
 import avail.optimizer.CallSiteHelper
@@ -104,7 +113,11 @@ import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.OptimizationPhase
 import avail.optimizer.PostPhiData
+import avail.optimizer.reoptimizer.L2Inliner.Companion.canEmbed
+import avail.optimizer.reoptimizer.L2Inliner.Companion.inlinableChunkFor
+import avail.optimizer.reoptimizer.L2Inliner.Companion.maxInlinedInstructions
 import avail.optimizer.values.Frame
+import avail.optimizer.values.L2SemanticCaller
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.mapToSet
@@ -155,10 +168,23 @@ import java.util.IdentityHashMap
  *   reification path, which stacks the caller's frame beneath it.
  * * [L2_RETURN] moves the result into the [inlinedFrame]'s
  *   [result][Frame.result] and jumps to the code after the call.
+ * * [L2_EXIT_FREEZE] becomes a jump to the call site's [freezeBlock].
  *
- * Only a callee that never reifies, other than by falling back to L1 or by
- * reporting a result that disagrees with its expected type, is embedded (see
- * [inlinableChunkFor]).
+ * The callee may make calls of its own, and reify when they do.  A
+ * reification builds one continuation for the whole chunk, that of the
+ * innermost frame, whose register dump holds every live register, the
+ * caller's included.  Its caller is the [rootFrame]'s reified caller, since
+ * the callee's outermost reified caller is translated to that.  Every
+ * [L2_CREATE_CONTINUATION] of the callee gets a freeze subgraph, and each of
+ * those ends at the [freezeBlock], which builds the caller's frame as an L1
+ * continuation and slides it beneath the continuation being frozen
+ * (doc/Optimization/Level_Two/Variable_elision.md §Freezing).  A callee that
+ * embeds callees of its own was built the same way, so its freeze subgraphs
+ * build their callers' frames before reaching its exits, which build this
+ * caller's frame in turn.
+ *
+ * A callee that runs a loop, creates a label, restarts, or catches exceptions
+ * is not embedded (see [inlinableChunkFor]).
  *
  * @property calleeGraph
  *   The callee's [L2JVMChunk.inlinableGraph].
@@ -254,13 +280,62 @@ class L2Inliner private constructor(
 	private val returnBlock = createBasicBlock(
 		"after inlined ${inlinedFrame.codeName}")
 
+	/**
+	 * The block that each of the callee's freeze subgraphs jumps to in place
+	 * of its [L2_EXIT_FREEZE].  It builds the caller's frame, stopped at this
+	 * call, and slides it beneath the frames built so far (see
+	 * [L1Translator.generateFreezeOfCaller]).
+	 */
+	private val freezeBlock = createBasicBlock(
+		"freeze caller of inlined ${inlinedFrame.codeName}",
+		L2ControlFlowGraph.Zone(
+			L2ControlFlowGraph.ZoneType.FREEZING,
+			"Freezing caller of inlined ${inlinedFrame.codeName}"),
+		isCold = true)
+
+	/**
+	 * The outermost [Frame] of the chunk being generated, whose
+	 * [reified&#32;caller][Frame.reifiedCaller] is the continuation that any
+	 * reification within the chunk builds upon.
+	 */
+	private val rootFrame =
+		generateSequence(inlinedFrame, Frame::outerFrame).last()
+
+	/**
+	 * Every [L2_CREATE_CONTINUATION] of the callee gets a freeze subgraph,
+	 * since freezing its continuation must also build the caller's frame.
+	 */
+	override val freezesBuildEnclosingFrames get() = true
+
+	/**
+	 * End a freeze subgraph of the callee by jumping to the [freezeBlock],
+	 * which builds the caller's frame.
+	 */
+	override fun exitFreeze()
+	{
+		jumpTo(freezeBlock)
+	}
+
 	/** Translate a [Frame] of the callee's graph. */
 	private fun mapFrame(frame: Frame): Frame =
 		frameMap.getOrPut(frame) { frame.transform(inlinedFrame, ::mapFrame) }
 
-	/** Translate an [L2SemanticValue] of the callee's graph. */
+	/**
+	 * Translate an [L2SemanticValue] of the callee's graph.  The
+	 * [reified&#32;caller][Frame.reifiedCaller] of the callee's outermost frame
+	 * occurs only where the callee reifies, as the caller of the one
+	 * continuation that a reification builds for the whole chunk.  Once
+	 * embedded, that is the reified caller of the [rootFrame].
+	 */
 	private fun mapValue(value: L2SemanticValue): L2SemanticValue =
-		valueMap.getOrPut(value) { value.transform(::mapValue, ::mapFrame) }
+		valueMap.getOrPut(value) {
+			when
+			{
+				value is L2SemanticCaller && value.frame.outerFrame === null ->
+					rootFrame.reifiedCaller()
+				else -> value.transform(::mapValue, ::mapFrame)
+			}
+		}
 
 	/**
 	 * The callee's prologue and restart blocks are loop heads in its own
@@ -448,14 +523,18 @@ class L2Inliner private constructor(
 					edgeTo(reificationEntry))
 				generateReificationEntry(reificationEntry)
 			}
-			is L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION ->
+			is L2_EXIT_FREEZE -> exitFreeze()
+			// A report with a reification edge is in a callee's own embedded
+			// callee, and already reifies the callee's frame, from which a
+			// freeze builds the rest.  It is embedded as it is.
+			is L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
+				if sourceInstruction.onReification.edges.isEmpty() ->
 			{
 				val report: L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION =
 					basicTransformInstruction(
 						sourceInstruction.sourceCopyWithOperands {
 							operandMapper.map(it)
 						}.cast())
-				assert(report.onReification.edges.isEmpty())
 				val reificationEntry = newReificationEntry()
 				+L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 					report.function,
@@ -468,19 +547,28 @@ class L2Inliner private constructor(
 					L2PcVectorOperand(listOf(edgeTo(reificationEntry))))
 				generateReificationEntry(reificationEntry)
 			}
-			else ->
-			{
-				val copy = sourceInstruction.sourceCopyWithOperands {
-					operandMapper.map(it)
-				}
-				with(copy) {
-					if (populateFromSourceInstructionIfPossible()) return
-				}
-				basicTransformInstruction(copy)
-					.cloneFor(this)
-					.run { emitTransformedInstruction() }
-			}
+			else -> embed(sourceInstruction)
 		}
+	}
+
+	/**
+	 * Regenerate an instruction of the callee's graph as it is, with its
+	 * semantic values and edge manifests translated into the [inlinedFrame].
+	 *
+	 * @param sourceInstruction
+	 *   The [L2Instruction] of the callee's graph.
+	 */
+	private fun embed(sourceInstruction: L2Instruction)
+	{
+		val copy = sourceInstruction.sourceCopyWithOperands {
+			operandMapper.map(it)
+		}
+		with(copy) {
+			if (populateFromSourceInstructionIfPossible()) return
+		}
+		basicTransformInstruction(copy)
+			.cloneFor(this)
+			.run { emitTransformedInstruction() }
 	}
 
 	/**
@@ -528,6 +616,12 @@ class L2Inliner private constructor(
 		entry.debugNote.appendLine("INLINING: ${inlinedFrame.codeName}")
 		jumpTo(entry)
 		processSourceGraph(calleeGraph, emptyMap(), entry)
+		startBlock(freezeBlock)
+		if (currentlyReachable())
+		{
+			callSiteHelper.translator.generateFreezeOfCaller(
+				callSiteHelper.expectedType)
+		}
 		startBlock(returnBlock)
 		if (currentlyReachable())
 		{
@@ -570,8 +664,11 @@ class L2Inliner private constructor(
 		 * Answer whether the given instruction, reachable in a callee's graph
 		 * other than through its interrupt check, can be embedded in a
 		 * caller.  The instructions of the callee's own invocation are
-		 * replaced (see [L2Inliner]).  Any other instruction that reifies, or
-		 * refers to the running frame, disqualifies the callee.
+		 * replaced (see [L2Inliner]).  Calls, and the reification and
+		 * freezing of the callee's frame when a call reifies, are embedded.
+		 * Any other instruction that reifies, or refers to the running frame,
+		 * disqualifies the callee: label creation, restarts, the callee's own
+		 * primitive, and primitives that need the frame running them.
 		 *
 		 * @param instruction
 		 *   The [L2Instruction] to check.
@@ -588,11 +685,25 @@ class L2Inliner private constructor(
 				is L2_REIFY_IF_INTERRUPT,
 				is L2_RETURN,
 				is L2_FALL_BACK_TO_L1,
-				is L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION -> true
+				is L2_INLINED_FALL_BACK_TO_L1,
+				is L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION,
+				// A call, and the reification of the callee's frame when the
+				// call reifies, which builds the chunk's one continuation, and
+				// the frames around it only when that continuation freezes.
+				is L2_INVOKE,
+				is L2_INVOKE_CONSTANT_FUNCTION,
+				is L2_GET_LATEST_RETURN_VALUE,
+				is L2_GET_RETURNING_FUNCTION,
+				is L2_ENTER_L2_CHUNK,
 				is L2_SAVE_ALL_AND_PC_TO_INT,
+				is L2_GET_CURRENT_CONTINUATION,
 				is L2_CREATE_CONTINUATION,
+				is L2_RETURN_FROM_REIFICATION_HANDLER,
 				is L2_ENTER_FREEZE,
-				is L2_FINISH_FREEZE,
+				is L2_UPDATE_SLOTS,
+				is L2_CREATE_L1_CONTINUATION,
+				is L2_ADD_UNDER_FROZEN_FRAME,
+				is L2_EXIT_FREEZE -> true
 				is L2_VIRTUAL_CREATE_LABEL,
 				is L2_CREATE_LABEL,
 				is L2_RESTART_CONTINUATION_WITH_ARGUMENTS,
@@ -706,8 +817,7 @@ class L2Inliner private constructor(
 				if (!argument.type.isSubtypeOf(parameterType)) return false
 			}
 			val codeName = rawFunction.methodName.asNativeString()
-			val inlinedFrame = Frame(
-				topFrame, rawFunction, pc, codeName, "inlined $codeName")
+			val inlinedFrame = Frame(topFrame, rawFunction, pc, codeName)
 			for (value in chunk.contingentValues)
 			{
 				addContingentValue(value)

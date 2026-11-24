@@ -81,6 +81,12 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 			}
 		}
 
+	override fun makeOperandsShared()
+	{
+		super.makeOperandsShared()
+		preBranchManifest?.makeAllShared()
+	}
+
 	override fun justAdded(manifest: L2ValueManifest)
 	{
 		preBranchManifest = L2ValueManifest(manifest)

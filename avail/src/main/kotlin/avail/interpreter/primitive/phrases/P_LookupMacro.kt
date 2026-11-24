@@ -57,10 +57,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive LookupMacro**: Given an [atom][A_Atom] and a tuple of
@@ -79,29 +79,30 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_LookupMacro : Primitive2(CanInline, ReadsFromHiddenGlobalState)
+object P_LookupMacro : PrimitiveIsolated2(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		atom: AvailObject,
 		argPhrasesTuple: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val bundle = atom.bundleOrNil
 		if (bundle.isNil)
 		{
-			return fail(E_NO_METHOD_DEFINITION)
+			return context.fail(E_NO_METHOD_DEFINITION)
 		}
 		val bundleArgCount = bundle.numArgs
 		if (argPhrasesTuple.tupleSize != bundleArgCount)
 		{
-			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return context.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val bestMacros = bundle.lookupMacroByPhraseTuple(argPhrasesTuple)
 		return when (bestMacros.tupleSize)
 		{
-			0 -> fail(E_NO_METHOD_DEFINITION)
+			0 -> context.fail(E_NO_METHOD_DEFINITION)
 			1 -> bestMacros.tupleAt(1).bodyBlock()
-			else -> fail(E_AMBIGUOUS_METHOD_DEFINITION)
+			else -> context.fail(E_AMBIGUOUS_METHOD_DEFINITION)
 		}
 	}
 

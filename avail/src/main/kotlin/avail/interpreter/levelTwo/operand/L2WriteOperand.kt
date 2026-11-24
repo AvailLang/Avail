@@ -342,6 +342,13 @@ constructor(
 		registerOrNull?.let { destinationRegisters += it }
 	}
 
+	override fun makeOperandShared()
+	{
+		semanticValues.forEach(L2SemanticValue::makeShared)
+		restriction.makeShared()
+		registerOrNull?.makeShared()
+	}
+
 	/**
 	 * Ensure the given constant is written to each of the [L2SemanticValue]s
 	 * of the given [L2WriteOperand].

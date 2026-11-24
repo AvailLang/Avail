@@ -43,11 +43,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import java.lang.reflect.Array
 
 /**
@@ -57,13 +57,14 @@ import java.lang.reflect.Array
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateTupleFromPojoArray : Primitive1(
+object P_CreateTupleFromPojoArray : PrimitiveIsolated1(
 	CanInline, CannotFail, HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		array: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		// Hold a lock on the array while accessing it.
 		return array.lock {
 			val rawArray = array.rawPojo().javaObjectNotNull<Any>()

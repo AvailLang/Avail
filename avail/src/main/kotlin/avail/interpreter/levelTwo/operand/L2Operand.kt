@@ -50,6 +50,7 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.values.L2SemanticValue
 import avail.utility.PublicCloneable
 import avail.utility.Strings
 import avail.utility.Strings.increaseIndentation
@@ -225,6 +226,20 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 */
 	open fun addDestinationRegistersTo(
 		destinationRegisters: MutableList<L2Register<*>>)
+	{
+		// Do nothing by default.
+	}
+
+	/**
+	 * Make every [AvailObject] that this operand holds
+	 * [shared][AvailObject.makeShared], including those reached through its
+	 * [L2SemanticValue]s, [TypeRestriction]s, [L2Register]s, and
+	 * [L2ValueManifest]s.  A graph that several threads read at once, such as
+	 * one kept for inlining, must hold only shared objects, since even
+	 * comparing two unshared objects for equality may replace one with an
+	 * indirection to the other.
+	 */
+	open fun makeOperandShared()
 	{
 		// Do nothing by default.
 	}

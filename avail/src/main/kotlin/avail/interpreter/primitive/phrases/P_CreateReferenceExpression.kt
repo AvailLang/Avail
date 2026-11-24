@@ -48,9 +48,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PH
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
 * **Primitive:** Transform a [variable&#32;use][VariableUsePhraseDescriptor]
@@ -59,18 +59,19 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateReferenceExpression : Primitive1(CanInline)
+object P_CreateReferenceExpression : PrimitiveIsolated1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variableUse: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 
 		val declaration = variableUse.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
-			return fail(
+			return context.fail(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE)
 		}
 		return referenceNodeFromUse(variableUse)

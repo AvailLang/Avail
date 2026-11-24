@@ -43,7 +43,6 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
@@ -51,7 +50,8 @@ import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -59,12 +59,14 @@ import avail.optimizer.L1Translator
  * **Primitive:** Obtain the sole instance, a type, of the specified metatype.
  */
 @Suppress("unused")
-object P_InstanceOfMeta : Primitive1(Private, CannotFail, CanInline), Foldable
+object P_InstanceOfMeta
+	: PrimitiveIsolated1(Private, CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		meta: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return meta.instance
 	}
 

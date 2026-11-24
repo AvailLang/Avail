@@ -152,6 +152,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanSuspend
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Invokes
+import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.fibers.P_AttemptJoinFiber
 import avail.interpreter.primitive.fibers.P_ParkCurrentFiber
@@ -288,7 +289,7 @@ final class Interpreter(
 	@ReferencedInGeneratedCode
 	@JvmField
 	val runtime: AvailRuntime
-): DebugRenderer
+): DebugRenderer, PrimitiveContext
 {
 	/**
 	 * The dead, mutable boxed integers that this interpreter may reuse when
@@ -794,7 +795,7 @@ final class Interpreter(
 	 *   `null` typed as [AvailObject]`?` as a convenience.
 	 */
 	//@ReferencedInGeneratedCode
-	fun fail(failureValue: A_BasicObject?): AvailObject?
+	override fun fail(failureValue: A_BasicObject?): AvailObject?
 	{
 		currentReifier = null
 		latestResult = failureValue as AvailObject
@@ -834,7 +835,7 @@ final class Interpreter(
 	 *   `null` typed as [AvailObject]`?` as a convenience.
 	 */
 	//@ReferencedInGeneratedCode
-	fun fail(code: AvailErrorCode): AvailObject? =
+	override fun fail(code: AvailErrorCode): AvailObject? =
 		fail(code.numericCode())
 
 	/**
@@ -1680,16 +1681,6 @@ final class Interpreter(
 	@ReferencedInGeneratedCode
 	@JvmField
 	val argsBuffer = mutableListOf<AvailObject>()
-
-	/**
-	 * Assert that the number of arguments in the [argsBuffer] agrees with the
-	 * given expected number.
-	 *
-	 * @param expectedCount
-	 *   The exact number of arguments that should be present.
-	 */
-	fun checkArgumentCount(expectedCount: Int) =
-		assert(argsBuffer.size == expectedCount)
 
 	/**
 	 * Answer the specified element of argsBuffer.

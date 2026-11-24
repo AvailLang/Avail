@@ -50,14 +50,14 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.VariableGetException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE_CLEARING
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -69,21 +69,22 @@ import avail.optimizer.L2Generator.Companion.edgeTo
  * One code while keeping the interpreter itself thread-safe and debugger-safe.
  */
 @Suppress("unused")
-object P_GetClearing : Primitive1(
+object P_GetClearing : PrimitiveIsolated1(
 	CanInline,
 	HasSideEffect)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variable: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return try
 		{
 			variable.getValueClearing()
 		}
 		catch (e: VariableGetException)
 		{
-			fail(e.numericCode)
+			context.fail(e.numericCode)
 		}
 	}
 

@@ -89,7 +89,7 @@ object P_BootstrapPrefixEndOfBlockBody : PrimitiveN(5, CanInline, Bootstrap)
 		interpreter: Interpreter,
 		args: Array<AvailObject>
 	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(5)
+		assert(args.size == 5)
 		//	val optionalArgumentDeclarations: A_Phrase = interpreter.argument(0);
 		//	val optionalPrimitive: A_Phrase = interpreter.argument(1);
 		//	val A_Phrase optionalLabel: A_Phrase = interpreter.argument(2);

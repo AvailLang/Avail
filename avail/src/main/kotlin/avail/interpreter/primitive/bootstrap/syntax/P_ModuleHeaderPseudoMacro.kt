@@ -53,12 +53,12 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
-import avail.interpreter.primitive.PrimitiveN
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolatedN
 import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
 
 /**
@@ -74,13 +74,14 @@ import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_ModuleHeaderPseudoMacro
-	: PrimitiveN(6, Private, Bootstrap, CannotFail, CanInline)
+	: PrimitiveIsolatedN(6, Private, Bootstrap, CannotFail, CanInline)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		args: Array<AvailObject>
-	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(6)
+	): A_BasicObject?
+	{
+		assert(args.size == 6)
 		val moduleNameLiteral = args[0]
 		val optionalVersions = args[1]
 		val allImports = args[2]

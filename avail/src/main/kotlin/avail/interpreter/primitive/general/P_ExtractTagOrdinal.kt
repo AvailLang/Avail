@@ -47,7 +47,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
 import avail.descriptor.types.TypeTag.Companion.restrictionForTagRestriction
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
@@ -56,7 +55,8 @@ import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticValue
@@ -76,10 +76,10 @@ import avail.optimizer.values.L2SemanticValue
  */
 @Suppress("unused")
 object P_ExtractTagOrdinal
-	: Primitive1(Private, CannotFail, CanInline), Foldable
+	: PrimitiveIsolated1(Private, CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		value: AvailObject
 	): A_BasicObject = fromInt(value.typeTag.ordinal)
 

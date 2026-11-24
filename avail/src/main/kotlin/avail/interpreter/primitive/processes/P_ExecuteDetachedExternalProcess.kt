@@ -52,10 +52,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.PrimitiveN
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolatedN
 import java.io.File
 import java.io.IOException
 
@@ -66,16 +66,17 @@ import java.io.IOException
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ExecuteDetachedExternalProcess : PrimitiveN(
+object P_ExecuteDetachedExternalProcess : PrimitiveIsolatedN(
 	6,
 	CanInline,
 	HasSideEffect)
 {
-	override fun attemptN(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		args: Array<AvailObject>
-	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(6)
+	): A_BasicObject?
+	{
+		assert(args.size == 6)
 		val processArgsTuple = args[0]
 		val optDir = args[1]
 		val optIn = args[2]
@@ -117,11 +118,11 @@ object P_ExecuteDetachedExternalProcess : PrimitiveN(
 		}
 		catch (e: SecurityException)
 		{
-			return fail(E_PERMISSION_DENIED)
+			return context.fail(E_PERMISSION_DENIED)
 		}
 		catch (e: IOException)
 		{
-			return fail(E_NO_EXTERNAL_PROCESS)
+			return context.fail(E_NO_EXTERNAL_PROCESS)
 		}
 		return nil
 	}

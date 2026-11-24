@@ -49,27 +49,28 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_WRONG_OUTERS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Answer a [function][FunctionDescriptor] built from the
  * [function][CompiledCodeDescriptor] and the outer variables.
  */
 @Suppress("unused")
-object P_CreateFunction : Primitive2(CanInline), Foldable
+object P_CreateFunction : PrimitiveIsolated2(CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		rawFunction: AvailObject,
 		outers: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val numOuters = rawFunction.numOuters
 		if (outers.tupleSize != numOuters)
 		{
-			return fail(E_WRONG_OUTERS)
+			return context.fail(E_WRONG_OUTERS)
 		}
 		for (i in 1 .. numOuters)
 		{
@@ -77,7 +78,7 @@ object P_CreateFunction : Primitive2(CanInline), Foldable
 			val requiredType = rawFunction.outerTypeAt(i)
 			if (!outer.isInstanceOf(requiredType))
 			{
-				return fail(E_WRONG_OUTERS)
+				return context.fail(E_WRONG_OUTERS)
 			}
 		}
 		val function = createFunction(rawFunction, outers)

@@ -43,19 +43,21 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Unknown
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import java.util.logging.Level
 
 /**
  * **Primitive:** Adjust the debugging level of the VM.
  */
 @Suppress("unused")
-object P_AdjustDebugSetting : Primitive1(Unknown, CannotFail)
+object P_AdjustDebugSetting : PrimitiveIsolated1(Unknown, CannotFail)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		levelObject: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 
 		val level = levelObject.extractInt
 		Interpreter.debugL1 = level and 1 != 0

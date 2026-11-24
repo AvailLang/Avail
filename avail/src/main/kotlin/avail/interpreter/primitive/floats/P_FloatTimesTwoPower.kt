@@ -47,11 +47,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 import java.lang.Math.scalb
 import kotlin.math.max
 import kotlin.math.min
@@ -61,14 +61,16 @@ import kotlin.math.min
  * intermediate overflow or any precision loss.
  */
 @Suppress("unused")
-object P_FloatTimesTwoPower : Primitive3(CannotFail, CanInline), Foldable
+object P_FloatTimesTwoPower
+	: PrimitiveIsolated3(CannotFail, CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		a: AvailObject,
 		literalTwo: AvailObject,
 		b: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val scale = when {
 			b.isInt -> min(max(b.extractInt, -10000), 10000)
 			b.greaterOrEqual(zero) -> 10000

@@ -48,10 +48,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer the field definitions of the specified
@@ -63,19 +63,20 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ObjectTypeToTuple : Primitive1(CanInline), Foldable
+object P_ObjectTypeToTuple : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		objectType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return if (objectType.isBottom)
 		{
 			// The correct answer would be a tuple of pairs, where *every* atom
 			// occurs as a first element, and ⊥ occurs as every second element.
 			// It's easier to just fail dynamically for this unrepresentable
 			// singularity.
-			fail(E_NO_SUCH_FIELD)
+			context.fail(E_NO_SUCH_FIELD)
 		}
 		else
 		{

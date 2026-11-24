@@ -66,12 +66,12 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INVALID_FIELD_FOR_OBJECT
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] of field definitions into
@@ -82,19 +82,20 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleToObjectType : Primitive1(CanInline), Foldable
+object P_TupleToObjectType : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tuple: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return try
 		{
 			objectTypeFromTuple(tuple)
 		}
 		catch (e: ObjectFieldTypeException)
 		{
-			fail(E_INVALID_FIELD_FOR_OBJECT)
+			context.fail(E_INVALID_FIELD_FOR_OBJECT)
 		}
 	}
 

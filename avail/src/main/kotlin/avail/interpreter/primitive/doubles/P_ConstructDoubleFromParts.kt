@@ -45,11 +45,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Construct a non-negative [double][A_Number] from parts
@@ -58,14 +58,16 @@ import avail.interpreter.primitive.Primitive3
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ConstructDoubleFromParts : Primitive3(CannotFail, CanInline), Foldable
+object P_ConstructDoubleFromParts
+	: PrimitiveIsolated3(CannotFail, CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		integerPart: AvailObject,
 		fractionalPart: AvailObject,
 		exponentPart: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		// Since we expect that this primitive will only be used for building
 		// floating-point literals, it doesn't need to be particularly
 		// efficient. We therefore convert the different parts to strings,

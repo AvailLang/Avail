@@ -52,14 +52,14 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Extract the type previously set for this field atom via
@@ -69,13 +69,14 @@ import avail.interpreter.primitive.Primitive1
  * which actually makes it foldable ([CanFold]).
  */
 @Suppress("unused")
-object P_AtomFieldBound : Primitive1(
+object P_AtomFieldBound : PrimitiveIsolated1(
 	CanInline, ReadsFromHiddenGlobalState), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		atom: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (atom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
 			// It's an explicit subclassing atom, so its type bound is just the
@@ -85,7 +86,7 @@ object P_AtomFieldBound : Primitive1(
 		val typeBound = atom.fieldAtomConstraint
 		if (typeBound.isNil)
 		{
-			return fail(E_KEY_NOT_FOUND)
+			return context.fail(E_KEY_NOT_FOUND)
 		}
 		assert(typeBound.isSubtypeOf(ANY()))
 		return typeBound

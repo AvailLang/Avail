@@ -55,7 +55,6 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -64,7 +63,8 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.optimizer.CallSiteHelper
 import avail.optimizer.L1Translator
 
@@ -73,17 +73,18 @@ import avail.optimizer.L1Translator
  * given functionType.
  */
 @Suppress("unused")
-object P_ParamTypeAt : Primitive2(CanInline), Foldable
+object P_ParamTypeAt : PrimitiveIsolated2(CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		functionType: AvailObject,
 		indexObject: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val parametersType = functionType.argsTupleType
 		val sizeRange = parametersType.sizeRange
 		if (sizeRange.upperBound.lessThan(indexObject)) {
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		if (!indexObject.isInt) {
 			// The function type must accept a very large number of arguments.

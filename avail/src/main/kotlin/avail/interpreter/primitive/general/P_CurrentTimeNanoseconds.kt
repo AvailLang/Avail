@@ -38,13 +38,13 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
-import avail.interpreter.primitive.Primitive0
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated0
 import java.lang.System.nanoTime
 
 /**
@@ -55,16 +55,15 @@ import java.lang.System.nanoTime
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CurrentTimeNanoseconds : Primitive0(
+object P_CurrentTimeNanoseconds : PrimitiveIsolated0(
 	CannotFail,
 	CanInline,
 	HasSideEffect,
 	ReadsFromHiddenGlobalState,
 	WritesToHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject? = interpreter.run {
+	override fun attemptIsolated(context: PrimitiveContext): A_BasicObject?
+	{
 		return fromLong(nanoTime())
 	}
 

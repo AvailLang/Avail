@@ -45,23 +45,25 @@ import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer a [tuple][TupleDescriptor] with the literals from this
  * [compiled&#32;code][CompiledCodeDescriptor].
  */
 @Suppress("unused")
-object P_CompiledCodeLiterals : Primitive1(CannotFail, CanInline), Foldable
+object P_CompiledCodeLiterals
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		code: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 
 		return generateObjectTupleFrom(code.numLiterals) {
 			val literal = code.literalAt(it)

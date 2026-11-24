@@ -57,10 +57,10 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.utility.cast
 import java.io.IOException
 import java.net.SocketOption
@@ -79,17 +79,18 @@ import java.nio.channels.AsynchronousSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketSetOption : Primitive2(CanInline, HasSideEffect)
+object P_SocketSetOption : PrimitiveIsolated2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		handle: AvailObject,
 		options: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return fail(
+			return context.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
@@ -114,7 +115,7 @@ object P_SocketSetOption : Primitive2(CanInline, HasSideEffect)
 					}
 					else
 					{
-						return fail(E_INCORRECT_ARGUMENT_TYPE)
+						return context.fail(E_INCORRECT_ARGUMENT_TYPE)
 					}
 				}
 			}
@@ -122,11 +123,11 @@ object P_SocketSetOption : Primitive2(CanInline, HasSideEffect)
 		}
 		catch (e: IllegalArgumentException)
 		{
-			fail(E_INCORRECT_ARGUMENT_TYPE)
+			context.fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		catch (e: IOException)
 		{
-			fail(E_IO_ERROR)
+			context.fail(E_IO_ERROR)
 		}
 	}
 

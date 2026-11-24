@@ -1,5 +1,5 @@
 /*
- * L2_FINISH_FREEZE.kt
+ * L2_UPDATE_SLOTS.kt
  * Copyright © 1993-2026, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -39,24 +40,29 @@ import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
 
 /**
- * The end of a freeze subgraph, which starts with an [L2_ENTER_FREEZE].  Write
- * each of the [variables] into the corresponding frame slot of the
- * continuation being frozen, then return from the generated chunk's
- * [freeze][ExecutableChunk.freeze] method.  Reading the variables forces the
- * postponed creations (and assignments) of the elided variables, so they
- * happen in the freeze subgraph and nowhere else along this path
+ * Write each of the [variables] into the corresponding frame slot of the
+ * continuation being frozen, in a freeze subgraph, which starts with an
+ * [L2_ENTER_FREEZE] and ends with an [L2_EXIT_FREEZE].  Reading the variables
+ * forces the postponed creations (and assignments) of the elided variables, so
+ * they happen in the freeze subgraph and nowhere else along this path
  * (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
+ *
+ * The continuation written is the one passed to the generated chunk's
+ * [freeze][ExecutableChunk.freeze] method.  This instruction occurs only in
+ * the block that a freeze edge leads to, before any
+ * [L2_ADD_UNDER_FROZEN_FRAME] has slid another frame beneath that
+ * continuation and made that frame the one the method holds.
  *
  * @property slotIndices
  *   The one-based frame slot indices to write, parallel to [variables].
  * @property variables
  *   The variables to write into those frame slots.
  */
-class L2_FINISH_FREEZE
+class L2_UPDATE_SLOTS
 constructor(
 	var slotIndices: L2ArbitraryConstantOperand<IntArray>,
 	var variables: L2ReadBoxedVectorOperand
-): L2ControlFlowInstruction()
+): L2Instruction()
 {
 	init
 	{
@@ -86,7 +92,6 @@ constructor(
 		frameAtPutAll(slotIndices.constant.zip(variables.elements))
 		// :: [continuation]
 		method.visitInsn(Opcodes.POP)
-		// :: return
-		method.visitInsn(Opcodes.RETURN)
+		// :: []
 	}
 }

@@ -31,7 +31,6 @@
  */
 package avail.interpreter.primitive.files
 
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import avail.descriptor.representation.A_Atom.Companion.getAtomProperty
@@ -69,20 +68,20 @@ object P_FileRefresh : Primitive1(CanInline, HasSideEffect)
 	override fun attempt1(
 		interpreter: Interpreter,
 		atom: AvailObject
-	): A_BasicObject? = interpreter.run {
-
+	): A_BasicObject?
+	{
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
 		if (pojo.isNil)
 		{
-			return fail(
+			return interpreter.fail(
 				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canRead)
 		{
-			return fail(E_NOT_OPEN_FOR_READ)
+			return interpreter.fail(E_NOT_OPEN_FOR_READ)
 		}
-		val runtime = currentRuntime()
+		val runtime = interpreter.runtime
 
 		synchronized(handle.bufferKeys) {
 			for (key in ArrayList(handle.bufferKeys.keys))

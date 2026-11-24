@@ -41,11 +41,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive0
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated0
 import java.nio.ByteBuffer
 import java.util.UUID
 
@@ -56,11 +56,11 @@ import java.util.UUID
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateUUIDByteTuple : Primitive0(CannotFail, CanInline, HasSideEffect)
+object P_CreateUUIDByteTuple
+	: PrimitiveIsolated0(CannotFail, CanInline, HasSideEffect)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject? = interpreter.run {
+	override fun attemptIsolated(context: PrimitiveContext): A_BasicObject?
+	{
 		val uuid = UUID.randomUUID()
 		val bytes = ByteBuffer.allocateDirect(16)
 		bytes.putLong(uuid.mostSignificantBits)

@@ -35,9 +35,11 @@ package avail.interpreter.levelTwo
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.types.TypeTag
 import avail.exceptions.unsupported
+import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
@@ -68,6 +70,7 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.DeadCodeAnalyzer
+import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
@@ -135,6 +138,17 @@ constructor() :
 	 * Use the cached [layout] to extract all the operands.
 	 */
 	open val operands: List<L2Operand> get() = layout.operands(this)
+
+	/**
+	 * Make every [AvailObject] that this instruction holds
+	 * [shared][AvailObject.makeShared], by asking each of its [operands] to
+	 * [share][L2Operand.makeOperandShared] what it holds.  A subclass that
+	 * holds Avail objects outside its operands shares those as well.
+	 */
+	open fun makeOperandsShared()
+	{
+		operands.forEach(L2Operand::makeOperandShared)
+	}
 
 	/**
 	 * The source [L2Register]s.
@@ -431,6 +445,15 @@ constructor() :
 	 */
 	open fun canBePostponed(manifest: L2ValueManifest): Boolean =
 		!hasSideEffect && layout.hasSingleWriteOperand
+
+	/**
+	 * Whether this instruction can run in a chunk's
+	 * [freeze][ExecutableChunk.freeze] method, which has no [Interpreter].  A
+	 * postponed instruction that cannot is forced before an
+	 * [L2_CREATE_CONTINUATION]'s freeze edge, so that it never reaches a
+	 * freeze subgraph.
+	 */
+	open val canRunInFreeze: Boolean get() = true
 
 	/**
 	 * Answer whether a postponable instruction need not be recorded as a

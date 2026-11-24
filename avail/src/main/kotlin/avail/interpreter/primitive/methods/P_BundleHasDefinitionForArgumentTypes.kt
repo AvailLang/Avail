@@ -58,9 +58,9 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_NO_METHOD
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.exceptions.MethodDefinitionException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Does the [method][MethodDescriptor] have a unique definition
@@ -70,22 +70,23 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BundleHasDefinitionForArgumentTypes : Primitive2(CanInline)
+object P_BundleHasDefinitionForArgumentTypes : PrimitiveIsolated2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		methodName: AvailObject,
 		argTypes: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val bundle = methodName.bundleOrNil
 		if (bundle.isNil)
 		{
-			return fail(E_NO_METHOD)
+			return context.fail(E_NO_METHOD)
 		}
 		val method = bundle.bundleMethod
 		if (argTypes.tupleSize != method.numArgs)
 		{
-			return fail(
+			return context.fail(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		try

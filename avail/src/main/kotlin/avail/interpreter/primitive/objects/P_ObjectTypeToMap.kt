@@ -50,10 +50,10 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Convert an [object&#32;type][ObjectTypeDescriptor] into a
@@ -61,18 +61,19 @@ import avail.interpreter.primitive.Primitive1
  * [type][InstanceTypeDescriptor] to [types][TypeDescriptor].
  */
 @Suppress("unused")
-object P_ObjectTypeToMap : Primitive1(CanInline), Foldable
+object P_ObjectTypeToMap : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		objectType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return if (objectType.isBottom)
 		{
 			// The correct answer would be a map with *every* atom as a key,
 			// and ⊥ as every corresponding value.  It's easier to just fail
 			// dynamically for this unrepresentable singularity.
-			fail(E_NO_SUCH_FIELD)
+			context.fail(E_NO_SUCH_FIELD)
 		}
 		else
 		{

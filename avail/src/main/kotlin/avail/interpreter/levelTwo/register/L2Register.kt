@@ -94,6 +94,15 @@ constructor (
 	val isConstant get() = constant !== null
 
 	/**
+	 * Make this register's [constant], if any,
+	 * [shared][AvailObject.makeShared].
+	 */
+	fun makeShared()
+	{
+		constant?.makeShared()
+	}
+
+	/**
 	 * The [L2WriteOperand]s that assign to this register.  While the
 	 * [L2ControlFlowGraph] is in SSA form, there should be exactly one.
 	 */

@@ -55,13 +55,13 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Answer a new [map][MapDescriptor] like the given map, but also
@@ -69,14 +69,15 @@ import avail.interpreter.primitive.Primitive3
  * if the key is already present.
  */
 @Suppress("unused")
-object P_MapReplacingKey : Primitive3(CannotFail, CanInline), Foldable
+object P_MapReplacingKey : PrimitiveIsolated3(CannotFail, CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		map: AvailObject,
 		key: AvailObject,
 		value: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return map.mapAtPuttingCanDestroy(key, value, true)
 	}
 

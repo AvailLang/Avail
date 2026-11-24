@@ -216,6 +216,12 @@ protected constructor(
 		registerOrNull?.let(sourceRegisters::add)
 	}
 
+	override fun makeOperandShared()
+	{
+		semanticValue.makeShared()
+		registerOrNull?.makeShared()
+	}
+
 	override fun adjustCloneForInstruction(
 		theInstruction: L2Instruction,
 		generator: L2GeneratorInterface)

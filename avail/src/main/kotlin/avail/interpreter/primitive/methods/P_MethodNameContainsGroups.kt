@@ -45,10 +45,10 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Treating the argument as a [method][MethodDescriptor] name,
@@ -57,12 +57,13 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MethodNameContainsGroups : Primitive1(CanInline), Foldable
+object P_MethodNameContainsGroups : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		name: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val splitter: MessageSplitter =
 			try
 			{
@@ -70,7 +71,7 @@ object P_MethodNameContainsGroups : Primitive1(CanInline), Foldable
 			}
 			catch (e: MalformedMessageException)
 			{
-				return fail(e.errorCode)
+				return context.fail(e.errorCode)
 			}
 
 		return objectFromBoolean(splitter.containsGroups)

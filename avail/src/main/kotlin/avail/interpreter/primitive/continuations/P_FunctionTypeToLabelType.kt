@@ -41,11 +41,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LabelTypeDescriptor
 import avail.descriptor.types.LabelTypeDescriptor.Companion.labelMeta
 import avail.descriptor.types.LabelTypeDescriptor.Companion.labelTypeForFunctionType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer a [label&#32;type][LabelTypeDescriptor] that uses the
@@ -53,12 +53,13 @@ import avail.interpreter.primitive.Primitive1
  */
 @Suppress("unused")
 object P_FunctionTypeToLabelType
-	: Primitive1(CannotFail, CanInline), Foldable
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		functionType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return labelTypeForFunctionType(functionType)
 	}
 

@@ -54,12 +54,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 import kotlin.math.max
 import kotlin.math.min
 
@@ -68,17 +68,18 @@ import kotlin.math.min
  * the elements at the specified indices swapped.
  */
 @Suppress("unused")
-object P_TupleSwapElements : Primitive3(CanInline), Foldable
+object P_TupleSwapElements : PrimitiveIsolated3(CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tuple: AvailObject,
 		indexObject1: AvailObject,
 		indexObject2: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (!indexObject1.isInt || !indexObject2.isInt)
 		{
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index1 = indexObject1.extractInt
 		val index2 = indexObject2.extractInt

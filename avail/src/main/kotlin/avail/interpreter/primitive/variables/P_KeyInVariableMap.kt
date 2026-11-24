@@ -50,10 +50,10 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWrite
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import avail.exceptions.VariableGetException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Test whether the [map][MapDescriptor] in the specified
@@ -62,22 +62,23 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_KeyInVariableMap : Primitive2(
+object P_KeyInVariableMap : PrimitiveIsolated2(
 	CanInline,
 	HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		key: AvailObject,
 		variable: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return try
 		{
 			objectFromBoolean(variable.variableMapHasKey(key))
 		}
 		catch (e: VariableGetException)
 		{
-			fail(e.errorCode)
+			context.fail(e.errorCode)
 		}
 	}
 

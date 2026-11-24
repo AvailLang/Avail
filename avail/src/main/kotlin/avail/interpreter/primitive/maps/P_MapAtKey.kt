@@ -48,29 +48,30 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Look up the key in the [map][A_Map], answering the
  * corresponding value.
  */
 @Suppress("unused")
-object P_MapAtKey : Primitive2(CanInline), Foldable
+object P_MapAtKey : PrimitiveIsolated2(CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		map: AvailObject,
 		key: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		map.mapAtOrNull(key)?.let {
 			return it
 		}
-		return fail(E_KEY_NOT_FOUND)
+		return context.fail(E_KEY_NOT_FOUND)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

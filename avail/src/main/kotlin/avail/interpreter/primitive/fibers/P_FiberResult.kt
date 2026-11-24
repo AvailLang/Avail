@@ -46,10 +46,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT
 import avail.exceptions.AvailErrorCode.E_FIBER_RESULT_UNAVAILABLE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer the result of the specified [fiber][FiberDescriptor].
@@ -57,21 +57,22 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FiberResult : Primitive1(CanInline, ReadsFromHiddenGlobalState)
+object P_FiberResult : PrimitiveIsolated1(CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		fiber: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return with(fiber) {
 			lock {
 				val result = fiberResult
 				when
 				{
 					!executionState.indicatesTermination || result.isNil ->
-						fail(E_FIBER_RESULT_UNAVAILABLE)
+						context.fail(E_FIBER_RESULT_UNAVAILABLE)
 					!result.isInstanceOf(kind().resultType()) ->
-						fail(
+						context.fail(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
 					else -> result
 				}

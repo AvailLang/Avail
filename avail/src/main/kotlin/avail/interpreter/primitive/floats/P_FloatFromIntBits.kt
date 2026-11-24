@@ -41,11 +41,11 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Given a 32-bit signed integer, treat the bit pattern as a
@@ -55,12 +55,13 @@ import avail.interpreter.primitive.Primitive1
  * @see P_FloatToIntBits
  */
 @Suppress("unused")
-object P_FloatFromIntBits : Primitive1(CannotFail, CanInline), Foldable
+object P_FloatFromIntBits : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		intObject: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val intValue = intObject.extractInt
 		val floatValue = Float.fromBits(intValue)
 		return fromFloat(floatValue)

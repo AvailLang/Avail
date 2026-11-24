@@ -44,8 +44,8 @@ import avail.optimizer.jvm.JVMTranslator
  * that edge.  Instead, the generated chunk's [freeze][ExecutableChunk.freeze]
  * method starts here when the continuation becomes immutable or shared, so
  * that the subgraph can create the variables whose creation was postponed
- * past the continuation's creation, and write them into the continuation's
- * frame with an [L2_FINISH_FREEZE].
+ * past the continuation's creation, write them into the continuation's frame
+ * with an [L2_UPDATE_SLOTS], and finish with an [L2_EXIT_FREEZE].
  *
  * In the graph, the edge behaves as a jump, carrying the manifest and its
  * postponed instructions into the subgraph.  During JVM translation, the

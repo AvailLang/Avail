@@ -42,6 +42,7 @@ import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.HideInSimpleVisualization
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FREEZE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -64,6 +65,7 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
+import avail.utility.cast
 import avail.utility.isNullOr
 import org.objectweb.asm.Opcodes
 
@@ -107,7 +109,7 @@ import org.objectweb.asm.Opcodes
  *   Where to continue after creating the continuation.
  * @property freeze
  *   Either empty, or a single edge to the freeze subgraph, which starts with
- *   an [L2_ENTER_FREEZE] and ends with an [L2_FINISH_FREEZE].  The edge is
+ *   an [L2_ENTER_FREEZE] and ends with an [L2_EXIT_FREEZE].  The edge is
  *   added by [emitTransformedInstruction] when a variable creation is still
  *   postponed here, and is never followed at runtime.
  * @property comment
@@ -201,34 +203,58 @@ constructor (
 
 	/**
 	 * Emit this instruction, adding a [freeze] subgraph if it has none yet and
-	 * some variable creation is still postponed here.  Each frame slot whose
-	 * value is a variable whose creation (or the assignment that follows it)
-	 * is still postponed here is written as [nil] instead, which keeps the
-	 * creation postponed along [ifFallThrough].  If there are any such slots,
-	 * the [freeze] edge leads to a new subgraph that reads those slots'
-	 * variables, forcing their creation there, and writes them into the frame.
+	 * either some variable creation is still postponed here, or the generator
+	 * says [L2GeneratorInterface.freezesBuildEnclosingFrames], because a
+	 * callee's graph is being embedded.  Each frame slot whose value is a
+	 * variable whose creation (or the assignment that follows it) is still
+	 * postponed here is written as [nil] instead, which keeps the creation
+	 * postponed along [ifFallThrough].  The [freeze] edge leads to a new
+	 * subgraph that reads those slots' variables, forcing their creation
+	 * there, writes them into the frame, then
+	 * [exits][L2GeneratorInterface.exitFreeze] the freeze.
 	 *
 	 * Once the instruction has a freeze subgraph, a regeneration regenerates
 	 * that subgraph along with the rest of the graph, since the creations it
 	 * forces exist nowhere else on this path.  A creation that reaches this
 	 * instruction only in a later regeneration is forced before it.
+	 *
+	 * Whenever the instruction has a freeze subgraph, each postponed
+	 * instruction that cannot run in a freeze (see
+	 * [L2Instruction.canRunInFreeze]) is forced before it, so that the
+	 * postponed instructions that travel along the [freeze] edge can all run
+	 * there.
 	 */
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
 		val instruction = this@L2_CREATE_CONTINUATION
-		val manifest = currentManifest
-		if (!manifest.caresAboutSemanticValues || freeze.edges.isNotEmpty())
+		if (!currentManifest.caresAboutSemanticValues)
 		{
 			+instruction
 			return
 		}
 		val originalSlots = slotValues.elements
-		val slotsToFreeze = originalSlots.indices
-			.filter { manifest.isPostponedVariable(originalSlots[it]) }
-			.map { it + 1 }
+		val postponedSlots = {
+			originalSlots.indices
+				.filter {
+					currentManifest.isPostponedVariable(originalSlots[it])
+				}
+				.map { it + 1 }
+		}
+		if (freeze.edges.isNotEmpty()
+			|| freezesBuildEnclosingFrames
+			|| postponedSlots().isNotEmpty())
+		{
+			forcePostponementsThatCannotFreeze()
+		}
+		if (freeze.edges.isNotEmpty())
+		{
+			+instruction
+			return
+		}
+		val slotsToFreeze = postponedSlots()
 		val freezeBlock = when
 		{
-			slotsToFreeze.isEmpty() -> null
+			slotsToFreeze.isEmpty() && !freezesBuildEnclosingFrames -> null
 			else ->
 			{
 				val freezingZone = L2ControlFlowGraph.Zone(
@@ -257,12 +283,35 @@ constructor (
 		if (freezeBlock.predecessorEdges().isEmpty()) return
 		startBlock(freezeBlock)
 		+L2_ENTER_FREEZE()
-		val variables = slotsToFreeze.map { slot ->
-			readBoxed(originalSlots[slot - 1].semanticValue())
+		if (slotsToFreeze.isNotEmpty())
+		{
+			val variables = slotsToFreeze.map { slot ->
+				readBoxed(originalSlots[slot - 1].semanticValue())
+			}
+			+L2_UPDATE_SLOTS(
+				L2ArbitraryConstantOperand(slotsToFreeze.toIntArray()),
+				L2ReadBoxedVectorOperand(variables))
 		}
-		+L2_FINISH_FREEZE(
-			L2ArbitraryConstantOperand(slotsToFreeze.toIntArray()),
-			L2ReadBoxedVectorOperand(variables))
+		exitFreeze()
+	}
+
+	/**
+	 * Force each postponed instruction that cannot run in a freeze (see
+	 * [L2Instruction.canRunInFreeze]) here, before this instruction, so that
+	 * it does not travel along the [freeze] edge.  This is on a reification
+	 * path, which has an interpreter.
+	 */
+	private fun L2GeneratorInterface.forcePostponementsThatCannotFreeze()
+	{
+		currentManifest.allPostponedInstructions()
+			.filter { !it.instruction.canRunInFreeze }
+			.forEach { equivalence ->
+				val value = equivalence.synonym.pickSemanticValue()
+				val kind = equivalence.kind
+				// Forcing an earlier one may have forced this one already.
+				currentManifest.postponedInstructionFor(value, kind.cast())
+					?.let { forceTranslationForRead(value, kind.cast()) }
+			}
 	}
 
 	override fun JVMTranslator.translateToJVM()

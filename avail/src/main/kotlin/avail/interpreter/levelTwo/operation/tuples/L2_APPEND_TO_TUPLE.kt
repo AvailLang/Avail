@@ -35,6 +35,7 @@ package avail.interpreter.levelTwo.operation.tuples
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_Number.Companion.isInt
 import avail.descriptor.representation.A_Type.Companion.lowerBound
+import avail.descriptor.representation.A_Type.Companion.sizeRange
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.A_Type.Companion.upperBound
 import avail.descriptor.representation.AvailObject
@@ -86,7 +87,7 @@ class L2_APPEND_TO_TUPLE(
 		// size, we can just extract the element from the inputTuple.  If the
 		// inputTuple is fixed size and the index is just beyond the end, just
 		// use the elementToAppend.
-		val sizeRange = inputTuple.type
+		val sizeRange = inputTuple.type.sizeRange
 		val lowerBound = sizeRange.lowerBound
 		if (lowerBound.isInt)
 		{

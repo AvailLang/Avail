@@ -46,10 +46,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Treating the [string][StringDescriptor] argument as a
@@ -59,12 +59,13 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MethodNameParametersCount : Primitive1(CanInline), Foldable
+object P_MethodNameParametersCount : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		name: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val splitter: MessageSplitter =
 			try
 			{
@@ -72,7 +73,7 @@ object P_MethodNameParametersCount : Primitive1(CanInline), Foldable
 			}
 			catch (e: MalformedMessageException)
 			{
-				return fail(e.errorCode)
+				return context.fail(e.errorCode)
 			}
 		return fromInt(splitter.numberOfArguments)
 	}

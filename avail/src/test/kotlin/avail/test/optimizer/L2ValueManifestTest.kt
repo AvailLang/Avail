@@ -86,8 +86,7 @@ class L2ValueManifestTest
 		null,
 		BASE_FRAME.functionSupplier().code(),
 		-1,
-		"top",
-		"top frame")
+		"top")
 
 	/** A value, `x`. */
 	private val x: L2SemanticValue = L2SemanticSlot(frame, 1, 1, "x")

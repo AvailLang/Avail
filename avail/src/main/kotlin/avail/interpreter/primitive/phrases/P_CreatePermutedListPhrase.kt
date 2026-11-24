@@ -59,9 +59,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive**: Create a
@@ -72,31 +72,32 @@ import avail.interpreter.primitive.Primitive2
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreatePermutedListPhrase : Primitive2(CanInline)
+object P_CreatePermutedListPhrase : PrimitiveIsolated2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		list: AvailObject,
 		permutation: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val size = permutation.tupleSize
 		return when
 		{
 			// Permutation is empty, or different size than list.
 			size <= 1 || size != list.expressionsTuple.tupleSize ->
-				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				context.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not all int32.
 			permutation.any { !it.isInt } ->
-				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				context.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not unique.
 			size != permutation.asSet.setSize ->
-				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				context.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Entries are unique, but don't cover 1..N (pigeonhole principle).
 			permutation.maxByOrNull { it.extractInt }!!.extractInt != size ->
-				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				context.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation is the forbidden identity.
 			permutation.equals(createInterval(one, fromInt(size), one)) ->
-				fail(E_INCONSISTENT_ARGUMENT_REORDERING)
+				context.fail(E_INCONSISTENT_ARGUMENT_REORDERING)
 			else -> newPermutedListNode(list, permutation)
 		}
 	}

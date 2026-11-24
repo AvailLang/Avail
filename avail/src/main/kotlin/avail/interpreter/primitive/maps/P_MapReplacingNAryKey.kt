@@ -48,10 +48,10 @@ import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.AvailException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Replace the value at the location indicated by the path
@@ -60,21 +60,22 @@ import avail.interpreter.primitive.Primitive3
  * @author Rich &lt;rich@availlang.org&gt;
  */
 @Suppress("unused")
-object P_MapReplacingNAryKey : Primitive3(CanInline), Foldable
+object P_MapReplacingNAryKey : PrimitiveIsolated3(CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		map: AvailObject,
 		pathTuple: AvailObject,
 		newValue: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return try
 		{
 			map.recursivelyUpdate(pathTuple.iterator()) { newValue }
 		}
 		catch (e: AvailException)
 		{
-			fail(e.errorCode)
+			context.fail(e.errorCode)
 		}
 	}
 

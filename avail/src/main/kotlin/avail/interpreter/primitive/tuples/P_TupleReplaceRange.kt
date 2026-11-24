@@ -64,7 +64,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
@@ -72,7 +71,8 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive4
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated4
 
 /**
  * **Primitive:** Create a tuple from the original tuple, with the designated
@@ -86,29 +86,30 @@ import avail.interpreter.primitive.Primitive4
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TupleReplaceRange : Primitive4(CanInline), Foldable
+object P_TupleReplaceRange : PrimitiveIsolated4(CanInline), Foldable
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		originalTuple: AvailObject,
 		firstIndex: AvailObject,
 		lastIndex: AvailObject,
 		replacementSubtuple: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (!firstIndex.isInt || !lastIndex.isInt)
 		{
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = firstIndex.extractInt
 		val endInt = lastIndex.extractInt
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
 		{
-			return fail(E_NEGATIVE_SIZE)
+			return context.fail(E_NEGATIVE_SIZE)
 		}
 		val originalSize = originalTuple.tupleSize
 		if (endInt > originalSize)
 		{
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 
 		var result: A_Tuple

@@ -108,8 +108,10 @@ internal class L2SemanticSlot constructor(
 		if (other !is L2SemanticSlot)
 			return super.secondaryCompare(other)
 		return (optionalName ?: "").compareTo(other.optionalName ?: "").ifZero {
-			slotIndex.compareTo(other.slotIndex).ifZero {
-				pcAfter.compareTo(other.pcAfter)
+			frame.compareTo(other.frame).ifZero {
+				slotIndex.compareTo(other.slotIndex).ifZero {
+					pcAfter.compareTo(other.pcAfter)
+				}
 			}
 		}
 	}

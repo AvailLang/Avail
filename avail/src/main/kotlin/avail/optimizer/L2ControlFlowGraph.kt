@@ -32,6 +32,7 @@
 package avail.optimizer
 
 import avail.descriptor.representation.A_Continuation
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -41,6 +42,7 @@ import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Mutable
 import avail.utility.Strings.increaseIndentation
@@ -237,6 +239,22 @@ class L2ControlFlowGraph : L2Visualizable
 	 * generated, or in a suitable order for final L2 instruction emission.
 	 */
 	val basicBlockOrder = mutableListOf<L2BasicBlock>()
+
+	/**
+	 * Make every [AvailObject] that this graph holds
+	 * [shared][AvailObject.makeShared], whether in its instructions' operands,
+	 * the [L2ValueManifest]s of its edges, or its blocks' [PostPhiData], so
+	 * that several threads may read the graph at once.  Even comparing two
+	 * unshared objects for equality may replace one with an indirection to the
+	 * other, which a concurrent reader can observe half done.
+	 */
+	fun makeAllShared()
+	{
+		basicBlockOrder.forEach { block ->
+			block.postPhiData?.makeAllShared()
+			block.instructions().forEach(L2Instruction::makeOperandsShared)
+		}
+	}
 
 	/**
 	 * The JVM internal class name reserved for this graph's compiled output,

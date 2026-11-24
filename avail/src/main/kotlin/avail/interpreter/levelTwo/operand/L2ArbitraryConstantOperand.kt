@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
@@ -62,6 +63,11 @@ constructor(
 	val constant: T = constant
 
 	override val operandType: L2OperandType get() = CONSTANT
+
+	override fun makeOperandShared()
+	{
+		(constant as? A_BasicObject)?.makeShared()
+	}
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

@@ -87,6 +87,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operation.L2_ADD_UNDER_FROZEN_FRAME
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
@@ -98,7 +99,10 @@ import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.FreezePrimitiveContext
+import avail.interpreter.primitive.Isolated
 import avail.interpreter.primitive.Primitive
+import avail.interpreter.primitive.PrimitiveContext
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultL1Chunk
 import avail.optimizer.ExecutableChunk
@@ -127,6 +131,7 @@ import org.objectweb.asm.Opcodes.ACONST_NULL
 import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ARETURN
 import org.objectweb.asm.Opcodes.ASM9
+import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.ATHROW
 import org.objectweb.asm.Opcodes.BIPUSH
 import org.objectweb.asm.Opcodes.CHECKCAST
@@ -1423,13 +1428,41 @@ class JVMTranslator constructor(
 
 	/**
 	 * Generate access to the JVM local for the continuation formal parameter
-	 * of a generated implementation of [ExecutableChunk.freeze].  It occupies
-	 * the same local as the [Interpreter] parameter of [JVMChunk.runChunk].
+	 * of a generated implementation of [ExecutableChunk.freeze].
+	 * It starts as the continuation being frozen, and each
+	 * [L2_ADD_UNDER_FROZEN_FRAME] replaces it with the frame it slides
+	 * beneath, so it always holds the outermost frame built so far.
 	 */
 	fun loadFrozenContinuation()
 	{
 		assert(isGeneratingFreeze)
-		method.visitVarInsn(ALOAD, interpreterLocal())
+		method.visitVarInsn(ALOAD, frozenContinuationLocal())
+	}
+
+	/**
+	 * Generate a store of the continuation on top of the JVM stack into the
+	 * local that [loadFrozenContinuation] reads, making it the outermost frame
+	 * built so far by the [ExecutableChunk.freeze] method.
+	 */
+	fun storeFrozenContinuation()
+	{
+		assert(isGeneratingFreeze)
+		method.visitVarInsn(ASTORE, frozenContinuationLocal())
+	}
+
+	/**
+	 * Generate access to the [PrimitiveContext] in which to run an
+	 * [Isolated] primitive: the [Interpreter] in [JVMChunk.runChunk], or the
+	 * [FreezePrimitiveContext] in the [freeze][ExecutableChunk.freeze]
+	 * method, which has no interpreter.
+	 */
+	fun loadPrimitiveContext()
+	{
+		when (isGeneratingFreeze)
+		{
+			true -> loadLiteralObject(FreezePrimitiveContext)
+			false -> loadInterpreter()
+		}
 	}
 
 	/** Generate a read from the specified [CheckedField]. */
@@ -2269,7 +2302,9 @@ class JVMTranslator constructor(
 				Type.getType(AvailObject::class.java)),
 			null,
 			null)
-		method.visitParameter("continuation", ACC_FINAL)
+		// The continuation's local is reassigned as frames are slid beneath
+		// it (see loadFrozenContinuation), so the parameter is not final.
+		method.visitParameter("continuation", 0)
 		method.visitCode()
 		val endLabel = Label()
 		if (debugNicerJavaDecompilation)
@@ -2815,6 +2850,15 @@ class JVMTranslator constructor(
 		 *   The `Interpreter` formal parameter local.
 		 */
 		fun interpreterLocal(): Int = 1
+
+		/**
+		 * Answer the JVM local for the continuation formal parameter of a
+		 * generated implementation of [ExecutableChunk.freeze].
+		 *
+		 * @return
+		 *   The continuation formal parameter local.
+		 */
+		fun frozenContinuationLocal(): Int = 1
 
 		/**
 		 * `true` to enable JVM debugging, `false` otherwise. When enabled, the

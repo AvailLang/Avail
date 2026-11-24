@@ -139,7 +139,7 @@ object P_BootstrapBlockMacro : PrimitiveN(7, CanInline, Bootstrap)
 		interpreter: Interpreter,
 		args: Array<AvailObject>
 	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(7)
+		assert(args.size == 7)
 		val optionalArgumentDeclarations = args[0]
 		val optionalPrimitive = args[1]
 		val optionalLabel = args[2]

@@ -51,9 +51,9 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Create an anonymous [module][A_Module] that privately
@@ -63,14 +63,15 @@ import avail.interpreter.primitive.Primitive1
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateAnonymousModule : Primitive1(CanInline)
+object P_CreateAnonymousModule : PrimitiveIsolated1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		atom: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		// TODO Not implemented yet, just fail generically for now.
-		return fail(E_INCORRECT_ARGUMENT_TYPE)
+		return context.fail(E_INCORRECT_ARGUMENT_TYPE)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

@@ -41,11 +41,11 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Given a 64-bit signed integer, treat the bit pattern as a
@@ -55,12 +55,14 @@ import avail.interpreter.primitive.Primitive1
  * @see P_DoubleToLongBits
  */
 @Suppress("unused")
-object P_DoubleFromLongBits : Primitive1(CannotFail, CanInline), Foldable
+object P_DoubleFromLongBits
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		longObject: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val longValue = longObject.extractLong
 		val doubleValue = Double.fromBits(longValue)
 		return fromDouble(doubleValue)

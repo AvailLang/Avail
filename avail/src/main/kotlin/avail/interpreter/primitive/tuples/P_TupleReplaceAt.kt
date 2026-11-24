@@ -59,12 +59,12 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 import kotlin.math.max
 import kotlin.math.min
 
@@ -73,22 +73,23 @@ import kotlin.math.min
  * an element changed as indicated.
  */
 @Suppress("unused")
-object P_TupleReplaceAt : Primitive3(CanInline), Foldable
+object P_TupleReplaceAt : PrimitiveIsolated3(CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tuple: AvailObject,
 		indexObject: AvailObject,
 		value: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (!indexObject.isInt)
 		{
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = indexObject.extractInt
 		return if (index > tuple.tupleSize)
 		{
-			fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		else tuple.tupleAtPuttingCanDestroy(index, value, true)
 	}

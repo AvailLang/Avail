@@ -88,8 +88,9 @@ the left.
   variables (see [Freezing](#freezing)).
 - **`EnterFreeze`** — [L2_ENTER_FREEZE].  Start a freeze subgraph, restoring
   the registers it needs from the dump.
-- **`FinishFreeze`** — [L2_FINISH_FREEZE].  Write variables into the frame
-  slots of the continuation being frozen, ending its freeze subgraph.
+- **`UpdateSlots`** — [L2_UPDATE_SLOTS].  Write variables into the frame
+  slots of the continuation being frozen.
+- **`ExitFreeze`** — [L2_EXIT_FREEZE].  End a freeze subgraph.
 - **`Invoke`** — [L2_INVOKE] or [L2_INVOKE_CONSTANT_FUNCTION]: a call that is
   not inlined.
 - **`Return`** — [L2_RETURN].
@@ -223,7 +224,7 @@ flowchart LR
   AfterHead["SaveAll"]
   AfterRef["Create x := y<br><i>(still postponed)</i><br>…"]
   AfterFall["…<br>CreateContinuation<br>&lt;… nil …&gt;"]
-  AfterFreeze["EnterFreeze<br>Create x := y<br>FinishFreeze <i>(x)</i>"]
+  AfterFreeze["EnterFreeze<br>Create x := y<br>UpdateSlots (x)<br>ExitFreeze"]
   AfterHead ..->|reference| AfterRef
   AfterHead -->|fall-through| AfterFall
   AfterFall ..->|freeze| AfterFreeze
@@ -241,11 +242,11 @@ whose `Create`, or the `Set` that follows it, is still postponed is written
 as `nil` instead, so the `Create` stays postponed past the
 `CreateContinuation`, and is dead along its fall-through edge.  The
 `CreateContinuation` then gets a freeze edge, which the postponed
-instructions follow into a new freeze subgraph: an `EnterFreeze`, then a
-`FinishFreeze` that writes the variable of each slot written as `nil` back
-into that slot.  Reading those variables forces their `Create`s and `Set`s,
-which are therefore emitted in the freeze subgraph and nowhere else along
-this path.
+instructions follow into a new freeze subgraph: an `EnterFreeze`, then an
+`UpdateSlots` that writes the variable of each slot written as `nil` back
+into that slot, then an `ExitFreeze`.  Reading those variables forces their
+`Create`s and `Set`s, which are therefore emitted in the freeze subgraph and
+nowhere else along this path.
 
 A `CreateContinuation` starts with no freeze edge, and gains one, with its
 freeze subgraph, the first time it is emitted by translation or by a
@@ -328,7 +329,7 @@ since it must hold its `FREEZE_OFFSET`.  The shared empty dumps have a
 [L2_CREATE_CONTINUATION]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_CREATE_CONTINUATION.kt
 [L2_CREATE_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_CREATE_VARIABLE.kt
 [L2_ENTER_FREEZE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_ENTER_FREEZE.kt
-[L2_FINISH_FREEZE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_FINISH_FREEZE.kt
+[L2_EXIT_FREEZE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_EXIT_FREEZE.kt
 [L2_GET_ELIDABLE_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_ELIDABLE_LOCAL_VARIABLE.kt
 [L2_GET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE.kt
 [L2_GET_VARIABLE_CLEARING_IF_MUTABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_GET_VARIABLE_CLEARING_IF_MUTABLE.kt
@@ -338,3 +339,4 @@ since it must hold its `FREEZE_OFFSET`.  The shared empty dumps have a
 [L2_SAVE_ALL_AND_PC_TO_INT]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_SAVE_ALL_AND_PC_TO_INT.kt
 [L2_SET_ELIDABLE_LOCAL_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_ELIDABLE_LOCAL_VARIABLE.kt
 [L2_SET_VARIABLE]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/variables/L2_SET_VARIABLE.kt
+[L2_UPDATE_SLOTS]: ../../../src/main/kotlin/avail/interpreter/levelTwo/operation/L2_UPDATE_SLOTS.kt

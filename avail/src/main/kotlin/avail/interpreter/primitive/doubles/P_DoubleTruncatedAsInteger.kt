@@ -45,25 +45,26 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Convert a [double][DoubleDescriptor] to an
  * [integer][IntegerDescriptor], rounding towards zero.
  */
 @Suppress("unused")
-object P_DoubleTruncatedAsInteger : Primitive1(CanInline), Foldable
+object P_DoubleTruncatedAsInteger : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		a: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val d = a.extractDouble
 		if (d.isNaN())
-			return fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
+			return context.fail(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
 		return doubleTruncatedToExtendedInteger(d)
 	}
 

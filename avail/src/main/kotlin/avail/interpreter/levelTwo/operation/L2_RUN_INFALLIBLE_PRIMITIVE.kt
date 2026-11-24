@@ -47,6 +47,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.primitive.Foldable
+import avail.interpreter.primitive.Isolated
 import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.optimizer.L1Translator
@@ -166,15 +167,21 @@ private constructor(
 	override fun canBePostponed(manifest: L2ValueManifest): Boolean =
 		primitive.constant.canBePostponed(arguments.elements, manifest)
 
+	/** Only an [Isolated] primitive can run without an interpreter. */
+	override val canRunInFreeze get() = primitive.constant is Isolated
+
 	/**
 	 * The instruction need not be recorded when its result names the
 	 * invocation of its primitive on its arguments, since that invocation says
-	 * how to produce the value again.
+	 * how to produce the value again.  Producing it again may happen in a
+	 * freeze subgraph, so only an [Isolated] primitive's instruction is
+	 * elided.
 	 */
 	override fun canBeElidedFromPostponement(
 		manifest: L2ValueManifest
 	): Boolean
 	{
+		if (!canRunInFreeze) return false
 		val argumentValues = arguments.elements.map { it.semanticValue() }
 		return result.semanticValues().any {
 			it is L2SemanticPrimitiveInvocation

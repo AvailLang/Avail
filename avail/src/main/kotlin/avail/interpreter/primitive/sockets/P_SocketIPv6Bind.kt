@@ -57,10 +57,10 @@ import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 import avail.utility.cast
 import java.io.IOException
 import java.net.Inet6Address
@@ -78,18 +78,19 @@ import java.nio.channels.AsynchronousSocketChannel
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketIPv6Bind : Primitive3(CanInline, HasSideEffect)
+object P_SocketIPv6Bind : PrimitiveIsolated3(CanInline, HasSideEffect)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		handle: AvailObject,
 		addressTuple: AvailObject,
 		port: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
 		if (pojo.isNil)
 		{
-			return fail(
+			return context.fail(
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
@@ -108,21 +109,21 @@ object P_SocketIPv6Bind : Primitive3(CanInline, HasSideEffect)
 		}
 		catch (e: IllegalStateException)
 		{
-			fail(E_INVALID_HANDLE)
+			context.fail(E_INVALID_HANDLE)
 		}
 		catch (e: UnknownHostException)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			fail(E_IO_ERROR)
+			context.fail(E_IO_ERROR)
 		}
 		catch (e: IOException)
 		{
-			fail(E_IO_ERROR)
+			context.fail(E_IO_ERROR)
 		}
 		catch (e: SecurityException)
 		{
-			fail(E_PERMISSION_DENIED)
+			context.fail(E_PERMISSION_DENIED)
 		}
 	}
 

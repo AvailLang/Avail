@@ -52,9 +52,9 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] of restriction
@@ -62,16 +62,17 @@ import avail.interpreter.primitive.Primitive2
  * [method][A_Method] and tuple of argument types.
  */
 @Suppress("unused")
-object P_SemanticRestrictions : Primitive2(CanInline)
+object P_SemanticRestrictions : PrimitiveIsolated2(CanInline)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		method: AvailObject,
 		argTypes: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (method.numArgs != argTypes.tupleSize)
 		{
-			return fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return context.fail(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val restrictions = method.semanticRestrictions
 		val applicable = mutableListOf<A_Function>()

@@ -51,10 +51,10 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] of [types][A_Type] representing the
@@ -62,24 +62,25 @@ import avail.interpreter.primitive.Primitive3
  * [bottom][BottomTypeDescriptor] for indices out of range.
  */
 @Suppress("unused")
-object P_TupleTypeSequenceOfTypes : Primitive3(CanInline), Foldable
+object P_TupleTypeSequenceOfTypes : PrimitiveIsolated3(CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tupleType: AvailObject,
 		startIndex: AvailObject,
 		endIndex: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (!startIndex.isInt || !endIndex.isInt)
 		{
-			return fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
+			return context.fail(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val startInt = startIndex.extractInt
 		val endInt = endIndex.extractInt
 		val tupleSize = endInt - startInt + 1
 		if (tupleSize < 0)
 		{
-			return fail(E_NEGATIVE_SIZE)
+			return context.fail(E_NEGATIVE_SIZE)
 		}
 		return generateObjectTupleFrom(tupleSize) {
 			tupleType.typeAtIndex(it + startInt - 1).makeImmutable()

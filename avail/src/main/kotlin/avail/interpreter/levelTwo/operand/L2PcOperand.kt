@@ -146,6 +146,13 @@ constructor (
 		list.add(this)
 	}
 
+	override fun makeOperandShared()
+	{
+		manifest?.makeAllShared()
+		forcedClampedSemanticValues?.forEach(L2SemanticValue::makeShared)
+		forcedClampedRegisters?.forEach(L2Register<*>::makeShared)
+	}
+
 	/**
 	 * Answer the [L2ValueManifest] for this edge, which describes which
 	 * [L2Register]s hold which [L2SemanticValue]s.

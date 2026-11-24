@@ -65,6 +65,7 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.Isolated
 import avail.interpreter.primitive.Primitive
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
@@ -215,6 +216,18 @@ class L2ValueManifest
 		 */
 		val isAbsent: Boolean
 			get() = postponedInstruction === null && definitions.isEmpty()
+
+		/**
+		 * Make every [AvailObject] that this representation holds
+		 * [shared][AvailObject.makeShared]: the constants of its
+		 * [definitions], and those held by the operands of its
+		 * [postponedInstruction].
+		 */
+		fun makeRepresentationShared()
+		{
+			definitions.forEach(L2Register<K>::makeShared)
+			postponedInstruction?.makeOperandsShared()
+		}
 
 		override fun toString() =
 			buildList {
@@ -1330,6 +1343,14 @@ class L2ValueManifest
 					states.keys)
 			checkInvocationArgumentsAreKnown()
 			checkInvocationsAreNotTop()
+			if (false)
+			{
+				// Too slow to leave on, even here.  Enable it when hunting a
+				// phi that tries to overwrite a value at a merge point: that
+				// is usually an invocation bound without being merged with a
+				// congruent one, which this catches where it happens.
+				checkCongruenceClosed()
+			}
 		}
 		checkRepresentationsFitTheirKinds()
 		// Aggregate: every register in the manifest, of every kind.
@@ -1785,6 +1806,40 @@ class L2ValueManifest
 		bind(semanticValues, valueClass)
 		// This joins the constant's class if the restriction is a constant.
 		updateRestriction(valueClass) { restriction }
+		mergeWithCongruentInvocations(semanticValues)
+	}
+
+	/**
+	 * Merge the class of each [L2SemanticPrimitiveInvocation] among the given
+	 * newly bound [L2SemanticValue]s with the class of any invocation already
+	 * present that is congruent with it: the same primitive, reading the same
+	 * classes.  Such an invocation would be found among the users of its
+	 * arguments.
+	 *
+	 * Merging argument classes merges the invocations that read them (see
+	 * [mergeCongruentUsers]), but that only covers invocations present when
+	 * the arguments merge.  An invocation that arrives after its arguments are
+	 * already synonyms has to be checked as it is bound, whatever path binds
+	 * it, or two classes describe one value.  A later merge point that unifies
+	 * them would then find both classes already holding registers.
+	 *
+	 * Users are only indexed while semantic values are being tracked, so this
+	 * does nothing otherwise.
+	 *
+	 * @param semanticValues
+	 *   The [L2SemanticValue]s just bound.
+	 */
+	private fun mergeWithCongruentInvocations(
+		semanticValues: Iterable<L2SemanticValue>)
+	{
+		if (!caresAboutSemanticValues) return
+		semanticValues
+			.filterIsInstance<L2SemanticPrimitiveInvocation>()
+			.forEach { invocation ->
+				invocation.argumentSemanticValues.firstOrNull()?.let {
+					mergeCongruentUsers(stateOrNull(it)!!.usingClasses)
+				}
+			}
 	}
 
 	/**
@@ -1929,6 +1984,9 @@ class L2ValueManifest
 	 * check, which no type expresses, and a control flow merge can widen
 	 * arguments whose combinations along each incoming path could not fail.
 	 *
+	 * Only an invocation of an [Isolated] primitive is produced, since it may
+	 * be produced in a freeze subgraph, which has no interpreter.
+	 *
 	 * @param semanticValue
 	 *   The [L2SemanticValue] to produce.
 	 * @param inProgress
@@ -1951,9 +2009,10 @@ class L2ValueManifest
 			return names
 				.filterIsInstance<L2SemanticPrimitiveInvocation>()
 				.firstOrNull { invocation ->
-					invocation.argumentSemanticValues.all {
-						isProducible(it, inProgress)
-					}
+					invocation.primitive is Isolated
+						&& invocation.argumentSemanticValues.all {
+							isProducible(it, inProgress)
+						}
 				}
 		}
 		finally
@@ -2304,19 +2363,7 @@ class L2ValueManifest
 				.withMembers(state.members + strandedValues)
 				.copy(restriction = narrowed)
 			bind(strandedValues, survivor)
-			// A new invocation may be congruent with one already present, which
-			// would be found among the users of its arguments.  Users are only
-			// indexed while semantic values are being tracked.
-			if (caresAboutSemanticValues)
-			{
-				strandedValues
-					.filterIsInstance<L2SemanticPrimitiveInvocation>()
-					.forEach { invocation ->
-						invocation.argumentSemanticValues.firstOrNull()?.let {
-							mergeCongruentUsers(stateOrNull(it)!!.usingClasses)
-						}
-					}
-			}
+			mergeWithCongruentInvocations(strandedValues)
 		}
 		existingClasses.drop(1).forEach { mergeValueClasses(survivor, it) }
 		if (narrowedEarly)
@@ -2693,6 +2740,23 @@ class L2ValueManifest
 	 * Expose the current collection of [ValueState]s as a list.
 	 */
 	fun valueStates(): List<ValueState> = states.values.toList()
+
+	/**
+	 * Make every [AvailObject] that this manifest holds
+	 * [shared][AvailObject.makeShared]: those in its [L2SemanticValue]s and
+	 * [TypeRestriction]s, and those in each [Representation].
+	 */
+	fun makeAllShared()
+	{
+		classOf.keys.forEach(L2SemanticValue::makeShared)
+		states.values.forEach { state ->
+			state.members.forEach(L2SemanticValue::makeShared)
+			state.restriction.makeShared()
+			state.forEachRepresentation { representation, _ ->
+				representation.makeRepresentationShared()
+			}
+		}
+	}
 
 	/**
 	 * Answer a [Set] of all [L2SemanticValue]s in this manifest.  This is only
@@ -3816,6 +3880,40 @@ class L2ValueManifest
 		// replaced, so anything still holding the class stays valid.
 		states[valueClass] = state.withMembers(newSemanticValues)
 		bind(newSemanticValues, valueClass)
+	}
+
+	/**
+	 * Check that this manifest is closed under congruence: no two classes hold
+	 * invocations of one primitive whose arguments are in the same classes,
+	 * since those invocations denote the same value.
+	 *
+	 * A violation means some path bound an invocation without merging it with
+	 * its congruent peer.  It goes unnoticed until a merge point unifies the
+	 * two classes after each already holds a register, and a phi then fails
+	 * far from the path at fault.  This check fails at the fault.
+	 *
+	 * It examines every invocation in the manifest each time, which is too
+	 * slow to leave on even under [deepManifestDebugCheck].
+	 */
+	private fun checkCongruenceClosed()
+	{
+		classOf.keys
+			.filterIsInstance<L2SemanticPrimitiveInvocation>()
+			.mapNotNull { invocation ->
+				val argumentClasses = invocation.argumentSemanticValues
+					.map { classOrNull(it) ?: return@mapNotNull null }
+				(invocation.primitive to argumentClasses) to invocation
+			}
+			.groupBy({ it.first }, { it.second })
+			.values
+			.forEach { congruent ->
+				val classes = congruent.mapTo(mutableSetOf(), ::classFor)
+				assert(classes.size == 1)
+				{
+					"Manifest holds congruent primitive invocations in " +
+						"distinct classes: $congruent"
+				}
+			}
 	}
 
 	/**

@@ -41,23 +41,25 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeFromArgumentTupleType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** Answer the most general function type with the given return
  * type.
  */
 @Suppress("unused")
-object P_CreateGeneralFunctionType : Primitive1(CannotFail, CanInline), Foldable
+object P_CreateGeneralFunctionType
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		returnType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return functionTypeFromArgumentTupleType(bottom, returnType, emptySet)
 	}
 

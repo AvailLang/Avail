@@ -50,13 +50,13 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Create an
@@ -65,17 +65,18 @@ import avail.interpreter.primitive.Primitive3
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 @Suppress("unused")
-object P_IntegerIntervalTuple : Primitive3(CanInline), Foldable
+object P_IntegerIntervalTuple : PrimitiveIsolated3(CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		start: AvailObject,
 		end: AvailObject,
 		delta: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return if (delta.equalsInt(0))
 		{
-			fail(E_INCORRECT_ARGUMENT_TYPE)
+			context.fail(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		else createInterval(start, end, delta)
 	}

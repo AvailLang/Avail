@@ -58,12 +58,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Given a positive integer B, a shift factor S, and a truncation
@@ -74,14 +74,15 @@ import avail.interpreter.primitive.Primitive3
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
+object P_BitShiftWithTruncation : PrimitiveIsolated3(CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		baseInteger: AvailObject,
 		shiftFactor: AvailObject,
 		truncationBits: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return try
 		{
 			baseInteger.bitShiftLeftTruncatingToBits(
@@ -91,7 +92,7 @@ object P_BitShiftWithTruncation : Primitive3(CanInline), Foldable
 		{
 			// Note: The primitive's type signature ensures both baseInteger and
 			// truncationBits are non-negative.
-			fail(e.errorCode)
+			context.fail(e.errorCode)
 		}
 	}
 

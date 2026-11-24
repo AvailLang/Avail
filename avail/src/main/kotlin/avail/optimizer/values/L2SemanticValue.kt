@@ -177,6 +177,18 @@ protected constructor(
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticValue
 
+	/**
+	 * Make every [AvailObject] that this semantic value holds, directly or
+	 * through its parts, [shared][AvailObject.makeShared].  A
+	 * [constant][L2SemanticConstant] makes its value only immutable when it
+	 * is created, which suffices for a graph that one thread works on, but not
+	 * for one that several threads read at once.
+	 */
+	open fun makeShared()
+	{
+		// Most semantic values hold no Avail objects.
+	}
+
 	override fun compareTo(other: L2SemanticValue) =
 		primaryVisualSortKey.ordinal
 			.compareTo(other.primaryVisualSortKey.ordinal)

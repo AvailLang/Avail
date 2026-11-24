@@ -48,11 +48,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Answer the [type][TypeDescriptor] that is the union of the
@@ -61,14 +61,16 @@ import avail.interpreter.primitive.Primitive3
  * if all the indices are out of range.
  */
 @Suppress("unused")
-object P_TupleTypeAtThrough : Primitive3(CannotFail, CanInline), Foldable
+object P_TupleTypeAtThrough
+	: PrimitiveIsolated3(CannotFail, CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tupleType: AvailObject,
 		startIndex: AvailObject,
 		endIndex: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val startInt = when {
 			startIndex.isInt -> startIndex.extractInt
 			else -> Integer.MAX_VALUE

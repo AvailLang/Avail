@@ -742,7 +742,9 @@ class L2Optimizer internal constructor(
 	 * Keep the current graph as the [inlinableGraph].  Regenerating the graph
 	 * moves its blocks into a new graph that nothing else touches, and
 	 * rebuilds an equivalent graph for the remaining phases to transform, so
-	 * the kept graph stays as it was at this phase.
+	 * the kept graph stays as it was at this phase.  Callers' optimizations
+	 * embed the kept graph concurrently, so every Avail object it holds is
+	 * made [shared][L2ControlFlowGraph.makeAllShared].
 	 */
 	fun captureInlinableGraph()
 	{
@@ -759,7 +761,7 @@ class L2Optimizer internal constructor(
 				.run {
 					emitTransformedInstruction()
 				}
-		}
+		}.also(L2ControlFlowGraph::makeAllShared)
 	}
 
 	/**

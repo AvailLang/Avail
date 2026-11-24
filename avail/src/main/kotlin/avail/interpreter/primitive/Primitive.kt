@@ -1607,7 +1607,8 @@ constructor(
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand)
 	{
-		if (Interpreter.trackInlineInfalliblePrimitives)
+		// The freeze method has no interpreter to track statistics with.
+		if (Interpreter.trackInlineInfalliblePrimitives && !isGeneratingFreeze)
 		{
 			generateJvmCodeWithTracking(arguments, result)
 		}
@@ -1710,6 +1711,9 @@ constructor(
 	 * primitive *cannot fail or reify*.  It *does not* measure the primitive's
 	 * performance with [Interpreter.beforeAttemptPrimitive] and
 	 * [Interpreter.afterAttemptPrimitive], nor record an invocation occurrence.
+	 * An [Isolated] primitive runs in the translator's
+	 * [primitive&#32;context][JVMTranslator.loadPrimitiveContext], so it can
+	 * also run in a chunk's freeze method, which has no interpreter.
 	 *
 	 * Subclasses may do something more specific and efficient, and should be
 	 * free to neglect the statistics.  However, the [result] register must be
@@ -1728,6 +1732,31 @@ constructor(
 		result: L2WriteBoxedOperand)
 	{
 		loadLiteralObject(this@Primitive)
+		if (this@Primitive is Isolated)
+		{
+			// It needs only a context, which the freeze method has too.
+			loadPrimitiveContext()
+			val method: CheckedMethod = when (this@Primitive)
+			{
+				is PrimitiveIsolated0 -> attemptIsolated0Method
+				is PrimitiveIsolated1 -> attemptIsolated1Method
+				is PrimitiveIsolated2 -> attemptIsolated2Method
+				is PrimitiveIsolated3 -> attemptIsolated3Method
+				is PrimitiveIsolated4 -> attemptIsolated4Method
+				is PrimitiveIsolatedN ->
+				{
+					objectArray(arguments.elements, AvailObject::class.java)
+					generateCall(attemptIsolatedNMethod)
+					store(result.register())
+					return
+				}
+				else -> error("Unsupported isolated primitive")
+			}
+			arguments.elements.forEach<L2ReadBoxedOperand>(::load)
+			generateCall(method)
+			store(result.register())
+			return
+		}
 		loadInterpreter()
 		val method: CheckedMethod = when (this@Primitive)
 		{
@@ -1926,6 +1955,47 @@ constructor(
 		val attemptNMethod = instanceMethod(
 			PrimitiveN::attemptN,
 			Interpreter::class.java,
+			Array<AvailObject>::class.java)
+
+		/** The method [PrimitiveIsolated0.attemptIsolated]. */
+		val attemptIsolated0Method = instanceMethod(
+			PrimitiveIsolated0::attemptIsolated,
+			PrimitiveContext::class.java)
+
+		/** The method [PrimitiveIsolated1.attemptIsolated]. */
+		val attemptIsolated1Method = instanceMethod(
+			PrimitiveIsolated1::attemptIsolated,
+			PrimitiveContext::class.java,
+			AvailObject::class.java)
+
+		/** The method [PrimitiveIsolated2.attemptIsolated]. */
+		val attemptIsolated2Method = instanceMethod(
+			PrimitiveIsolated2::attemptIsolated,
+			PrimitiveContext::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [PrimitiveIsolated3.attemptIsolated]. */
+		val attemptIsolated3Method = instanceMethod(
+			PrimitiveIsolated3::attemptIsolated,
+			PrimitiveContext::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [PrimitiveIsolated4.attemptIsolated]. */
+		val attemptIsolated4Method = instanceMethod(
+			PrimitiveIsolated4::attemptIsolated,
+			PrimitiveContext::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** The method [PrimitiveIsolatedN.attemptIsolated]. */
+		val attemptIsolatedNMethod = instanceMethod(
+			PrimitiveIsolatedN::attemptIsolated,
+			PrimitiveContext::class.java,
 			Array<AvailObject>::class.java)
 	}
 }

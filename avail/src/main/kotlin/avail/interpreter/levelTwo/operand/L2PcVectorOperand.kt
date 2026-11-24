@@ -80,6 +80,11 @@ constructor(
 		list.addAll(edges)
 	}
 
+	override fun makeOperandShared()
+	{
+		edges.forEach(L2Operand::makeOperandShared)
+	}
+
 	override fun setInstruction(theInstruction: L2Instruction?)
 	{
 		super.setInstruction(theInstruction)

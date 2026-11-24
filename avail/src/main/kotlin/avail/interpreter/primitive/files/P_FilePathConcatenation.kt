@@ -47,10 +47,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.io.IOSystem
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
@@ -62,12 +62,13 @@ import java.nio.file.Path
  * @author authorName &lt;emailAddress@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FilePathConcatenation : Primitive1(CanInline), Foldable
+object P_FilePathConcatenation : PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tuple: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val fileSystem = IOSystem.fileSystem
 		var path: Path? = null
 		try
@@ -87,7 +88,7 @@ object P_FilePathConcatenation : Primitive1(CanInline), Foldable
 		}
 		catch (e: InvalidPathException)
 		{
-			return fail(E_INVALID_PATH)
+			return context.fail(E_INVALID_PATH)
 		}
 		return when (path)
 		{

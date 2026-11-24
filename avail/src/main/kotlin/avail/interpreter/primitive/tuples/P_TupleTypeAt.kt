@@ -51,13 +51,13 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Answer the [type][A_Type] for the given element of
@@ -65,13 +65,14 @@ import avail.interpreter.primitive.Primitive2
  * [bottom][BottomTypeDescriptor] if out of range.
  */
 @Suppress("unused")
-object P_TupleTypeAt : Primitive2(CannotFail, CanInline), Foldable
+object P_TupleTypeAt : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tupleType: AvailObject,
 		index: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return when
 		{
 			index.isInt -> tupleType.typeAtIndex(index.extractInt)

@@ -172,6 +172,7 @@ constructor(
 					previous == null -> prefix + value.toStringForSynonym()
 					(previous is L2SemanticSlot
 						&& value is L2SemanticSlot
+						&& previous.frame == value.frame
 						&& previous.slotIndex == value.slotIndex
 						) -> "/" + value.pcAfter.toString()
 					else -> " & " + prefix + value.toStringForSynonym()

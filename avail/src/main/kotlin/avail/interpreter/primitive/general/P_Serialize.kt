@@ -44,9 +44,9 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.exceptions.AvailErrorCode.E_SERIALIZATION_FAILED
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 import avail.serialization.Serializer
 import java.io.ByteArrayOutputStream
 
@@ -57,12 +57,13 @@ import java.io.ByteArrayOutputStream
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_Serialize : Primitive1(CanInline)
+object P_Serialize : PrimitiveIsolated1(CanInline)
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		value: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val out = ByteArrayOutputStream(100)
 		val serializer = Serializer(out)
 		try
@@ -71,7 +72,7 @@ object P_Serialize : Primitive1(CanInline)
 		}
 		catch (e: Exception)
 		{
-			return fail(E_SERIALIZATION_FAILED)
+			return context.fail(E_SERIALIZATION_FAILED)
 		}
 
 		return tupleForByteArray(out.toByteArray())

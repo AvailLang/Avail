@@ -41,23 +41,25 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.SetTypeDescriptor
 import avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
 * **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s element
  * [type][TypeDescriptor].
  */
 @Suppress("unused")
-object P_SetTypeElementType : Primitive1(CannotFail, CanInline), Foldable
+object P_SetTypeElementType
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		setType: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return setType.contentType
 	}
 

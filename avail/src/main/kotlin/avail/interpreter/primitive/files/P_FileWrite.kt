@@ -112,7 +112,7 @@ object P_FileWrite : PrimitiveN(6, CanInline, HasSideEffect)
 		interpreter: Interpreter,
 		args: Array<AvailObject>
 	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(6)
+		assert(args.size == 6)
 		val positionObject = args[0]
 		val bytes = args[1]
 		val atom = args[2]

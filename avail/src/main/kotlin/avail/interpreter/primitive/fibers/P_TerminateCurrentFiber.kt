@@ -39,11 +39,11 @@ import avail.descriptor.representation.A_Type
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Unknown
 import avail.interpreter.primitive.Primitive.Flag.WritesToHiddenGlobalState
-import avail.interpreter.primitive.Primitive0
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated0
 
 /**
  * **Primitive:** Terminate the current [fiber][FiberDescriptor].
@@ -51,12 +51,11 @@ import avail.interpreter.primitive.Primitive0
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TerminateCurrentFiber : Primitive0(
+object P_TerminateCurrentFiber : PrimitiveIsolated0(
 	Unknown, CannotFail, WritesToHiddenGlobalState)
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject? = interpreter.run {
+	override fun attemptIsolated(context: PrimitiveContext): A_BasicObject?
+	{
 		// Throw an exception to ensure that the fiber's (Java) failure
 		// continuation will be executed.
 		throw FiberTerminationException()

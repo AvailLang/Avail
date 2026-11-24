@@ -69,6 +69,7 @@ import avail.descriptor.representation.A_RawFunction.Companion.numArgs
 import avail.descriptor.representation.A_RawFunction.Companion.numLocals
 import avail.descriptor.representation.A_RawFunction.Companion.numSlots
 import avail.descriptor.representation.A_RegisterDump
+import avail.descriptor.representation.A_RegisterDump.Companion.freezeOffset
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleIntAt
@@ -101,6 +102,7 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2SimpleChunk
+import avail.interpreter.levelTwo.operation.L2_ADD_UNDER_FROZEN_FRAME
 import avail.interpreter.primitive.continuations.P_ContinuationStackData
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.io.TextInterface
@@ -694,6 +696,83 @@ class ContinuationDescriptor private constructor(
 			int)
 
 		/**
+		 * Create a mutable continuation, except for its frame slots, for a
+		 * frame that is stopped at a call, exactly as the L1 interpreter
+		 * reifies one.  It has no caller and no register dump, and resumes in
+		 * the [DefaultL1Chunk] at
+		 * [DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL], which checks the
+		 * returned value against the expected type that the frame holds at
+		 * its stack pointer.  A freeze uses it to build the frame of an
+		 * enclosing inlined call, which an [L2_ADD_UNDER_FROZEN_FRAME] then
+		 * gives its caller.
+		 *
+		 * @param function
+		 *   The function whose frame the continuation represents.
+		 * @param pc
+		 *   The L1 program counter just after the call.
+		 * @param stackp
+		 *   The L1 stack pointer, which indexes the slot holding the call's
+		 *   expected type.
+		 * @return
+		 *   A new mutable continuation, with every frame slot [nil].
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun createL1CallContinuationExceptFrame(
+			function: A_Function,
+			pc: Int,
+			stackp: Int
+		): AvailObject = createContinuationExceptFrame(
+			function,
+			nil,
+			nil,
+			pc,
+			stackp,
+			DefaultL1Chunk,
+			DefaultEntryPoint.REENTRY_FROM_REIFIED_CALL.offset)
+
+		/** The [CheckedMethod] for [createL1CallContinuationExceptFrame]. */
+		val createL1CallContinuationExceptFrameMethod = staticMethod(
+			::createL1CallContinuationExceptFrame,
+			A_Function::class.java,
+			int,
+			int)
+
+		/**
+		 * Slide the given continuation beneath the outermost frame built so far
+		 * by a freeze, between that frame and its caller, and answer it, to
+		 * become the outermost frame built so far.  Both continuations must
+		 * still be mutable; the frame being frozen is temporarily mutable
+		 * while its freeze runs (see [createElidedVariables]).
+		 *
+		 * @param frozenFrame
+		 *   The outermost frame built so far by the freeze.
+		 * @param added
+		 *   The continuation to slide beneath it.
+		 * @return
+		 *   The added continuation.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun addUnderFrozenFrame(
+			frozenFrame: AvailObject,
+			added: AvailObject
+		): AvailObject
+		{
+			check(frozenFrame.descriptor.isMutable)
+			check(added.descriptor.isMutable)
+			added[CALLER] = frozenFrame[CALLER]
+			frozenFrame[CALLER] = added
+			return added
+		}
+
+		/** The [CheckedMethod] for [addUnderFrozenFrame]. */
+		val addUnderFrozenFrameMethod = staticMethod(
+			::addUnderFrozenFrame,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/**
 		 * Create a mutable continuation with the specified fields.  Initialize
 		 * the stack slot from the list of fields.
 		 *
@@ -831,19 +910,24 @@ class ContinuationDescriptor private constructor(
 			if (chunk === DefaultL1Chunk) return
 			// L2Simple chunks don't postpone variable creation either.
 			if (chunk is L2SimpleChunk) return
-			// There are no local variables, so this frame can stay optimized.
-			if (this[FUNCTION].code().numLocals == 0) return
-
 			val dump = this[LEVEL_TWO_REGISTER_DUMP]
 			// Without a register dump, it's the caller's responsibility to
 			// switch to L1.
 			if (dump.isNil) return
+			// With no freeze subgraph and no local variables, nothing was
+			// postponed and no enclosing frame is missing, so this frame can
+			// stay optimized.
+			if (dump.freezeOffset == -1
+				&& this[FUNCTION].code().numLocals == 0) return
 			// Let the chunk create the variables whose creation it postponed
-			// past the continuation's creation.  A register dump's freeze
-			// offset of -1 makes this a no-op.
+			// past the continuation's creation, and build the frames of the
+			// calls that were inlined around this one, sliding them beneath
+			// it.  A register dump's freeze offset of -1 makes this a no-op.
 			chunk.executableChunk.freeze(this)
 			// The L2 code cannot continue to run with those variables created,
-			// so we must fall back to L1.
+			// nor with those enclosing frames built (it would run them again
+			// after this frame returned into them), so we must fall back to
+			// L1.
 			this[LEVEL_TWO_CHUNK] = DefaultL1Chunk.chunkPojo
 			this[LEVEL_TWO_OFFSET] = dump.fallbackEntryPoint
 		}

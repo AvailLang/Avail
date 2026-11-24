@@ -52,6 +52,8 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
+import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
+import avail.interpreter.levelTwo.operation.L2_EXIT_FREEZE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -364,6 +366,27 @@ interface L2GeneratorInterface : L2Visualizable
 		targetBlock: L2BasicBlock,
 		optionalName: String? = null
 	)
+
+	/**
+	 * Whether every [L2_CREATE_CONTINUATION] generated here must have a freeze
+	 * subgraph, even when no variable creation is postponed past it.  It
+	 * must while a callee's graph is being embedded, since freezing any of
+	 * the callee's continuations must also build the frames of the calls
+	 * inlined around it (doc/Optimization/Level_Two/Variable_elision.md
+	 * §Freezing).
+	 */
+	val freezesBuildEnclosingFrames: Boolean get() = false
+
+	/**
+	 * Generate the end of a freeze subgraph.  Ordinarily this is an
+	 * [L2_EXIT_FREEZE], but while a callee's graph is being embedded, it is a
+	 * jump to the call site's freeze block, which builds the caller's frame,
+	 * slides it beneath the frames built so far, and ends the same way.
+	 */
+	fun exitFreeze()
+	{
+		addInstruction(L2_EXIT_FREEZE())
+	}
 
 	/**
 	 * Generate code to move the given constant into a boxed register, if it's

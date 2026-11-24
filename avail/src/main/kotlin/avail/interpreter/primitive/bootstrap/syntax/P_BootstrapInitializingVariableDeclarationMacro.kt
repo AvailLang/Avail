@@ -52,11 +52,11 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.Bootstrap
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 
 /**
@@ -69,14 +69,15 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
  */
 @Suppress("unused")
 object P_BootstrapInitializingVariableDeclarationMacro
-	: Primitive3(CanInline, CannotFail, Bootstrap)
+	: PrimitiveIsolated3(CanInline, CannotFail, Bootstrap)
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variableNameLiteral: AvailObject,
 		typeLiteral: AvailObject,
 		initializationExpression: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val nameToken = variableNameLiteral.token.literal()
 		val nameString = nameToken.string()
 		if (nameToken.tokenType() != KEYWORD)

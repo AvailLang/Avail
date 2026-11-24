@@ -33,8 +33,9 @@ package avail.optimizer.values
 
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.representation.A_Continuation
-import avail.descriptor.representation.A_Continuation.Companion.pc
 import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.interpreter.levelTwo.L2Chunk
 import avail.utility.iterableWith
 
@@ -50,10 +51,10 @@ import avail.utility.iterableWith
  * @property code
  *   The actual [raw&#32;function][CompiledCodeDescriptor] that's associated
  *   with semantic values tied to this frame.
- * @property debugName
- *   The symbolic name to use to describe this frame.  Note that it does not
- *   affect the identity of the frame, which is what's used for comparing and
- *   hashing.
+ * @property callerPc
+ *   The L1 [A_Continuation.pc] at which the call to this frame was made.  This
+ *   is always the pc of the L1 instruction after the call, even if the result
+ *   has to be dynamically checked.
  *
  * @constructor
  * Construct a new `Frame` representing a call within the given frame.
@@ -69,16 +70,27 @@ import avail.utility.iterableWith
  *   has to be dynamically checked.
  * @param codeName
  *   A [String] to output to describe the scope of this inlining level.
- * @param debugName
- *   What to name this frame.
  */
 class Frame constructor(
 	val outerFrame: Frame?,
 	val code: A_RawFunction,
 	val callerPc: Int,
 	val codeName: String,
-	val debugName: String)
+): Comparable<Frame>
 {
+	/**
+	 * The symbolic name to use to describe this frame.  Note that it does not
+	 * affect the identity of the frame, which is what's used for comparing and
+	 * hashing.  The top frame is an empty string, and inlined frames show their
+	 * ancestry.
+	 */
+	val debugName: String = when (outerFrame)
+	{
+		null -> ""
+		else -> "${outerFrame.debugName}§$callerPc" +
+			"(${code.methodName.asNativeString()})"
+	}
+
 	/**
 	 * Answer the depth of this frame, which is how many invocations deep it
 	 * is relative to the outermost frame represented by an [L2Chunk].
@@ -197,7 +209,34 @@ class Frame constructor(
 		if (outerFrame === null) return topFrameReplacement
 		val newOuterFrame = frameTransformer(outerFrame)
 		if (newOuterFrame == outerFrame) return this
-		return Frame(
-			newOuterFrame, code, callerPc, codeName, "$debugName (inlined)")
+		return Frame(newOuterFrame, code, callerPc, codeName)
+	}
+
+	override fun compareTo(other: Frame): Int
+	{
+		// Get the hierarchy of frames in call order (outermost first).
+		val order = iterableWith(Frame::outerFrame).reversed().iterator()
+		val otherOrder =
+			other.iterableWith(Frame::outerFrame).reversed().iterator()
+		while (order.hasNext() && otherOrder.hasNext())
+		{
+			val comp = order.next().localCompareTo(otherOrder.next())
+			if (comp != 0) return comp
+		}
+		// Prefixes are ordered first.
+		if (order.hasNext()) return 1
+		else if (otherOrder.hasNext()) return -1
+		else return 0
+	}
+
+	/**
+	 * Order two [Frame]s without considering ancestry.  Order them by
+	 * [callerPc], which is the order in which the two calls happen in the
+	 * (presumably same) outer frame.
+	 */
+	private fun localCompareTo(other: Frame): Int = when
+	{
+		this == other -> 0
+		else -> callerPc.compareTo(other.callerPc)
 	}
 }

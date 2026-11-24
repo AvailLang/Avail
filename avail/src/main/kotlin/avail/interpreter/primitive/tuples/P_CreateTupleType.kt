@@ -43,25 +43,26 @@ import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive3
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated3
 
 /**
  * **Primitive:** Construct a [tuple&#32;type][TupleTypeDescriptor] with the
  * given parameters. Canonize the data if necessary.
  */
 @Suppress("unused")
-object P_CreateTupleType : Primitive3(CannotFail, CanInline), Foldable
+object P_CreateTupleType : PrimitiveIsolated3(CannotFail, CanInline), Foldable
 {
-	override fun attempt3(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		typeTuple: AvailObject,
 		defaultType: AvailObject,
 		sizeRange: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return tupleTypeForSizesTypesDefaultType(
 			sizeRange, typeTuple, defaultType)
 	}

@@ -46,10 +46,10 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableSetException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Create a [variable][A_Variable] with the given inner
@@ -57,13 +57,15 @@ import avail.interpreter.primitive.Primitive2
  * variable.
  */
 @Suppress("unused")
-object P_CreateInitializedVariable : Primitive2(CanInline, HasSideEffect)
+object P_CreateInitializedVariable
+	: PrimitiveIsolated2(CanInline, HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		innerType: AvailObject,
 		initialValue: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		val variable = newVariableWithContentType(innerType)
 		try {
 			variable.setValue(initialValue)
@@ -73,7 +75,7 @@ object P_CreateInitializedVariable : Primitive2(CanInline, HasSideEffect)
 		{
 			// The variable is new, so this is the only possible way to fail.
 			assert(e.errorCode == E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
-			return fail(e.errorCode)
+			return context.fail(e.errorCode)
 		}
 	}
 

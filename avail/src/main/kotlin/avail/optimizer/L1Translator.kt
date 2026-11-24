@@ -136,8 +136,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwo.operation.L2_ADD_UNDER_FROZEN_FRAME
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
+import avail.interpreter.levelTwo.operation.L2_CREATE_L1_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
@@ -794,6 +796,47 @@ class L1Translator private constructor(
 		{
 			addUnreachableCode()
 		}
+	}
+
+	/**
+	 * Generate the content of the freeze block of a call site whose callee
+	 * has been inlined.  Each freeze subgraph of the embedded callee ends by
+	 * jumping here.  Build this frame, stopped at the call, as an L1
+	 * continuation, exactly as [reify] would describe it to L1, slide it
+	 * beneath the frames built so far, then
+	 * [exit][L2GeneratorInterface.exitFreeze] the freeze, which builds the
+	 * frames of any calls inlined around this one in turn
+	 * (doc/Optimization/Level_Two/Variable_elision.md §Freezing).
+	 *
+	 * Reading the frame's slots forces the postponed creations of the
+	 * variables they hold, so those creations happen here, and only when
+	 * the frame is built.
+	 *
+	 * @param expectedType
+	 *   The type that the call site expects the callee to answer, which the
+	 *   frame holds at its stack pointer, so that L1 checks the value
+	 *   returned into it.
+	 */
+	fun generateFreezeOfCaller(expectedType: A_Type)
+	{
+		val slots = (1 .. numSlots).map { i ->
+			when (i)
+			{
+				stackp -> boxedConstant(expectedType)
+				else -> readBoxed(semanticSlot(i))
+			}
+		}
+		val frameWrite = boxedWriteTemp(
+			"frame of ${code.methodName.asNativeString()}",
+			restrictionForType(Types.CONTINUATION()))
+		+L2_CREATE_L1_CONTINUATION(
+			currentFunction,
+			L2IntImmediateOperand(pc),
+			L2IntImmediateOperand(stackp),
+			L2ReadBoxedVectorOperand(slots),
+			frameWrite)
+		+L2_ADD_UNDER_FROZEN_FRAME(readBoxed(frameWrite))
+		exitFreeze()
 	}
 
 	/**
@@ -2744,7 +2787,7 @@ class L1Translator private constructor(
 			val generator = L2Generator(
 				codeName.replace('\n', ' '),
 				optimizationLevel,
-				Frame(null, code, -1, codeName, "top frame"),
+				Frame(null, code, -1, codeName),
 				GenerationMode.BySemanticValue)
 			val translator = L1Translator(generator, interpreter, code)
 			// Catch exceptions here before rethrowing them, so that a

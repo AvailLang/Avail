@@ -39,11 +39,11 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive0
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated0
 import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -55,11 +55,11 @@ import java.nio.file.Path
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CurrentWorkingDirectory : Primitive0(CannotFail, CanInline), Foldable
+object P_CurrentWorkingDirectory
+	: PrimitiveIsolated0(CannotFail, CanInline), Foldable
 {
-	override fun attempt0(
-		interpreter: Interpreter
-	): A_BasicObject? = interpreter.run {
+	override fun attemptIsolated(context: PrimitiveContext): A_BasicObject?
+	{
 		return currentWorkingDirectory
 	}
 

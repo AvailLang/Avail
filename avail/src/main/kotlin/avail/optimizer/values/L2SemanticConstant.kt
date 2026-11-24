@@ -61,6 +61,11 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticValue = this
 
+	override fun makeShared()
+	{
+		value.makeShared()
+	}
+
 	override val primaryVisualSortKey get() = when
 	{
 		value.isNil -> PrimaryVisualSortKey.CONSTANT_NIL

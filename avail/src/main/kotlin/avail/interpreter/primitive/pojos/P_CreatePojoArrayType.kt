@@ -44,11 +44,11 @@ import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoArrayType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
 * **Primitive:** Create a [pojo&#32;array&#32;type][PojoTypeDescriptor] for the
@@ -56,13 +56,15 @@ import avail.interpreter.primitive.Primitive2
  * sizes.
  */
 @Suppress("unused")
-object P_CreatePojoArrayType : Primitive2(CannotFail, CanInline), Foldable
+object P_CreatePojoArrayType
+	: PrimitiveIsolated2(CannotFail, CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		type: AvailObject,
 		sizes: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return pojoArrayType(type, sizes)
 	}
 

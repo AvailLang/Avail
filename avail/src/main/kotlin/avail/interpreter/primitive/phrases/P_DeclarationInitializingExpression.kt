@@ -46,10 +46,10 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_DECLARATION_DOES_NOT_HAVE_INITIALIZER
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
-import avail.interpreter.primitive.Primitive1
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
 /**
  * **Primitive:** If the specified [declaration][DeclarationPhraseDescriptor]
@@ -60,17 +60,19 @@ import avail.interpreter.primitive.Primitive1
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DeclarationInitializingExpression : Primitive1(CanInline), Foldable
+object P_DeclarationInitializingExpression
+	: PrimitiveIsolated1(CanInline), Foldable
 {
-	override fun attempt1(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		decl: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 
 		val initializer = decl.initializationExpression
 		if (initializer.isNil)
 		{
-			return fail(E_DECLARATION_DOES_NOT_HAVE_INITIALIZER)
+			return context.fail(E_DECLARATION_DOES_NOT_HAVE_INITIALIZER)
 		}
 		return initializer
 	}

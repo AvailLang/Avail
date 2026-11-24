@@ -270,8 +270,7 @@ class TypeRestrictionTest
 			null,
 			BASE_FRAME.functionSupplier().code(),
 			-1,
-			"top",
-			"top frame")
+			"top")
 		val boxedA = L2SemanticSlot(frame, 1, 1, "A")
 		val boxedB = L2SemanticSlot(frame, 2, 2, "B")
 		val atomA = createAtom(stringFrom("atomA"), nil).apply {

@@ -56,13 +56,11 @@ import avail.descriptor.representation.A_Type.Companion.instanceCount
 import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.representation.A_Type.Companion.isSubtypeOf
 import avail.descriptor.representation.A_Type.Companion.lowerBound
-import avail.descriptor.representation.A_Type.Companion.lowerInclusive
 import avail.descriptor.representation.A_Type.Companion.objectTypeVariant
 import avail.descriptor.representation.A_Type.Companion.trimType
 import avail.descriptor.representation.A_Type.Companion.typeIntersection
 import avail.descriptor.representation.A_Type.Companion.typeUnion
 import avail.descriptor.representation.A_Type.Companion.upperBound
-import avail.descriptor.representation.A_Type.Companion.upperInclusive
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine6
 import avail.descriptor.representation.NilDescriptor
@@ -2083,13 +2081,7 @@ class TypeRestriction private constructor(
 						valueToString(it, isTag)
 					}
 				}
-				value.isIntegerRangeType -> buildString {
-					append(if (value.lowerInclusive) "[" else "(")
-					append(valueToString(value.lowerBound, isTag))
-					append("..")
-					append(valueToString(value.upperBound, isTag))
-					append(if (value.upperInclusive) "]" else ")")
-				}
+				value.isIntegerRangeType -> value.toString()
 				value.isInt ->
 				{
 					val intValue = value.extractInt

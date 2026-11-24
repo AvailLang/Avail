@@ -42,11 +42,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive4
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated4
 
 /**
  * **Primitive:** Answer the [integer&#32;range][IntegerRangeTypeDescriptor]
@@ -55,15 +55,17 @@ import avail.interpreter.primitive.Primitive4
  * inclusive (`true`) or exclusive (`false`).
  */
 @Suppress("unused")
-object P_CreateIntegerRange : Primitive4(CannotFail, CanInline), Foldable
+object P_CreateIntegerRange
+	: PrimitiveIsolated4(CannotFail, CanInline), Foldable
 {
-	override fun attempt4(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		min: AvailObject,
 		minInc: AvailObject,
 		max: AvailObject,
 		maxInc: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return integerRangeType(
 			min, minInc.extractBoolean, max, maxInc.extractBoolean)
 	}

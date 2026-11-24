@@ -50,9 +50,9 @@ import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import avail.exceptions.AvailException
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Remove the [write&#32;reactor][VariableAccessReactor]
@@ -61,17 +61,18 @@ import avail.interpreter.primitive.Primitive2
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RemoveWriteReactor : Primitive2(HasSideEffect)
+object P_RemoveWriteReactor : PrimitiveIsolated2(HasSideEffect)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		variable: AvailObject,
 		key: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
 		{
-			return fail(E_SPECIAL_ATOM)
+			return context.fail(E_SPECIAL_ATOM)
 		}
 		return try
 		{
@@ -80,7 +81,7 @@ object P_RemoveWriteReactor : Primitive2(HasSideEffect)
 		}
 		catch (e: AvailException)
 		{
-			fail(e.errorCode)
+			context.fail(e.errorCode)
 		}
 	}
 

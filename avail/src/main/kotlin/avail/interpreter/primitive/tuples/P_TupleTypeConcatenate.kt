@@ -40,11 +40,11 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import avail.descriptor.types.TypeDescriptor
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** Answer the [type][TypeDescriptor] that is the type of all
@@ -53,13 +53,15 @@ import avail.interpreter.primitive.Primitive2
  * restriction of the two-argument concatenation operation.
  */
 @Suppress("unused")
-object P_TupleTypeConcatenate : Primitive2(CannotFail, CanInline), Foldable
+object P_TupleTypeConcatenate
+	: PrimitiveIsolated2(CannotFail, CanInline), Foldable
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		tupleType1: AvailObject,
 		tupleType2: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		return concatenatingAnd(tupleType1, tupleType2)
 	}
 

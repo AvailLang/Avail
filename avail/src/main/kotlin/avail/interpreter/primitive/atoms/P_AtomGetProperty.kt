@@ -45,10 +45,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
-import avail.interpreter.primitive.Primitive2
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated2
 
 /**
  * **Primitive:** If the first [atom][AtomDescriptor] has a property whose key
@@ -56,22 +56,23 @@ import avail.interpreter.primitive.Primitive2
  * fail.
  */
 @Suppress("unused")
-object P_AtomGetProperty : Primitive2(
+object P_AtomGetProperty : PrimitiveIsolated2(
 	CanInline, ReadsFromHiddenGlobalState)
 {
-	override fun attempt2(
-		interpreter: Interpreter,
+	override fun attemptIsolated(
+		context: PrimitiveContext,
 		atom: AvailObject,
 		propertyKey: AvailObject
-	): A_BasicObject? = interpreter.run {
+	): A_BasicObject?
+	{
 		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
-			return fail(E_SPECIAL_ATOM)
+			return context.fail(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		return if (propertyValue.isNil)
 		{
-			fail(E_NO_SUCH_FIELD)
+			context.fail(E_NO_SUCH_FIELD)
 		}
 		else propertyValue
 	}

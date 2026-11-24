@@ -87,7 +87,7 @@ object P_FileCopy : PrimitiveN(5, CanSuspend, HasSideEffect)
 		interpreter: Interpreter,
 		args: Array<AvailObject>
 	): A_BasicObject? = interpreter.run {
-		checkArgumentCount(5)
+		assert(args.size == 5)
 		val source = args[0]
 		val destination = args[1]
 		val followSymlinks = args[2]
