@@ -31,14 +31,18 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.decrementCountdownToReoptimize
 import avail.descriptor.representation.A_Atom.Companion.atomName
 import avail.descriptor.representation.A_Bundle
 import avail.descriptor.representation.A_Bundle.Companion.bundleMethod
 import avail.descriptor.representation.A_Bundle.Companion.message
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_Method.Companion.lookupByValuesFromList
+import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.encounteredFallbackLookup
 import avail.descriptor.representation.A_RawFunction.Companion.lookupStat
+import avail.descriptor.representation.A_RawFunction.Companion.reoptimizationCountdown
+import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
 import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
 import avail.descriptor.representation.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.representation.A_Type
@@ -58,6 +62,8 @@ import avail.exceptions.AvailErrorCode.E_NO_METHOD
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
+import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.On
@@ -72,8 +78,11 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.optimizer.reoptimizer.L2Inliner
+import avail.utility.cast
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
+import java.lang.ref.WeakReference
 import java.util.logging.Level
 
 /**
@@ -95,6 +104,22 @@ import java.util.logging.Level
  *   This is set to false when the complexity of the call indicates the dispatch
  *   should not be inlined, and any attempt to track it would be wasted effort,
  *   since it would be reoptimized into the same code.
+ * @property inlinedChunksPath
+ *   The chunks whose code was embedded, one inside the next, to bring this
+ *   lookup into the chunk containing it, innermost first.  It is empty when
+ *   the lookup was generated for the containing chunk's own code.  When
+ *   [L2Inliner] embeds a callee's chunk, each lookup it copies from that
+ *   chunk's graph gets this path with the callee's chunk appended.  A
+ *   tracked lookup that falls back charges the running chunk's code, as
+ *   always, but also each chunk on this path, since that chunk's graph is
+ *   where the dispatch that missed came from.  Those chunks may never run
+ *   themselves, being embedded wherever they are called, so their code is
+ *   reoptimized right here if this lookup's charge brings its countdown to
+ *   zero.  Reoptimizing the innermost first lets each outer chunk embed the
+ *   new graph of the chunk inside it.  The chunks are weakly held, and one
+ *   that is no longer valid, or no longer its code's
+ *   [startingChunk][A_RawFunction.startingChunk], is skipped, since its code
+ *   has already been translated again.
  * @property lookedUpFunction
  *   Where to write the looked up function if successful.
  * @property ifLookupSucceeded
@@ -110,6 +135,8 @@ constructor(
 	var messageBundle: L2ConstantOperand,
 	var arguments: L2ReadBoxedVectorOperand,
 	var trackForReoptimzation: L2ArbitraryConstantOperand<Boolean>,
+	var inlinedChunksPath:
+		L2ArbitraryConstantOperand<Array<WeakReference<L2Chunk>>>,
 	@On(SUCCESS) var lookedUpFunction: L2WriteBoxedOperand,
 	@On(SUCCESS) var ifLookupSucceeded: L2PcOperand,
 	@On(FAILURE) var ifLookupFailed: L2PcOperand
@@ -173,6 +200,27 @@ constructor(
 	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
 		get() = emptyList()
 
+	/**
+	 * Answer a copy of this instruction, standing in for it as a source
+	 * instruction (see [sourceCopyWithOperands]), whose [inlinedChunksPath]
+	 * has the given chunk appended.  [L2Inliner] embeds this in place of the
+	 * instruction it copies from the given chunk's graph.
+	 *
+	 * @param chunk
+	 *   The [L2JVMChunk] whose graph this instruction is in, and which is
+	 *   being embedded.
+	 * @return
+	 *   The new, unemitted [L2_LOOKUP_BY_VALUES].
+	 */
+	fun sourceCopyInlinedFrom(chunk: L2JVMChunk): L2_LOOKUP_BY_VALUES
+	{
+		val copy: L2_LOOKUP_BY_VALUES = sourceCopyWithOperands { it }.cast()
+		copy.inlinedChunksPath = L2ArbitraryConstantOperand(
+			inlinedChunksPath.constant + chunk.weakReference)
+		copy.inlinedChunksPath.setInstruction(copy)
+		return copy
+	}
+
 	override fun JVMTranslator.translateToJVM()
 	{
 		loadInterpreter()
@@ -183,6 +231,8 @@ constructor(
 		// :: interpreter, bundle, argsArray
 		if (trackForReoptimzation.constant)
 		{
+			loadLiteralObject(inlinedChunksPath.constant)
+			// :: interpreter, bundle, argsArray, inlinedChunksPath
 			generateCall(lookupWithTrackingMethod)
 		}
 		else
@@ -265,7 +315,11 @@ constructor(
 		/**
 		 * Perform the lookup.  Answer the looked-up function if found and
 		 * unique, otherwise `null`.  This is invoked by fallback dispatch logic
-		 * in L2 chunks.
+		 * in L2 chunks, when the dispatch would be worth regenerating to cover
+		 * the values that missed it.  A successful lookup is charged to the
+		 * running chunk's code, and to the code of each chunk on the
+		 * [inlinedChunksPath], innermost first, reoptimizing the code of any
+		 * of those for which the charge brings its countdown to zero.
 		 *
 		 * @param interpreter
 		 *   The [Interpreter].
@@ -273,6 +327,10 @@ constructor(
 		 *   The [A_Bundle].
 		 * @param values
 		 *   The [values][AvailObject] for the lookup.
+		 * @param inlinedChunksPath
+		 *   The weakly held chunks whose code was embedded to bring this
+		 *   lookup into the running chunk, innermost first (see
+		 *   [L2_LOOKUP_BY_VALUES.inlinedChunksPath]).
 		 * @return
 		 *   The unique [function][A_Function], or `null`.
 		 */
@@ -281,7 +339,8 @@ constructor(
 		fun lookupWithTracking(
 			interpreter: Interpreter,
 			bundle: A_Bundle,
-			values: Array<AvailObject>
+			values: Array<AvailObject>,
+			inlinedChunksPath: Array<WeakReference<L2Chunk>>
 		): A_Function?
 		{
 			if (Interpreter.debugL2)
@@ -298,6 +357,18 @@ constructor(
 				interpreter.function?.code()?.lookupStat)
 			if (!definitionToCall.isMethodDefinition()) return null
 			interpreter.chunk!!.code!!.encounteredFallbackLookup()
+			for (reference in inlinedChunksPath)
+			{
+				val chunk = reference.get() as L2JVMChunk? ?: continue
+				val code = chunk.code!!
+				if (!chunk.isValid || code.startingChunk !== chunk) continue
+				code.encounteredFallbackLookup()
+				if (decrementCountdownToReoptimize(
+						code.reoptimizationCountdown))
+				{
+					chunk.optimizationLevel.optimize(code, interpreter)
+				}
+			}
 			return definitionToCall.bodyBlock()
 		}
 
@@ -317,6 +388,7 @@ constructor(
 			::lookupWithTracking,
 			Interpreter::class.java,
 			A_Bundle::class.java,
-			Array<AvailObject>::class.java)
+			Array<AvailObject>::class.java,
+			emptyArray<WeakReference<L2Chunk>>().javaClass)
 	}
 }

@@ -295,8 +295,9 @@ same variable objects.  Once it is shared, other fibers can reach it, and
 through it the locals, which exposes them to concurrent modification.  Either
 way the locals have escaped, so they are created, and the continuation
 resumes in the L1 interpreter, whose execution only uses real variables.  An
-invalidated chunk cannot be resumed at all, so its frame likewise resumes in
-L1, with real variables.  A frozen continuation whose enclosing frames were
+invalidated chunk cannot be resumed in L2 at all, though its freeze method
+still runs, so its frame likewise resumes in L1, with real variables.  A
+frozen continuation whose enclosing frames were
 built cannot resume in L2 either: its chunk would go on to run the code of
 those frames itself, and the frozen frame would then return into the frames
 that were built, running that code a second time.
@@ -399,6 +400,18 @@ instruction that cannot run in a freeze is emitted before it, where there is
 an interpreter.  An isolated primitive runs in the freeze method with
 `FreezePrimitiveContext` as its context.  Its invocation was infallible where
 it was translated, so a failure there is a broken invariant of the optimizer.
+
+The freeze method of an invalidated chunk still runs, since returning into
+a continuation of that chunk freezes it before it resumes in L1.  The
+chunk's freeze subgraphs may come from callees it embedded under method
+definitions that have since been removed, and that is still correct.  A
+freeze subgraph makes no calls and performs no lookups, so it never
+consults the methods as they are now.  It only completes state that the
+continuation already owes: the variables of locals that were elided, and
+the frames of calls embedded around it.  Those calls really happened, under
+the definitions in force when they were made, so building their frames
+from the code that was running them is exactly what reification would have
+produced at that time.
 
 The dump holds what the freeze subgraph needs.  When JVM translation finds a
 `CreateContinuation` with a freeze edge, it finds the `SaveAll` whose dump that

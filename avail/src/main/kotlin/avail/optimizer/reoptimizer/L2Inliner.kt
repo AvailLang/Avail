@@ -87,6 +87,7 @@ import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_ALREADY_REIFIED
+import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_REIFY_IF_INTERRUPT
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
@@ -186,8 +187,8 @@ import java.util.IdentityHashMap
  * A callee that runs a loop, creates a label, restarts, or catches exceptions
  * is not embedded (see [inlinableChunkFor]).
  *
- * @property calleeGraph
- *   The callee's [L2JVMChunk.inlinableGraph].
+ * @property calleeChunk
+ *   The callee's [L2JVMChunk], whose [L2JVMChunk.inlinableGraph] is embedded.
  * @property inlinedFrame
  *   The [Frame] that the callee's values belong to once embedded.
  * @property function
@@ -204,13 +205,17 @@ import java.util.IdentityHashMap
  */
 class L2Inliner private constructor(
 	targetGenerator: L2Generator,
-	private val calleeGraph: L2ControlFlowGraph,
+	private val calleeChunk: L2JVMChunk,
 	private val inlinedFrame: Frame,
 	private val function: L2ReadBoxedOperand,
 	private val arguments: List<L2ReadBoxedOperand>,
 	private val callSiteHelper: CallSiteHelper
 ) : L2Regenerator(targetGenerator, BySemanticValue)
 {
+	/** The callee's [L2JVMChunk.inlinableGraph], which is embedded. */
+	private val calleeGraph: L2ControlFlowGraph =
+		calleeChunk.inlinableGraph!!
+
 	/**
 	 * The junction of the [callSiteHelper] where the caller's frame is
 	 * reified for this call, as it would be if a real call of the callee
@@ -524,6 +529,10 @@ class L2Inliner private constructor(
 				generateReificationEntry(reificationEntry)
 			}
 			is L2_EXIT_FREEZE -> exitFreeze()
+			// A lookup that falls back is charged to the callee's chunk as
+			// well, since its graph is where the dispatch came from.
+			is L2_LOOKUP_BY_VALUES ->
+				embed(sourceInstruction.sourceCopyInlinedFrom(calleeChunk))
 			// A report with a reification edge is in a callee's own embedded
 			// callee, and already reifies the callee's frame, from which a
 			// freeze builds the rest.  It is embedded as it is.
@@ -824,7 +833,7 @@ class L2Inliner private constructor(
 			}
 			L2Inliner(
 				generator,
-				chunk.inlinableGraph!!,
+				chunk,
 				inlinedFrame,
 				function,
 				arguments,

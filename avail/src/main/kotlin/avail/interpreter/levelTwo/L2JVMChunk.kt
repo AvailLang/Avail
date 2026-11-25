@@ -42,7 +42,10 @@ import avail.descriptor.representation.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.module
 import avail.descriptor.representation.A_Set
+import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
+import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
 import avail.optimizer.L2ControlFlowGraph
+import avail.optimizer.OptimizationLevel
 import avail.optimizer.OptimizationPhase
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
@@ -86,6 +89,12 @@ import avail.optimizer.reoptimizer.L2Inliner
  *   [OptimizationPhase.CAPTURE_INLINABLE_GRAPH], in SSA form and keyed by
  *   semantic value, for [L2Inliner] to embed at a call site in another chunk,
  *   or `null` if none was captured.
+ * @property optimizationLevel
+ *   The [OptimizationLevel] at which this chunk was translated, which says
+ *   how to [reoptimize][OptimizationLevel.optimize] its code.  The chunk's
+ *   own [L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO] carries the same level,
+ *   but a chunk whose code has been embedded elsewhere may need reoptimizing
+ *   without being run (see [L2_LOOKUP_BY_VALUES.inlinedChunksPath]).
  * @property contingentValues
  *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
  *   depends. If one of these changes significantly, this chunk must be
@@ -107,6 +116,8 @@ import avail.optimizer.reoptimizer.L2Inliner
  *   The optimized, non-SSA [L2ControlFlowGraph].  Useful for debugging.
  * @param inlinableGraph
  *   The SSA [L2ControlFlowGraph] for [L2Inliner] to embed, or `null`.
+ * @param optimizationLevel
+ *   The [OptimizationLevel] at which this chunk was translated.
  * @param contingentValues
  *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
  *   depends. If one of these changes significantly, this chunk must be
@@ -116,11 +127,12 @@ import avail.optimizer.reoptimizer.L2Inliner
  */
 class L2JVMChunk private
 constructor(
-	code: A_RawFunction?,
+	code: A_RawFunction,
 	offsetAfterInitialTryPrimitive: Int,
 	override val instructions: List<L2Instruction>,
 	val controlFlowGraph: L2ControlFlowGraph,
 	val inlinableGraph: L2ControlFlowGraph?,
+	val optimizationLevel: OptimizationLevel,
 	contingentValues: A_Set,
 	override val executableChunk: JVMChunk
 ) : L2Chunk(code, offsetAfterInitialTryPrimitive, contingentValues)
@@ -141,7 +153,7 @@ constructor(
 	override fun dumpChunk(): String
 	{
 		val translator = JVMTranslator(
-			code, name, null, controlFlowGraph, instructions, false)
+			code!!, name, null, controlFlowGraph, instructions, false)
 		val savedDebugFlag = JVMTranslator.debugJVM
 		JVMTranslator.debugJVM = true
 		try
@@ -164,7 +176,7 @@ constructor(
 		 *
 		 * @param code
 		 *   The [code][CompiledCodeDescriptor] for which to use the new level
-		 *   two chunk, or null for the initial unoptimized chunk.
+		 *   two chunk.
 		 * @param offsetAfterInitialTryPrimitive
 		 *   The offset into my [instructions] at which to begin if this chunk's
 		 *   code was primitive and that primitive has already been attempted
@@ -178,6 +190,8 @@ constructor(
 		 *   The SSA [L2ControlFlowGraph] for [L2Inliner] to embed at call
 		 *   sites in other chunks, or `null` if this chunk's code should not be
 		 *   inlined.
+		 * @param optimizationLevel
+		 *   The [OptimizationLevel] at which the chunk was translated.
 		 * @param trackBranches
 		 *   Whether to emit bytecodes that track directions taken by branches.
 		 * @param contingentValues
@@ -187,35 +201,34 @@ constructor(
 		 *   The new level two chunk.
 		 */
 		fun allocate(
-			code: A_RawFunction?,
+			code: A_RawFunction,
 			offsetAfterInitialTryPrimitive: Int,
 			theInstructions: List<L2Instruction>,
 			controlFlowGraph: L2ControlFlowGraph,
 			inlinableGraph: L2ControlFlowGraph?,
+			optimizationLevel: OptimizationLevel,
 			trackBranches: Boolean,
 			contingentValues: A_Set
 		): L2JVMChunk
 		{
 			assert(offsetAfterInitialTryPrimitive >= 0)
 			var sourceFileName: String? = null
-			code?.let {
-				val module = it.module
-				if (module.notNil)
+			val module = code.module
+			if (module.notNil)
+			{
+				try
 				{
-					try
-					{
-						val resolved =
-							AvailRuntime.currentRuntime().moduleNameResolver
-								.resolve(
-									ModuleName(module.moduleNameNative),
-									null)
-						sourceFileName =
-							resolved.resolverReference.uri.toString()
-					}
-					catch (e: UnresolvedDependencyException)
-					{
-						// Maybe the file was deleted.  Play nice.
-					}
+					val resolved =
+						AvailRuntime.currentRuntime().moduleNameResolver
+							.resolve(
+								ModuleName(module.moduleNameNative),
+								null)
+					sourceFileName =
+						resolved.resolverReference.uri.toString()
+				}
+				catch (e: UnresolvedDependencyException)
+				{
+					// Maybe the file was deleted.  Play nice.
 				}
 			}
 			val jvmTranslator = JVMTranslator(
@@ -232,13 +245,14 @@ constructor(
 				theInstructions,
 				controlFlowGraph,
 				inlinableGraph,
+				optimizationLevel,
 				contingentValues,
 				jvmTranslator.jvmChunk())
 			for (value in contingentValues)
 			{
 				value.addDependentChunk(chunk)
 			}
-			code?.let { Generation.addNewChunk(chunk) }
+			Generation.addNewChunk(chunk)
 			return chunk
 		}
 	}

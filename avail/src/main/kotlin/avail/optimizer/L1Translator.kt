@@ -1789,6 +1789,7 @@ class L1Translator private constructor(
 				L2ConstantOperand(bundle),
 				L2ReadBoxedVectorOperand(argumentReads),
 				L2ArbitraryConstantOperand(!callSiteHelper.tooComplexToInline),
+				L2ArbitraryConstantOperand(emptyArray()),
 				functionWrite,
 				edgeTo(lookupSucceeded),
 				edgeTo(lookupFailed))

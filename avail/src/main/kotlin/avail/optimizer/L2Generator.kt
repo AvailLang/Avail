@@ -1606,6 +1606,7 @@ constructor(
 			instructions,
 			controlFlowGraph,
 			inlinableGraph,
+			optimizationLevel,
 			optimizationLevel.countdown < Long.MAX_VALUE,
 			contingentValues)
 		code.setStartingChunkAndReoptimizationCountdown(

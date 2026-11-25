@@ -1583,19 +1583,31 @@ class L2ValueManifest
 				orphanedClasses.add(oldClass)
 			}
 			classOf[semanticValue] = valueClass
-			// If the value is computed from others, index it under each of
-			// them. This is called for every member as it is bound, which is
-			// the one place every class membership passes through, so the index
-			// cannot drift out of step with the memberships it describes.
-			semanticValue.recordUsesIn(this, valueClass)
 		}
-		// After rebinding, check if any of the old classes have become orphaned
+		// After rebinding, check if any of the old classes have become
+		// orphaned.  The invocations recorded as reading an orphaned class
+		// read its values, which are now in the new class, so they become the
+		// new class's users.
 		orphanedClasses.forEach { oldClass ->
 			if (oldClass !in classOf.values)
 			{
 				// This class is no longer referenced by any semantic value
+				val oldUsers = states[oldClass]?.usingClasses.orEmpty()
+				states[valueClass]?.let { state ->
+					states[valueClass] = state.copy(
+						usingClasses = state.usingClasses + oldUsers)
+				}
 				forwardClass(valueClass, oldClass)
 			}
+		}
+		// If a value is computed from others, index it under each of them.
+		// This is done for every member as it is bound, which is the one place
+		// every class membership passes through, so the index cannot drift out
+		// of step with the memberships it describes.  It is done only once
+		// every member is bound, so that an argument bound in the same batch is
+		// found in its new class, not one it is leaving.
+		semanticValues.forEach { semanticValue ->
+			semanticValue.recordUsesIn(this, valueClass)
 		}
 	}
 
@@ -1836,8 +1848,50 @@ class L2ValueManifest
 		semanticValues
 			.filterIsInstance<L2SemanticPrimitiveInvocation>()
 			.forEach { invocation ->
-				invocation.argumentSemanticValues.firstOrNull()?.let {
-					mergeCongruentUsers(stateOrNull(it)!!.usingClasses)
+				val argumentClasses =
+					invocation.argumentSemanticValues.map(::classFor)
+				// Congruence is already closed, so at most one other class
+				// holds an invocation congruent with this one.
+				congruentClassesOf(invocation, argumentClasses)
+					.firstOrNull { it != classFor(invocation) }
+					?.let { mergeValueClasses(it, classFor(invocation)) }
+			}
+	}
+
+	/**
+	 * Answer the [ValueClass]es holding an invocation of the given
+	 * invocation's primitive whose arguments are in the given classes, which
+	 * may include the invocation's own class if it is bound.  Each such
+	 * invocation reads every one of the classes, so it is among the users of
+	 * each (see [ValueState.usingClasses]); only those of the class with the
+	 * fewest users are examined.
+	 *
+	 * @param invocation
+	 *   The [L2SemanticPrimitiveInvocation] whose congruent invocations to
+	 *   find.
+	 * @param argumentClasses
+	 *   The live [ValueClass]es of its arguments, in order.
+	 * @return
+	 *   The live classes holding a congruent invocation, without duplicates.
+	 */
+	private fun congruentClassesOf(
+		invocation: L2SemanticPrimitiveInvocation,
+		argumentClasses: List<ValueClass>
+	): List<ValueClass>
+	{
+		val fewestUsers = argumentClasses
+			.map { states[it]!!.usingClasses }
+			.minByOrNull { it.size }
+			?: return emptyList()
+		return fewestUsers
+			.map(::resolve)
+			.distinct()
+			.filter { usingClass ->
+				states[usingClass]?.members.orEmpty().any { member ->
+					member is L2SemanticPrimitiveInvocation
+						&& member.primitive === invocation.primitive
+						&& member.argumentSemanticValues
+							.map(::classOrNull) == argumentClasses
 				}
 			}
 	}
@@ -2086,12 +2140,90 @@ class L2ValueManifest
 			// majority of cases.
 			return semanticValue
 		}
-		// Try a slower, far less frequent search.
+		indexedEquivalentsOf(semanticValue)?.let { return it.firstOrNull() }
+		// Without the index, examine every value.
 		val onlyClass = classRestrictingSearchFor(semanticValue)
 		return classOf.keys.firstOrNull { other ->
 			(onlyClass === null || other.javaClass === onlyClass)
 				&& isEquivalentSemanticValue(semanticValue, other)
 		}.cast()
+	}
+
+	/**
+	 * Answer the [L2SemanticValue]s of this manifest that are equivalent to the
+	 * given one (see [isEquivalentSemanticValue]), found through the value
+	 * classes rather than by examining every value, or `null` if this manifest
+	 * does not keep what that takes, and every value must be examined
+	 * (doc/Optimization/Level_Two/Value_manifest.md §Equivalence search).
+	 *
+	 * While semantic values are tracked, the manifest keeps three facts that
+	 * make the classes enough:
+	 *  * a value known to be a constant shares a class with that constant's
+	 *    [L2SemanticConstant],
+	 *  * congruent invocations share a class (see [mergeCongruentUsers]), and
+	 *  * every bound invocation's arguments are bound too, and each argument's
+	 *    class records the classes of the invocations that read it, as its
+	 *    [ValueState.usingClasses].
+	 *
+	 * So a value present here is equivalent to exactly the members of its
+	 * class.  An absent invocation is equivalent to the invocations of its
+	 * primitive whose arguments are in the classes of its own arguments'
+	 * equivalents, so if some argument has no equivalent here, neither does
+	 * the invocation.  Any other absent value is equivalent to nothing here.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] whose equivalents to find.
+	 * @return
+	 *   The equivalent values, or `null` if they cannot be found this way.
+	 */
+	private fun indexedEquivalentsOf(
+		semanticValue: L2SemanticValue
+	): List<L2SemanticValue>?
+	{
+		if (!caresAboutSemanticValues) return null
+		val equivalents = when (val ownClass = classOrNull(semanticValue))
+		{
+			null -> when (semanticValue)
+			{
+				is L2SemanticPrimitiveInvocation ->
+				{
+					val argumentClasses = semanticValue.argumentSemanticValues
+						.map { argument ->
+							classOrNull(argument)
+								?: indexedEquivalentsOf(argument)!!
+									.firstOrNull()
+									?.let(::classFor)
+								?: return emptyList()
+						}
+					congruentClassesOf(semanticValue, argumentClasses)
+						.flatMap { congruentClass ->
+							states[congruentClass]!!.members.filter {
+								it is L2SemanticPrimitiveInvocation
+									&& it.primitive === semanticValue.primitive
+									&& it.argumentSemanticValues
+										.map(::classOrNull) == argumentClasses
+							}
+						}
+				}
+				else -> emptyList()
+			}
+			else -> states[ownClass]!!.members.toList()
+		}
+		if (deepManifestDebugCheck)
+		{
+			// The scan's pairwise test can miss an invocation whose argument
+			// is a synonym of an equivalent invocation rather than one itself,
+			// which the classes find, so the index may find more.  It must
+			// never find less.
+			val scanned = classOf.keys.filter {
+				isEquivalentSemanticValue(semanticValue, it)
+			}
+			check(equivalents.containsAll(scanned)) {
+				"indexed equivalents of $semanticValue were $equivalents, " +
+					"but a scan found $scanned"
+			}
+		}
+		return equivalents
 	}
 
 	/**
@@ -2162,7 +2294,10 @@ class L2ValueManifest
 	): L2SemanticValue?
 	{
 		if (hasLiveSemanticValue(semanticValue, kind)) return semanticValue
-		// Try a slower, far less frequent search.  Note that the probe may be
+		indexedEquivalentsOf(semanticValue)?.let { equivalents ->
+			return equivalents.firstOrNull { hasLiveSemanticValue(it, kind) }
+		}
+		// Without the index, examine every value.  Note that the probe may be
 		// present in the manifest but not live, in which case the search
 		// cannot be narrowed by class, since the shared-synonym test can then
 		// match a candidate of some other class.

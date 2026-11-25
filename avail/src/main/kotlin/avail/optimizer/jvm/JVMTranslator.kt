@@ -221,8 +221,7 @@ import kotlin.io.path.writeText
  * [L2Instruction]s to a [JVMChunk].
  *
  * @param code
- *   The source [L1&#32;code][A_RawFunction], or `null` for the
- *   [unoptimized&#32;chunk][DefaultL1Chunk].
+ *   The source [L1&#32;code][A_RawFunction].
  * @param chunkName
  *   The descriptive (non-unique) name of the chunk being translated.
  * @param sourceFileName
@@ -238,7 +237,7 @@ import kotlin.io.path.writeText
 	"UNUSED_PARAMETER",
 	"MemberVisibilityCanBePrivate")
 class JVMTranslator constructor(
-	val code: A_RawFunction?,
+	val code: A_RawFunction,
 	private val chunkName: String,
 	private val sourceFileName: String?,
 	private val controlFlowGraph: L2ControlFlowGraph,
@@ -991,6 +990,8 @@ class JVMTranslator constructor(
 			{
 				value is Primitive -> value.name
 				value is LongAdder -> "COUNTER"
+				value.javaClass.isArray ->
+					"ARRAY_${value.javaClass.componentType.simpleName}"
 				value !is AvailObject -> value.javaClass.simpleName
 				value.isInstanceOf(stringType) && value.tupleSize > 0 ->
 					"STRING_${tidy(value.asNativeString())}"

@@ -321,6 +321,13 @@ arguments, and each group with more than one class is merged.  That merge
 may in turn make *its* users congruent, so the same step follows each merge
 of users, as for any other merge.
 
+An invocation bound after its arguments are already synonyms, such as one
+replayed from an embedded callee's post-phi data, is checked as it is bound.
+Since congruence is already closed, at most one other class holds an
+invocation congruent with it, and that class is merged with the
+invocation's.  It is found among the users of whichever argument class has
+the fewest (see [Equivalence search](#equivalence-search)).
+
 Congruence holds in this direction only.  Primitives are not injective: two
 values can have the same tag without being the same value.  Merging two
 invocations never merges their arguments.
@@ -532,10 +539,38 @@ semantic value in the manifest that is equivalent to a probe: the probe
 itself, a member of its class, a value whose restriction is the constant
 that the probe names, or an invocation of the same primitive whose arguments
 are recursively equivalent (`isEquivalentSemanticValue`).  When the probe is
-in the manifest, or live in the requested kind, the answer is
-immediate.  Otherwise the manifest's semantic values are scanned.
+in the manifest, or live in the requested kind, the answer is immediate.
 
-The scan considers only candidates of the probe's own concrete class, unless
+Otherwise, while the manifest tracks semantic values, the classes answer the
+question without a scan, because three facts hold there:
+
+- A value known to be a constant shares a class with that constant's
+  semantic constant, since a restriction that becomes a constant joins the
+  constant's class.
+- Congruent invocations share a class (see [Congruence](#congruence)).
+- Every bound invocation's arguments are bound too, and each argument's
+  class records, as its users, the classes of the invocations that read it.
+
+So a probe present in the manifest is equivalent to exactly the members of
+its class.  An absent invocation is equivalent to the invocations of its
+primitive whose arguments are in the classes of its own arguments'
+equivalents, found recursively.  If some argument has no equivalent, neither
+does the invocation, and the search ends at once.  Otherwise each candidate
+reads every one of those classes, so it is among the users of each, and
+only the users of the class with the fewest are examined.  Any other absent
+probe is equivalent to nothing in the manifest.  Merging a newly bound
+invocation with a congruent one finds the congruent one the same way.
+
+The classes can find more than the pairwise test would: an invocation whose
+argument is a synonym of an equivalent invocation, rather than such an
+invocation itself, has the same argument class, though the pairwise test
+does not relate them.  When `deepManifestDebugCheck` is set, each such
+search also scans the manifest, and asserts that the classes found every
+value the scan did.
+
+In the register-connected modes, which do not keep these facts, the
+manifest's semantic values are scanned instead.  The scan considers only
+candidates of the probe's own concrete class, unless
 the probe is a semantic constant or is present in the manifest.  That is
 sound because, for an absent probe that is not a constant, every way
 `isEquivalentSemanticValue` can succeed requires the two values to have the
