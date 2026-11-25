@@ -31,19 +31,24 @@
  */
 package avail.optimizer
 
+import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.floatRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
+import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_VARIANT_ID
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -93,6 +98,28 @@ sealed class L2SplitCondition
 
 	/** Answer whether this would hold whenever the argument would hold. */
 	abstract fun impliedBy(otherCondition: L2SplitCondition): Boolean
+
+	/**
+	 * Answer the condition that stands for this one in the key of a split copy
+	 * of a block, for an incoming edge whose manifest is given, and on which
+	 * this condition holds.  Most conditions answer themselves.
+	 *
+	 * A condition that only wishes for something to be known exactly, without
+	 * saying what, holds equally on an edge that knows one thing and on an
+	 * edge that knows another.  If it keyed the copy, both edges would reach
+	 * the same copy, and its merge would lose what each knew.  Such a
+	 * condition answers a condition stating what this edge actually knows, so
+	 * that edges knowing the same thing share a copy, and edges knowing
+	 * different things do not.
+	 *
+	 * @param manifest
+	 *   The [L2ValueManifest] of the incoming edge, for which [holdsFor]
+	 *   answered `true`.
+	 * @return
+	 *   The condition to use in the key.
+	 */
+	open fun specializedFor(manifest: L2ValueManifest): L2SplitCondition =
+		this
 
 	/**
 	 * A condition that holds if some register backs at least one of the given
@@ -172,6 +199,275 @@ sealed class L2SplitCondition
 				otherCondition.requiredRestriction
 					.isStrongerThan(requiredRestriction) &&
 				semanticValues.containsAll(otherCondition.semanticValues)
+	}
+
+	/**
+	 * A condition that holds if one of the given [semanticValues] is known to
+	 * be a constant, whichever constant that is.  Knowing a value exactly lets
+	 * the code that uses it fold, or dispatch on it statically, so it is worth
+	 * keeping apart the paths that know different constants.
+	 *
+	 * At a split point it [specializes][specializedFor] to an
+	 * [L2MeetsRestrictionCondition] for the constant that the incoming edge
+	 * actually knows, so that edges knowing different constants reach
+	 * different copies of the block.
+	 *
+	 * @property semanticValues
+	 *   The [L2SemanticValue]s, any of which may be known to be a constant.
+	 */
+	private class L2KnownConstantCondition
+	constructor (
+		val semanticValues: Set<L2SemanticValue>
+	): L2SplitCondition()
+	{
+		override fun equals(other: Any?): Boolean =
+			other is L2KnownConstantCondition &&
+				other.semanticValues == semanticValues
+
+		override val hash = semanticValues.hashCode() + 0x3C1F70B5
+
+		/**
+		 * Answer the constant that one of the [semanticValues] is known to be
+		 * in the given manifest, or `null` if none is known to be a constant.
+		 *
+		 * @param manifest
+		 *   The [L2ValueManifest] to examine.
+		 * @return
+		 *   The known constant, or `null`.
+		 */
+		private fun constantIn(manifest: L2ValueManifest): AvailObject? =
+			semanticValues.firstNotNullOfOrNull {
+				when
+				{
+					manifest.hasSemanticValue(it) ->
+						manifest.restrictionFor(it).constantOrNull
+					else -> null
+				}
+			}
+
+		override fun holdsFor(manifest: L2ValueManifest): Boolean =
+			constantIn(manifest) !== null
+
+		override fun specializedFor(
+			manifest: L2ValueManifest
+		): L2SplitCondition = L2MeetsRestrictionCondition(
+			semanticValues, restrictionForConstant(constantIn(manifest)!!))
+
+		override fun toString(): String = buildString {
+			append("Known constant: ")
+			appendSemanticValues(semanticValues, false)
+		}.truncateTo(200)
+
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			otherCondition is L2KnownConstantCondition &&
+				semanticValues.containsAll(otherCondition.semanticValues)
+	}
+
+	/**
+	 * A condition that holds if one of the given [semanticValues] is known to
+	 * be an object with a single [ObjectLayoutVariant], or an object type with
+	 * a single variant if [isType] is set, whichever variant that is.  Knowing
+	 * the variant lets a dispatch on it, and on the object's fields, be
+	 * decided statically.
+	 *
+	 * At a split point it [specializes][specializedFor] to an
+	 * [L2MeetsRestrictionCondition] for the variant that the incoming edge
+	 * actually knows.
+	 *
+	 * @property semanticValues
+	 *   The [L2SemanticValue]s, any of which may have a known variant.
+	 * @property isType
+	 *   Whether the values are object types rather than objects.
+	 */
+	private class L2KnownVariantCondition
+	constructor (
+		val semanticValues: Set<L2SemanticValue>,
+		val isType: Boolean
+	): L2SplitCondition()
+	{
+		override fun equals(other: Any?): Boolean =
+			other is L2KnownVariantCondition &&
+				other.isType == isType &&
+				other.semanticValues == semanticValues
+
+		override val hash = combine2(
+			semanticValues.hashCode(),
+			if (isType) 0x1A6E0F37 else 0x4D02B9C1)
+
+		/**
+		 * Answer the single [ObjectLayoutVariant] that one of the
+		 * [semanticValues] is known to have in the given manifest, or `null`
+		 * if none has a single known variant.
+		 *
+		 * @param manifest
+		 *   The [L2ValueManifest] to examine.
+		 * @return
+		 *   The known variant, or `null`.
+		 */
+		private fun variantIn(manifest: L2ValueManifest): ObjectLayoutVariant? =
+			semanticValues.firstNotNullOfOrNull {
+				when
+				{
+					!manifest.hasSemanticValue(it) -> null
+					else -> manifest.restrictionFor(it).positiveGroup.run {
+						when
+						{
+							isType -> objectTypeVariants
+							else -> objectVariants
+						}
+					}?.singleOrNull()
+				}
+			}
+
+		override fun holdsFor(manifest: L2ValueManifest): Boolean =
+			variantIn(manifest) !== null
+
+		override fun specializedFor(
+			manifest: L2ValueManifest
+		): L2SplitCondition
+		{
+			val variant = variantIn(manifest)!!
+			val restriction = when
+			{
+				isType -> restrictionForType(mostGeneralObjectMeta)
+					.intersectionWithObjectTypeVariant(variant)
+				else -> restrictionForType(mostGeneralObjectType)
+					.intersectionWithObjectVariant(variant)
+			}
+			return L2MeetsRestrictionCondition(semanticValues, restriction)
+		}
+
+		override fun toString(): String = buildString {
+			append(if (isType) "Known type variant: " else "Known variant: ")
+			appendSemanticValues(semanticValues, false)
+		}.truncateTo(200)
+
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			otherCondition is L2KnownVariantCondition &&
+				otherCondition.isType == isType &&
+				semanticValues.containsAll(otherCondition.semanticValues)
+	}
+
+	/**
+	 * What a [KnownExactlyTracer] wishes to be known exactly about a value, as
+	 * it traces the value back through the instructions that produced it.
+	 */
+	enum class KnownExactly
+	{
+		/**
+		 * The value is known to be some constant.  A wish to know an int
+		 * register's value starts as this.
+		 */
+		CONSTANT,
+
+		/**
+		 * The value is an object known to have a single
+		 * [ObjectLayoutVariant].  A wish for a constant variant id becomes this
+		 * when traced back across the [L2_EXTRACT_OBJECT_VARIANT_ID] that
+		 * produced the id.
+		 */
+		OBJECT_VARIANT,
+
+		/**
+		 * The value is an object type known to have a single
+		 * [ObjectLayoutVariant].  A wish for a constant variant id becomes this
+		 * when traced back across the [L2_EXTRACT_OBJECT_TYPE_VARIANT_ID] that
+		 * produced the id.
+		 */
+		OBJECT_TYPE_VARIANT
+	}
+
+	/**
+	 * A helper class for tracing a wish to know a value exactly backward
+	 * through the instructions that produced it, collecting the semantic
+	 * values of its ancestors, grouped by what would have to be known about
+	 * each.  Each instruction says how the wish passes back to its inputs, in
+	 * its [L2Instruction.traceKnownExactly]; by default it does not.
+	 *
+	 * Unlike a [RestrictionTracer], it carries no particular restriction to
+	 * satisfy, since the wish is for whatever the value turns out to be.
+	 *
+	 * @constructor
+	 * Create a tracer that starts at the given registers, wishing each were
+	 * known to be a constant.
+	 *
+	 * @param initialRegisters
+	 *   The registers whose values it would be profitable to know exactly.
+	 */
+	class KnownExactlyTracer
+	constructor (
+		initialRegisters: Collection<L2Register<*>>)
+	{
+		/** The registers still to visit, each with what it is wished to be. */
+		private val registersToVisit = initialRegisters.mapTo(ArrayDeque()) {
+			it to KnownExactly.CONSTANT
+		}
+
+		/** The registers already visited. */
+		val visitedRegisters: Set<L2Register<*>>
+			field = mutableSetOf()
+
+		/**
+		 * The semantic values of the visited registers, grouped by what is
+		 * wished to be known about them.
+		 */
+		private val valuesByKnowledge =
+			mutableMapOf<KnownExactly, MutableSet<L2SemanticValue>>()
+
+		/**
+		 * Trace every ancestor that can be reached, and answer the conditions
+		 * that hold where some ancestor is known exactly.
+		 *
+		 * @return
+		 *   One condition for each [KnownExactly] that some ancestor was
+		 *   wished to satisfy.
+		 */
+		fun traceAll(): Set<L2SplitCondition>
+		{
+			while (registersToVisit.isNotEmpty())
+			{
+				val (register, knowledge) = registersToVisit.removeFirst()
+				if (!visitedRegisters.add(register)) continue
+				val write = register.definition()
+				val values = write.semanticValues()
+					.filterNot(L2SemanticValue::isConstant)
+				// A write of only constants is already known exactly.
+				if (values.isEmpty()) continue
+				valuesByKnowledge
+					.getOrPut(knowledge, ::mutableSetOf)
+					.addAll(values)
+				write.instruction.run { traceKnownExactly(write, knowledge) }
+			}
+			return valuesByKnowledge.mapTo(mutableSetOf()) {
+					(knowledge, values) ->
+				when (knowledge)
+				{
+					KnownExactly.CONSTANT -> L2KnownConstantCondition(values)
+					KnownExactly.OBJECT_VARIANT ->
+						L2KnownVariantCondition(values, isType = false)
+					KnownExactly.OBJECT_TYPE_VARIANT ->
+						L2KnownVariantCondition(values, isType = true)
+				}
+			}
+		}
+
+		/**
+		 * An instruction has passed the wish back to one of its inputs.
+		 *
+		 * @param register
+		 *   The [L2Register] to trace back to its definition, and perhaps
+		 *   beyond.
+		 * @param knowledge
+		 *   What it would be profitable to know exactly about that register's
+		 *   value.
+		 */
+		fun continueTracing(
+			register: L2Register<*>,
+			knowledge: KnownExactly)
+		{
+			if (register in visitedRegisters) return
+			registersToVisit.add(register to knowledge)
+		}
 	}
 
 	/**
@@ -376,52 +672,56 @@ sealed class L2SplitCondition
 		}
 
 		/**
-		 * Create a [Set] of [L2MeetsRestrictionCondition]s that are true
-		 * whenever any of the ancestors of the given registers happens to be
-		 * restricted to one of the constants that an ancestor knew it to be.
-		 *
-		 * If no ancestor [L2Register] was known to be a constant, answer the
-		 * empty set.
+		 * Create the [L2SplitCondition]s that hold wherever the value of one of
+		 * the given registers, or of one of their ancestors, is known exactly:
+		 * a known constant for the registers and the ancestors whose values
+		 * pass through unchanged, and a known variant for an object whose
+		 * variant id they are.  Each condition is specialized at a split point
+		 * to what the incoming edge actually knows (see
+		 * [L2SplitCondition.specializedFor]).
 		 *
 		 * @param startingRegisters
-		 *   The registers from which to search for ancestors.
+		 *   The registers whose values it would be profitable to know exactly.
 		 * @return
-		 *   The [Set] of relevant [L2MeetsRestrictionCondition]s, which may be
-		 *   empty.
+		 *   The [Set] of conditions, empty if every ancestor was written only
+		 *   with constants.
 		 */
-		fun <K: RegisterKind<K>> constantConditions(
-			startingRegisters: Collection<L2Register<K>>
-		): Set<L2SplitCondition> = buildSet {
-			// First do a trace to collect relevant ancestors.
-			val startingRestriction = when (startingRegisters.first().kind)
-			{
-				BOXED_KIND -> anyRestriction
-				INTEGER_KIND -> i64Restriction
-				FLOAT_KIND -> floatRestriction
-			}
-			val tracer = RestrictionTracer(startingRegisters, startingRestriction)
+		fun knownExactlyConditions(
+			startingRegisters: Collection<L2Register<*>>
+		): Set<L2SplitCondition> =
+			KnownExactlyTracer(startingRegisters).traceAll()
+
+		/**
+		 * Answer the constants that the values of the given registers are
+		 * known to be along some edge into one of their ancestral phis, which
+		 * is where knowing them could have been lost.  This estimates how many
+		 * copies splitting on a [knownExactlyConditions] wish could create.
+		 *
+		 * @param startingRegisters
+		 *   The registers whose ancestors should be examined.
+		 * @return
+		 *   The distinct constants arriving at those phis.
+		 */
+		fun ancestralConstants(
+			startingRegisters: Collection<L2Register<*>>
+		): Set<AvailObject>
+		{
+			val tracer = KnownExactlyTracer(startingRegisters)
 			// Run for side-effect, to collect all ancestor registers.
 			tracer.traceAll()
-			tracer.visitedRegisters.forEach { register ->
-				val definition = register.definition()
-				val instruction = definition.instruction
-				if (instruction !is L2_PHI<*>) return@forEach
-				// This is an ancestral phi, which is where constantness could
-				// be lost.
-				instruction.basicBlock().predecessorEdges()
-					.zip(instruction.sources.elements)
-					.forEach { (edge, read) ->
-						val restriction =
-							edge.manifest().restrictionFor(read.semanticValue())
-						if (restriction.isConstant)
-						{
-							// The value arriving on this edge to the phi is a
-							// constant.
-							add(
-								L2MeetsRestrictionCondition(
-									setOf(read.semanticValue()), restriction))
+			return tracer.visitedRegisters.flatMapTo(mutableSetOf()) {
+					register ->
+				when (val instruction = register.definition().instruction)
+				{
+					!is L2_PHI<*> -> emptyList()
+					else -> instruction.basicBlock().predecessorEdges()
+						.zip(instruction.sources.elements)
+						.mapNotNull { (edge, read) ->
+							edge.manifest()
+								.restrictionFor(read.semanticValue())
+								.constantOrNull
 						}
-					}
+				}
 			}
 		}
 

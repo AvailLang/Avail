@@ -78,6 +78,8 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.KnownExactly
+import avail.optimizer.L2SplitCondition.KnownExactlyTracer
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.L2Synonym
 import avail.optimizer.PostPhiData
@@ -1704,6 +1706,28 @@ constructor() :
 	open fun RestrictionTracer.traceCandidateSplitConditions(
 		writeOperand: L2WriteOperand<*>,
 		restriction: TypeRestriction)
+	{
+		// Do nothing by default.
+	}
+
+	/**
+	 * Given a [writeOperand] from this instruction, whose value it would be
+	 * profitable to know exactly, as the given [knowledge] says, pass that
+	 * wish back to whichever of this instruction's inputs would determine it
+	 * exactly, through the [KnownExactlyTracer].  An instruction whose output
+	 * is its input, perhaps in another form, passes the same wish back; one
+	 * that extracts an object's variant id turns a wish for a constant id into
+	 * a wish for the object's variant.  By default the wish goes no further.
+	 *
+	 * @param writeOperand
+	 *   The [L2WriteOperand] of this instruction whose value is wished to be
+	 *   known exactly.
+	 * @param knowledge
+	 *   What it would be profitable to know exactly about that value.
+	 */
+	open fun KnownExactlyTracer.traceKnownExactly(
+		writeOperand: L2WriteOperand<*>,
+		knowledge: KnownExactly)
 	{
 		// Do nothing by default.
 	}

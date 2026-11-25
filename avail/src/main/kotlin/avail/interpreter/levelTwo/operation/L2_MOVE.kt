@@ -54,6 +54,8 @@ import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Optimizer.GenerationMode
+import avail.optimizer.L2SplitCondition.KnownExactly
+import avail.optimizer.L2SplitCondition.KnownExactlyTracer
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.L2Synonym
 import avail.optimizer.PostPhiData
@@ -250,6 +252,13 @@ sealed class L2_MOVE<K: RegisterKind<K>> : L2Instruction()
 		restriction: TypeRestriction)
 	{
 		continueTracing(source.register(), restriction)
+	}
+
+	override fun KnownExactlyTracer.traceKnownExactly(
+		writeOperand: L2WriteOperand<*>,
+		knowledge: KnownExactly)
+	{
+		continueTracing(source.register(), knowledge)
 	}
 
 	/**

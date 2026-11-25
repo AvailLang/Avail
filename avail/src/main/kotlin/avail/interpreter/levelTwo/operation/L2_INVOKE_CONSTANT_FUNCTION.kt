@@ -142,7 +142,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 				{
 					// The call site is *sometimes* fallible, so ask the
 					// primitive to produce any interesting conditions that
-					// might make it entirely infalllible along some split
+					// might make it entirely infallible along some split
 					// paths.
 					return interestingSplitConditions(arguments.elements)
 				}

@@ -48,7 +48,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restricti
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition.Companion.constantConditions
+import avail.optimizer.L2SplitCondition.Companion.knownExactlyConditions
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.PostPhiData
@@ -84,7 +84,7 @@ constructor (
 		addAll(
 			unboxedIntConditions(listOf(tagOrdinal.register()), i32Restriction))
 		// Don't merge in the past if the tag ordinal was known exactly.
-		addAll(constantConditions(listOf(tagOrdinal.register())))
+		addAll(knownExactlyConditions(listOf(tagOrdinal.register())))
 	}
 
 	override fun RestrictionTracer.traceCandidateSplitConditions(

@@ -55,6 +55,8 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.characterRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.L2SplitCondition.KnownExactly
+import avail.optimizer.L2SplitCondition.KnownExactlyTracer
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -168,6 +170,14 @@ class L2_CODEPOINT_TO_CHARACTER(
 		restriction: TypeRestriction)
 	{
 		continueTracing(source.register(), restriction)
+	}
+
+	/** A character is known exactly when its code point is. */
+	override fun KnownExactlyTracer.traceKnownExactly(
+		writeOperand: L2WriteOperand<*>,
+		knowledge: KnownExactly)
+	{
+		continueTracing(source.register(), knowledge)
 	}
 
 	override fun JVMTranslator.translateToJVM()

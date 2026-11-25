@@ -50,6 +50,7 @@ import avail.optimizer.PostPhiData
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.knownExactlyConditions
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
@@ -67,15 +68,49 @@ constructor(
 	/**
 	 * Determine conditions that would be nice to know statically, and that it
 	 * might be profitable to avoid losing due to a control flow merge.  By
-	 * default, those conditions include knowing that the input int register has
-	 * some proper subset of the range of int ranges or values required along
-	 * these edges.  This would allow at least one impossible case to be
-	 * omitted, along with the corresponding check in a generated decision tree.
-	 * We encode this as a set of conditions where the exact value (or range) is
-	 * known to hold, plus a set of conditions where an exact value or range is
-	 * known *not* to hold.
+	 * default, that is knowing the input int exactly, which decides the
+	 * dispatch statically.  The wish is traced back through the int's
+	 * ancestors, becoming a wish to know an object's variant where the int is
+	 * that object's variant id (see [knownExactlyConditions]).
+	 *
+	 * @param read
+	 *   The [L2ReadIntOperand] on which this splitter dispatches.
+	 * @param edges
+	 *   The outbound [L2PcOperand]s, separated by the [splitPoints].
+	 * @param postPhiData
+	 *   The [PostPhiData] of the block holding the dispatch.
+	 * @return
+	 *   The conditions, any of which may be `null`.
 	 */
 	open fun interestingConditions(
+		read: L2ReadIntOperand,
+		edges: List<L2PcOperand>,
+		postPhiData: PostPhiData
+	): List<L2SplitCondition?> =
+		knownExactlyConditions(listOf(read.register())).toList()
+
+	/**
+	 * Determine conditions that the input int register has some proper subset
+	 * of the range of int ranges or values required along these edges.  This
+	 * would allow at least one impossible case to be omitted, along with the
+	 * corresponding check in a generated decision tree.  We encode this as a
+	 * set of conditions where the exact value (or range) is known to hold,
+	 * plus a set of conditions where an exact value or range is known *not* to
+	 * hold.
+	 *
+	 * This suits a dispatch whose cases cover ranges of ints, where knowing
+	 * only which cases are excluded already pays.
+	 *
+	 * @param read
+	 *   The [L2ReadIntOperand] on which this splitter dispatches.
+	 * @param edges
+	 *   The outbound [L2PcOperand]s, separated by the [splitPoints].
+	 * @param postPhiData
+	 *   The [PostPhiData] of the block holding the dispatch.
+	 * @return
+	 *   The conditions, any of which may be `null`.
+	 */
+	protected fun intRangeConditions(
 		read: L2ReadIntOperand,
 		edges: List<L2PcOperand>,
 		postPhiData: PostPhiData

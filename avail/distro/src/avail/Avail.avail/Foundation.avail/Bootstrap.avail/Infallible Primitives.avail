@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/21/26, 6:52 PM
+ * * Last Generated: 11/25/26, 12:06 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -3487,25 +3487,6 @@ Primitive "_'s⁇nybblecodes" is
 ] : tuple of nybble;
 
 /**
- * Answer the implementation of the specified function. A function's
- * implementation comprises its nybblecodes, its literals, its primitive
- * linkage (if any), its function type, and various statistics.
- *
- * @category "Primitives" "Functions" "Queries"
- * @method "_'s⁇implementation"
- * @param "aFunction" "[…]→⊤"
- *        A function.
- * @returns "¢[…]→⊤"
- *    The argument's implementation.
- */
-Primitive "_'s⁇implementation" is
-[
-	aFunction : function
-|
-	Primitive CompiledCodeOfFunction;
-] : function implementation;
-
-/**
  * Answer the name of the primitive linked to the specified function
  * implementation. If the function implementation does not have
  * primitive linkage, then answer the empty string.
@@ -3524,6 +3505,25 @@ Primitive "_'s⁇primitive name" is
 |
 	Primitive CompiledCodePrimitiveName;
 ] : string;
+
+/**
+ * Answer the implementation of the specified function. A function's
+ * implementation comprises its nybblecodes, its literals, its primitive
+ * linkage (if any), its function type, and various statistics.
+ *
+ * @category "Primitives" "Functions" "Queries"
+ * @method "_'s⁇implementation"
+ * @param "aFunction" "[…]→⊤"
+ *        A function.
+ * @returns "¢[…]→⊤"
+ *    The argument's implementation.
+ */
+Primitive "_'s⁇implementation" is
+[
+	aFunction : function
+|
+	Primitive RawFunction;
+] : function implementation;
 
 /**
  * Set the descriptive name of the given function implementation.  This value is

@@ -150,8 +150,8 @@ import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_RETURN
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
@@ -1173,6 +1173,33 @@ class SimpleOptimizerTest
 			"Expected the unused function not to be captured")
 		val result = helper.executeRawFunction(rawFunction, listOf(fromInt(21)))
 		assertEquals(fromInt(42), result)
+	}
+
+	/**
+	 * Two calls in a row that dispatch on the variant of the same object test
+	 * the variant only once.  The dispatch of the second call wishes its
+	 * variant id were known exactly, which, traced back to the object, is a
+	 * wish to know the object's variant.  Each arm of the first dispatch knows
+	 * it, so code splitting keeps the arms apart through the merge after the
+	 * first call, and each arm calls the matching definition of the second
+	 * method directly.
+	 */
+	@Test
+	fun testVariantIsDispatchedOncePerValue()
+	{
+		val dispatch = helper.defineVariantDispatch()
+		val rawFunction = helper.rawFunction(mostGeneralTupleType) {
+			argumentTypes(dispatch.commonType)
+			// :: <first x, second x>
+			L1_doPushLocal(1)
+			call("first_", integers)
+			L1_doPushLocal(1)
+			call("second_", integers)
+			L1_doMakeTuple(2)
+		}
+		helper.testOptimize(rawFunction)
+		dispatch.assertSecondFollowsFirstDirectly(rawFunction)
+		dispatch.assertComputesPairs(rawFunction)
 	}
 
 	/**

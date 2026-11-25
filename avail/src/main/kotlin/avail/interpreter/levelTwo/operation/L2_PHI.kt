@@ -53,6 +53,8 @@ import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2SplitCondition.KnownExactly
+import avail.optimizer.L2SplitCondition.KnownExactlyTracer
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -302,6 +304,15 @@ sealed class L2_PHI<K: RegisterKind<K>> : L2Instruction()
 	{
 		sources.elements.forEach { read ->
 			continueTracing(read.register(), restriction)
+		}
+	}
+
+	override fun KnownExactlyTracer.traceKnownExactly(
+		writeOperand: L2WriteOperand<*>,
+		knowledge: KnownExactly)
+	{
+		sources.elements.forEach { read ->
+			continueTracing(read.register(), knowledge)
 		}
 	}
 }

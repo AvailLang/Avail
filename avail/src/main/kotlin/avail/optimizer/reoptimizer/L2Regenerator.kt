@@ -662,12 +662,18 @@ constructor(
 				val incomingEdges = noConditionBlock.predecessorEdges().toList()
 				incomingEdges.forEach { incomingEdge ->
 					incomingEdge.manifest().mergeAllEquivalentSynonyms()
+					// Key the copy by what each true condition says this edge
+					// knows, so that edges knowing different constants or
+					// variants reach different copies.
+					val edgeManifest = incomingEdge.manifest()
 					val trueConditions = when
 					{
 						forceCodeSplit -> setOf(fakeCondition(nextUnique()))
-						else -> interestingConditions.filterTo(mutableSetOf()) {
-							it.holdsFor(incomingEdge.manifest())
-						}
+						else -> interestingConditions
+							.filter { it.holdsFor(edgeManifest) }
+							.mapTo(mutableSetOf()) {
+								it.specializedFor(edgeManifest)
+							}
 					}
 					val betterBlock = submap.computeIfAbsent(trueConditions) {
 						val reduced = reducedConditions(trueConditions)

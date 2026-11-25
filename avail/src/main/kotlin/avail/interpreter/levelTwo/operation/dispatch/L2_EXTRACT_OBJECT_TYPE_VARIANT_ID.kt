@@ -44,6 +44,9 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.optimizer.L2SplitCondition.KnownExactly
+import avail.optimizer.L2SplitCondition.KnownExactly.OBJECT_TYPE_VARIANT
+import avail.optimizer.L2SplitCondition.KnownExactlyTracer
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -128,6 +131,21 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 				restrictionForType(variant.mostGeneralObjectMeta)
 					.intersectionWithObjectTypeVariant(variant)
 			)
+		}
+	}
+
+	/**
+	 * The variant id is known exactly where the object type's variant is, so a
+	 * wish for a constant id becomes a wish for the object type's variant.
+	 */
+	override fun KnownExactlyTracer.traceKnownExactly(
+		writeOperand: L2WriteOperand<*>,
+		knowledge: KnownExactly)
+	{
+		assert(writeOperand == variantId)
+		if (knowledge == KnownExactly.CONSTANT)
+		{
+			continueTracing(objectType.register(), OBJECT_TYPE_VARIANT)
 		}
 	}
 

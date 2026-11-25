@@ -52,7 +52,8 @@ import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Flag.CanFold
 import avail.optimizer.L1Translator
 import avail.optimizer.L2GeneratorInterface
-import avail.optimizer.L2SplitCondition.Companion.constantConditions
+import avail.optimizer.L2SplitCondition.Companion.ancestralConstants
+import avail.optimizer.L2SplitCondition.Companion.knownExactlyConditions
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.PostPhiData
@@ -313,22 +314,21 @@ private constructor(
 		// acceptably low.  If so, we split on each argument constant
 		// individually, hoping that sometimes the combination will allow
 		// folding along some split paths.
-		val constantConditionsByArgument = arguments.elements.map { argRead ->
-			constantConditions(setOf(argRead.register()))
-		}
 		if (primitive.constant.hasFlag(CanFold))
 		{
+			val argumentRegisters =
+				arguments.elements.map { setOf(it.register()) }
 			// See how many distinct *combinations* of constants might occur.
-			val explosion = constantConditionsByArgument
-				.map { it.size.toLong() }
+			val explosion = argumentRegisters
+				.map { ancestralConstants(it).size.toLong() }
 				.fold(1L, Long::times)
 			if (explosion > 0 && explosion <= 20)
 			{
 				// This seems like an acceptable number of code splits, since
 				// they will *probably* lead to folded primitives, and hopefully
 				// not lead to too much nearby code being duplicated.
-				constantConditionsByArgument.forEach { argConditions ->
-					addAll(argConditions)
+				argumentRegisters.forEach { registers ->
+					addAll(knownExactlyConditions(registers))
 				}
 			}
 		}

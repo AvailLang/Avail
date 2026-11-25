@@ -522,6 +522,74 @@ class InliningTest
 	}
 
 	/**
+	 * A caller that dispatches on an object's variant, then calls an embedded
+	 * callee that dispatches on the same object's variant, tests the variant
+	 * only once.  The embedded dispatch wishes the variant were known, and
+	 * code splitting in the caller keeps the arms of the caller's own dispatch
+	 * apart through the call.
+	 */
+	@Test
+	fun testVariantDispatchedByCallerIsKnownInCallee()
+	{
+		val dispatch = helper.defineVariantDispatch()
+		helper.defineMethod("second of_", integers) {
+			argumentTypes(dispatch.commonType)
+			L1_doPushLocal(1)
+			call("second_", integers)
+		}
+		val callee = soleBodyOf("second of_")
+		helper.testOptimize(callee)
+		assertNotNull((callee.startingChunk as L2JVMChunk).inlinableGraph)
+		val caller = helper.rawFunction(mostGeneralTupleType) {
+			argumentTypes(dispatch.commonType)
+			// :: <first x, second of x>
+			L1_doPushLocal(1)
+			call("first_", integers)
+			L1_doPushLocal(1)
+			call("second of_", integers)
+			L1_doMakeTuple(2)
+		}
+		helper.testOptimize(caller)
+		assertEmbedded(caller, "second of_")
+		dispatch.assertSecondFollowsFirstDirectly(caller)
+		dispatch.assertComputesPairs(caller)
+	}
+
+	/**
+	 * A caller that calls an embedded callee that dispatches on an object's
+	 * variant, then dispatches on the same object's variant itself, tests the
+	 * variant only once.  The caller's dispatch wishes the variant were known,
+	 * and code splitting in the caller keeps the arms of the embedded dispatch
+	 * apart through the return from the callee.
+	 */
+	@Test
+	fun testVariantDispatchedByCalleeIsKnownInCaller()
+	{
+		val dispatch = helper.defineVariantDispatch()
+		helper.defineMethod("first of_", integers) {
+			argumentTypes(dispatch.commonType)
+			L1_doPushLocal(1)
+			call("first_", integers)
+		}
+		val callee = soleBodyOf("first of_")
+		helper.testOptimize(callee)
+		assertNotNull((callee.startingChunk as L2JVMChunk).inlinableGraph)
+		val caller = helper.rawFunction(mostGeneralTupleType) {
+			argumentTypes(dispatch.commonType)
+			// :: <first of x, second x>
+			L1_doPushLocal(1)
+			call("first of_", integers)
+			L1_doPushLocal(1)
+			call("second_", integers)
+			L1_doMakeTuple(2)
+		}
+		helper.testOptimize(caller)
+		assertEmbedded(caller, "first of_")
+		dispatch.assertSecondFollowsFirstDirectly(caller)
+		dispatch.assertComputesPairs(caller)
+	}
+
+	/**
 	 * Freezing the continuation of an embedded callee also builds its
 	 * caller's frame, as an L1 continuation beneath the callee's, even though
 	 * the callee has no local variables.  The callee calls "share caller",

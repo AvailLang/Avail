@@ -50,7 +50,7 @@ Uses
 	"CompiledCodeNumOuters Tests",
 	"CompiledCodeNumStackSlots Tests",
 	"CompiledCodeNybbles Tests",
-	"CompiledCodeOfFunction Tests",
 	"CompiledCodePrimitiveName Tests",
+	"RawFunction Tests",
 	"SetCompiledCodeName Tests"
 Body

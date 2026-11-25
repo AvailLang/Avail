@@ -35,7 +35,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L2SplitCondition.Companion.constantConditions
+import avail.optimizer.L2SplitCondition.Companion.knownExactlyConditions
 import avail.optimizer.PostPhiData
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Opcodes
@@ -77,7 +77,7 @@ class L2_RETURN(
 			it is L2_PHI<*> || it is L2_NOP || it is L2_RETURN
 		})
 		{
-			addAll(constantConditions(listOf(returnValue.register())))
+			addAll(knownExactlyConditions(listOf(returnValue.register())))
 		}
 	}
 

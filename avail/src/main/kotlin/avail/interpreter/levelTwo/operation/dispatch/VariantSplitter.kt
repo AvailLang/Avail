@@ -32,21 +32,12 @@
 
 package avail.interpreter.levelTwo.operation.dispatch
 
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.optimizer.PostPhiData
-import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
 import avail.optimizer.manifest.L2ValueManifest
 
 /**
@@ -77,103 +68,6 @@ class VariantSplitter(
 	}
 
 	override fun toString(): String = "variant splits: $splitPoints"
-
-	/**
-	 * In addition to the [L2SplitCondition]s related to preserving which
-	 * integer values or ranges can or cannot be taken, we also add conditions
-	 * that narrow the original object's restriction, both to check for the
-	 * variants being known upstream and for a type constraint based on the
-	 * most general type of that variant.
-	 *
-	 * As with the int values, we include splits for both the positive and
-	 * negative cases of restriction membership, giving the opportunity to avoid
-	 * some paths if some cases can be eliminated as impossible.
-	 */
-	override fun interestingConditions(
-		read: L2ReadIntOperand,
-		edges: List<L2PcOperand>,
-		postPhiData: PostPhiData
-	): List<L2SplitCondition?> = buildList {
-		addAll(super.interestingConditions(read, edges, postPhiData))
-		val sourceInstructionOfInt = read.definitionSkippingMoves()
-		val intVariantRegister = read.register()
-		edgeVariants.filterNotNull().forEach { variant ->
-			// Split if this variant id is a match upstream.
-			addAll(
-				typeRestrictionConditions(
-					listOf(intVariantRegister),
-					restrictionForConstant(variant.variantId)))
-			// Split if this variant id is excluded upstream.
-			addAll(
-				typeRestrictionConditions(
-					listOf(intVariantRegister),
-					restrictionForType(i31)
-						.minusValue(fromInt(variant.variantId))))
-		}
-		when (sourceInstructionOfInt)
-		{
-			is L2_EXTRACT_OBJECT_VARIANT_ID ->
-			{
-				// It's a variant dispatch on an object instance.
-				assert(isInstance)
-				val originalSourceRegister =
-					sourceInstructionOfInt.sourceObject.register()
-				val baseRestriction =
-					restrictionForType(mostGeneralObjectType)
-				edgeVariants.filterNotNull().forEach { variant ->
-					// It would be profitable to know that this
-					// variant's most general object type is always
-					// satisfied somewhere upstream.
-					addAll(
-						typeRestrictionConditions(
-							listOf(originalSourceRegister),
-							baseRestriction
-								.intersectionWithObjectVariant(variant)
-						)
-					)
-					// Allow splitting if there's an upstream point that
-					// can guarantee that the most general type for this
-					// variant is *not* satisfied.
-					addAll(
-						typeRestrictionConditions(
-							listOf(originalSourceRegister),
-							baseRestriction.minusObjectVariant(variant)
-						)
-					)
-				}
-			}
-			is L2_EXTRACT_OBJECT_TYPE_VARIANT_ID ->
-			{
-				// It's a variant dispatch on an object *type*.
-				assert(!isInstance)
-				val originalSourceRegister =
-					sourceInstructionOfInt.objectType.register()
-				val baseRestriction =
-					restrictionForType(mostGeneralObjectMeta)
-				edgeVariants.filterNotNull().forEach { variant ->
-					// It would be profitable to know that this variant's most
-					// general object meta is always satisfied somewhere
-					// upstream.
-					addAll(
-						typeRestrictionConditions(
-							listOf(originalSourceRegister),
-							baseRestriction
-								.intersectionWithObjectTypeVariant(variant)
-						)
-					)
-					// Allow splitting if there's an upstream point that can
-					// guarantee that the most general meta for this variant is
-					// *not* satisfied.
-					addAll(
-						typeRestrictionConditions(
-							listOf(originalSourceRegister),
-							baseRestriction.minusObjectTypeVariant(variant)
-						)
-					)
-				}
-			}
-		}
-	}
 
 	/**
 	 * Also update the [edgeVariants] in the new instance to have the same

@@ -41,6 +41,8 @@ import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2SplitCondition.KnownExactly
+import avail.optimizer.L2SplitCondition.KnownExactlyTracer
 import avail.optimizer.L2SplitCondition.RestrictionTracer
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.manifest.L2ValueManifest
@@ -87,6 +89,13 @@ class L2_UNBOX_FLOAT(
 		restriction: TypeRestriction)
 	{
 		continueTracing(source.register(), restriction)
+	}
+
+	override fun KnownExactlyTracer.traceKnownExactly(
+		writeOperand: L2WriteOperand<*>,
+		knowledge: KnownExactly)
+	{
+		continueTracing(source.register(), knowledge)
 	}
 
 	/** Boxing/unboxing operations are created on demand. */

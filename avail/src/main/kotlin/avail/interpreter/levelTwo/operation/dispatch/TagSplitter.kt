@@ -75,12 +75,14 @@ class TagSplitter(
 	override fun toString(): String = "tag splits: $splitPoints"
 
 	/**
-	 * In addition to the [L2SplitCondition]s related to preserving which
-	 * integer values or ranges can or cannot be taken, we also add conditions
-	 * that check if the supremum of the tags or collections of tags apply to
-	 * the value whose tag is being branched on.  This allows splitting on the
-	 * tag to happen prior to the tag extraction itself, in the event that there
-	 * are more specific types upstream for the original value.
+	 * A tag ordinal stands for a range of descendant tags, so rather than
+	 * wishing to know the ordinal exactly, we use the [L2SplitCondition]s
+	 * related to preserving which integer values or ranges can or cannot be
+	 * taken (see [intRangeConditions]).  We also add conditions that check if
+	 * the supremum of the tags or collections of tags apply to the value whose
+	 * tag is being branched on.  This allows splitting on the tag to happen
+	 * prior to the tag extraction itself, in the event that there are more
+	 * specific types upstream for the original value.
 	 *
 	 * As with the int values, we include splits for both the positive and
 	 * negative cases of type membership, giving the opportunity to avoid some
@@ -91,7 +93,7 @@ class TagSplitter(
 		edges: List<L2PcOperand>,
 		postPhiData: PostPhiData
 	): List<L2SplitCondition?> = buildList {
-		addAll(super.interestingConditions(read, edges, postPhiData))
+		addAll(intRangeConditions(read, edges, postPhiData))
 		val sourceInstructionOfInt = read.definitionSkippingMoves()
 		if (sourceInstructionOfInt is L2_EXTRACT_TAG_ORDINAL)
 		{

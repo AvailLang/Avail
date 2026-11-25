@@ -33,22 +33,18 @@
 package avail.interpreter.levelTwo.operation.dispatch
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.representation.A_Type.Companion.instances
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.interpreter.levelTwo.operation.numbers.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.optimizer.PostPhiData
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.existsCondition
-import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.L2SplitCondition.Companion.knownExactlyConditions
 import avail.optimizer.manifest.L2ValueManifest
 import avail.utility.cast
 
@@ -85,15 +81,9 @@ class ShiftedHashSplitter constructor(
 	override fun toString(): String = "hashed split (>> $rightShift & $lowMask)"
 
 	/**
-	 * In addition to the [L2SplitCondition]s related to preserving which
-	 * integer values or ranges can or cannot be taken, we also add conditions
-	 * that narrow the original object's restriction, both to check for the
-	 * variants being known upstream and for a type constraint based on the
-	 * most general type of that variant.
-	 *
-	 * As with the int values, we include splits for both the positive and
-	 * negative cases of restriction membership, giving the opportunity to avoid
-	 * some paths if some cases can be eliminated as impossible.
+	 * In addition to wishing to know the shifted, masked hash exactly, we wish
+	 * to know exactly the value that was hashed, which decides the lookup
+	 * statically, and to have already computed the hash.
 	 */
 	override fun interestingConditions(
 		read: L2ReadIntOperand,
@@ -101,29 +91,12 @@ class ShiftedHashSplitter constructor(
 		postPhiData: PostPhiData
 	): List<L2SplitCondition?> = buildList {
 		addAll(super.interestingConditions(read, edges, postPhiData))
-		// It would be nice to have already extracted the variant.
+		// It would be nice to have already extracted the hash.
 		add(existsCondition(listOf(read.semanticValue())))
 		originalValueRead(read)?.let { sourceRead ->
-			val sourceType = postPhiData.run { sourceRead.type }
-			if (sourceType.isEnumeration && !sourceType.isInstanceMeta)
-			{
-				sourceType.instances.forEach { instance ->
-					// Split if there's a point upstream that knows the
-					// exact constant that we're looking up.
-					addAll(
-						typeRestrictionConditions(
-							listOf(sourceRead.register()),
-							restrictionForConstant(instance)))
-					// Split if there's a point upstream that knows that
-					// one or more of the constants will not be possible
-					// here.
-					addAll(
-						typeRestrictionConditions(
-							listOf(sourceRead.register()),
-							restrictionForType(Types.ANY())
-								.minusValue(instance)))
-				}
-			}
+			// Split if there's a point upstream that knows the exact value
+			// that we're looking up.
+			addAll(knownExactlyConditions(listOf(sourceRead.register())))
 		}
 	}
 

@@ -47,6 +47,8 @@ import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newP
 import avail.descriptor.maps.MapDescriptor.Companion.mapWithBindings
 import avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
 import avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.setNameForType
 import avail.descriptor.representation.A_Atom
@@ -61,6 +63,7 @@ import avail.descriptor.representation.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.representation.A_Map.Companion.forEachInMap
 import avail.descriptor.representation.A_Method.Companion.definitionsTuple
 import avail.descriptor.representation.A_Method.Companion.lookupByTypesFromTuple
+import avail.descriptor.representation.A_Method.Companion.lookupByValuesFromList
 import avail.descriptor.representation.A_Method.Companion.methodAddDefinition
 import avail.descriptor.representation.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_RawFunction
@@ -69,10 +72,14 @@ import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.numArgs
 import avail.descriptor.representation.A_RawFunction.Companion.numLiterals
 import avail.descriptor.representation.A_RawFunction.Companion.numOuters
+import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
+import avail.descriptor.representation.A_Sendable.Companion.bodyBlock
 import avail.descriptor.representation.A_Sendable.Companion.bodySignature
+import avail.descriptor.representation.A_Tuple
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.fieldTypeMap
+import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Type.Companion.sizeRange
 import avail.descriptor.representation.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.representation.A_Type.Companion.upperBound
@@ -91,9 +98,21 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1Operation.L1_doCall
 import avail.interpreter.levelOne.L1Operation.L1_doClose
+import avail.interpreter.levelOne.L1Operation.L1_doPop
 import avail.interpreter.levelOne.L1Operation.L1_doPushLiteral
+import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
+import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operation.L2_INVOKE
+import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
+import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_VARIANT_ID
+import avail.interpreter.levelTwo.operation.dispatch.L2_MULTIWAY_JUMP
 import avail.interpreter.primitive.Primitive
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Optimizer
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.fail
 import java.io.StringReader
 import java.util.concurrent.SynchronousQueue
 
@@ -643,5 +662,203 @@ class OptimizerTestHelper(
 		val objectType = builder.objectType.makeShared()
 		setNameForType(objectType, stringFrom(name), false)
 		return objectType
+	}
+
+	/**
+	 * Answer an object of the given object type, each of whose fields must
+	 * have an instance type, as an explicit subclass's field does.  Each field
+	 * holds the instance of its type.
+	 *
+	 * @param objectType
+	 *   The object type to instantiate.
+	 * @return
+	 *   The new object.
+	 */
+	fun instanceOf(objectType: A_Type): AvailObject
+	{
+		val bindings = mutableListOf<A_Tuple>()
+		objectType.fieldTypeMap.forEachInMap { atom, fieldType ->
+			bindings.add(tuple(atom, fieldType.instance))
+		}
+		return objectFromMap(mapWithBindings(tupleFromList(bindings)))
+			.makeShared()
+	}
+
+	/**
+	 * The objects and methods of a dispatch on object variants: two objects of
+	 * distinct explicit subclasses of a common object type, and two methods,
+	 * `"first_"` and `"second_"`, each with a definition for either subclass.
+	 * `"first_"` answers 1 for [left] and 2 for [right], and `"second_"`
+	 * answers 10 for [left] and 20 for [right].  The lookup trees have been
+	 * warmed with both objects, so a call of either method on an object of
+	 * the common type dispatches by the object's variant.
+	 *
+	 * @property commonType
+	 *   The common supertype of both objects' types.
+	 * @property left
+	 *   An object of the first subclass.
+	 * @property right
+	 *   An object of the second subclass.
+	 */
+	inner class VariantDispatch(
+		val commonType: A_Type,
+		val left: AvailObject,
+		val right: AvailObject)
+	{
+		/**
+		 * Answer the [A_RawFunction] of the named method's definition for the
+		 * given object.
+		 *
+		 * @param name
+		 *   The method's name, `"first_"` or `"second_"`.
+		 * @param value
+		 *   The object whose definition to find.
+		 * @return
+		 *   The definition's body.
+		 */
+		fun bodyFor(name: String, value: AvailObject): A_RawFunction =
+			lookup(name).bundleMethod
+				.lookupByValuesFromList(listOf(value), null)
+				.bodyBlock()
+				.code()
+
+		/**
+		 * Assert that the given function's chunk dispatches `"first_"` by
+		 * variant, that no two of its dispatches test the same variant id, and
+		 * that after calling either definition of `"first_"`, it calls the
+		 * matching definition of `"second_"` without dispatching on the
+		 * variant again.
+		 *
+		 * @param function
+		 *   The [A_RawFunction] whose chunk to examine.
+		 */
+		fun assertSecondFollowsFirstDirectly(function: A_RawFunction)
+		{
+			val instructions = function.startingChunk.instructions
+				.filterIsInstance<L2Instruction>()
+			assertTrue(
+				instructions.any { it is L2_EXTRACT_OBJECT_VARIANT_ID },
+				"Expected a dispatch on the argument's variant")
+			instructions
+				.filterIsInstance<L2_MULTIWAY_JUMP>()
+				.groupBy { it.value.register() }
+				.forEach { (register, dispatches) ->
+					assertEquals(
+						1,
+						dispatches.size,
+						"Expected one dispatch on $register, not: $dispatches")
+				}
+			listOf(left, right).forEach { value ->
+				val first = bodyFor("first_", value)
+				val second = bodyFor("second_", value)
+				val calls = instructions
+					.filterIsInstance<L2_INVOKE_CONSTANT_FUNCTION>()
+					.filter {
+						it.constantFunction.constant.code().equals(first)
+					}
+				assertTrue(calls.isNotEmpty(), "Expected a call of $first")
+				calls.forEach { call ->
+					assertEquals(setOf(second), callsFollowing(call))
+				}
+			}
+		}
+
+		/**
+		 * Assert that the given function, which takes one object of the
+		 * [commonType], answers the tuple of `"first_"` and `"second_"` of it,
+		 * for both [left] and [right].
+		 *
+		 * @param function
+		 *   The [A_RawFunction] to run.
+		 */
+		fun assertComputesPairs(function: A_RawFunction)
+		{
+			assertEquals(
+				tuple(fromInt(1), fromInt(10)),
+				executeRawFunction(function, listOf(left)))
+			assertEquals(
+				tuple(fromInt(2), fromInt(20)),
+				executeRawFunction(function, listOf(right)))
+		}
+	}
+
+	/**
+	 * Define the objects and methods of a [VariantDispatch], and warm the
+	 * methods' lookup trees with both objects.
+	 *
+	 * @return
+	 *   The [VariantDispatch].
+	 */
+	fun defineVariantDispatch(): VariantDispatch
+	{
+		val commonType = objectType("shape", explicit = true) { }
+		val leftType = objectType("left", true, commonType) { }
+		val rightType = objectType("right", true, commonType) { }
+		listOf(
+			Triple("first_", leftType, 1),
+			Triple("first_", rightType, 2),
+			Triple("second_", leftType, 10),
+			Triple("second_", rightType, 20)
+		).forEach { (name, type, answer) ->
+			defineMethod(name, instanceType(fromInt(answer))) {
+				argumentTypes(type)
+				// Touch the argument, so that the body is not just a constant,
+				// which would make it a primitive that the call folds away.
+				L1_doPushLocal(1)
+				L1_doPop()
+				pushLiteral(fromInt(answer))
+			}
+		}
+		val left = instanceOf(leftType)
+		val right = instanceOf(rightType)
+		listOf("first_", "second_").forEach { name ->
+			listOf(left, right).forEach { value ->
+				lookup(name).bundleMethod
+					.lookupByValuesFromList(listOf(value), null)
+			}
+		}
+		return VariantDispatch(commonType, left, right)
+	}
+
+	/**
+	 * Answer the raw functions of the calls that are reached first along each
+	 * path from the return of the given invocation, without passing a call.
+	 * Fail if any such path dispatches on an object variant before it reaches
+	 * a call, or reaches a call whose function is not known exactly.
+	 *
+	 * @param invocation
+	 *   The [L2_INVOKE_CONSTANT_FUNCTION] from whose return to search.
+	 * @return
+	 *   The raw functions invoked next.
+	 */
+	fun callsFollowing(
+		invocation: L2_INVOKE_CONSTANT_FUNCTION
+	): Set<A_RawFunction>
+	{
+		val reached = mutableSetOf<A_RawFunction>()
+		val visited = mutableSetOf<L2BasicBlock>()
+		val toVisit = ArrayDeque(listOf(invocation.ifReturn.targetBlock()))
+		while (toVisit.isNotEmpty())
+		{
+			val block = toVisit.removeFirst()
+			if (!visited.add(block)) continue
+			val stop = block.instructions().firstOrNull {
+				it is L2_INVOKE_CONSTANT_FUNCTION
+					|| it is L2_INVOKE
+					|| it is L2_EXTRACT_OBJECT_VARIANT_ID
+			}
+			when (stop)
+			{
+				null -> block.successorEdges()
+					.filterNot(L2PcOperand::isBackward)
+					.forEach { toVisit.add(it.targetBlock()) }
+				is L2_INVOKE_CONSTANT_FUNCTION ->
+					reached.add(stop.constantFunction.constant.code())
+				else -> fail(
+					"Expected no variant dispatch or unknown call before the " +
+						"next known call, but found: $stop")
+			}
+		}
+		return reached
 	}
 }

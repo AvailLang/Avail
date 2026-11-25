@@ -1,5 +1,5 @@
 /*
- * CompiledCodeOfFunction Tests.avail
+ * P_RawFunction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,59 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.interpreter.primitive.rawfunctions
 
-Module "CompiledCodeOfFunction Tests"
-Versions
-	"Avail-1.6.1"
-Uses
-	"Primitive Test Common"
-Body
+import avail.descriptor.functions.CompiledCodeDescriptor
+import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import avail.interpreter.primitive.Foldable
+import avail.interpreter.primitive.Primitive.Flag.CanInline
+import avail.interpreter.primitive.Primitive.Flag.CannotFail
+import avail.interpreter.primitive.PrimitiveContext
+import avail.interpreter.primitive.PrimitiveIsolated1
 
-Test "CompiledCodeOfFunction ok" in primitive rawfunctions test suite is
-[
-	x : integer := 5;
-        f1 ::= [y : integer | x + y];
-        Require: f1(10) = 15;
-        z : integer := 50;
-        f2 ::= function from f1's implementation and <↑z>;
-        Cast f2 into
-        [
-			f : [integer]→integer
-        |
-			Require: f(10) = 60;
-        ];
-        f2b ::= function from f1's implementation and <↑x>;
-		Cast f2b into
-		[
-			f : [integer]→integer
-		|
-			Require: f(10) = 15;
-		];
+/**
+* **Primitive:** Answer the [compiled&#32;code][CompiledCodeDescriptor] within
+ * this [function][FunctionDescriptor].
+ */
+@Suppress("unused")
+object P_RawFunction
+	: PrimitiveIsolated1(CannotFail, CanInline), Foldable
+{
+	override fun attemptIsolated(
+		context: PrimitiveContext,
+		aFunction: AvailObject
+	): A_BasicObject?
+	{
+		return aFunction.code()
+	}
 
-        k ::= [u : [1..10] := 3; u]();
-        f3 ::= [y : integer | k + y];
-        Require: f3(10) = 13;
-        f4 ::= function from f3's implementation and <8>;
-        Cast f4 into
-        [
-			f : [integer]→integer
-        |
-			Require: f(10) = 18;
-        ];
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				mostGeneralFunctionType),
+			mostGeneralCompiledCodeType())
 
-        f5 ::= [mm : integer, nn : integer | mm + mm + nn];
-        Require: f5(6, 7) = 19;
-        f6 ::= function from f5's implementation and <>;
-        Cast f6 into
-		[
-			f : [integer, integer]→integer
-		|
-			Require: f(6, 7) = 19;
-		];
-        Cast f6 into
-        [
-			f : [integer, integer]→integer
-		|
-			Require: f(10, 10) = 30;
-        ];
-];
+	override val canDestroyArguments get() = false
+}

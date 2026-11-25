@@ -363,8 +363,10 @@ class L2Optimizer internal constructor(
 		// Find instructions that invoke hooks for failed dynamic type tests,
 		// failed method lookups, and anything else that we don't expect to be
 		// reached often.  Paths that always lead to reification might also be
-		// considered cold (to be determined).  Cold paths will be excluded from
-		// code splitting.
+		// considered cold (to be determined).  Instructions in cold blocks
+		// raise no wishes of their own, but a cold block still splits for the
+		// wishes of warm code it leads back to, such as the reification path of
+		// a call, which resumes after the call.
 		controlFlowGraph.backwardVisit { block ->
 			val lastInstruction = block.instructions().last()
 			if (lastInstruction.isCold)
@@ -392,7 +394,7 @@ class L2Optimizer internal constructor(
 			}
 		}
 		controlFlowGraph.forwardVisit { block ->
-			// Don't allow split wishes along cold paths to be honored.
+			// Cold code raises no wishes.
 			if (block.isCold) return@forwardVisit
 			val postPhiData = block.postPhiData!!
 			val newConditions = block.instructions()
@@ -519,8 +521,11 @@ class L2Optimizer internal constructor(
 				edgeWishes[edge]!!
 			}
 		}
+		// A cold block keeps its wishes, which can only have come from warm
+		// code it leads back to.  Otherwise paths that the wishes would keep
+		// apart, such as the reification paths of a dispatch's arms, would
+		// converge in cold code, and resume into the warm code knowing nothing.
 		splitConditions.values.removeAll { it.isEmpty() }
-		splitConditions.keys.removeIf(L2BasicBlock::isCold)
 		if (splitConditions.isEmpty())
 		{
 			// Nothing to split.
