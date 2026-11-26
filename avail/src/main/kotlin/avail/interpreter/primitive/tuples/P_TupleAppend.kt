@@ -62,8 +62,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 import avail.utility.PrefixSharingList.Companion.append
 
 /**
@@ -94,12 +94,12 @@ object P_TupleAppend : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			concatenatingAnd(aTupleType, anElementTupleType))
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		assert(arguments.size == 2)
@@ -120,7 +120,7 @@ object P_TupleAppend : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			else null
 		if (explodedTupleElements !== null)
 		{
-			callSiteHelper.useAnswer(
+			callSite.useAnswer(
 				createTuple(explodedTupleElements.append(newElementRead)))
 			return true
 		}
@@ -130,7 +130,7 @@ object P_TupleAppend : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			"tuple after append",
 			restrictionForType(resultType))
 		+L2_APPEND_TO_TUPLE(tupleRead, newElementRead, tempWrite)
-		callSiteHelper.useAnswer(readBoxed(tempWrite))
+		callSite.useAnswer(readBoxed(tempWrite))
 		return true
 	}
 

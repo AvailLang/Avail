@@ -51,8 +51,8 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 
 /**
@@ -72,12 +72,12 @@ object P_GetFiberPriority : PrimitiveIsolated1(
 		return fromUnsignedByte(priority.toShort())
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// First generate the specialized instruction to fill an int register.
@@ -90,7 +90,7 @@ object P_GetFiberPriority : PrimitiveIsolated1(
 		// evaporate later.
 		val prioritySemanticIntValue = priorityIntWrite.pickSemanticValue()
 		val boxedPriority = readBoxed(prioritySemanticIntValue)
-		callSiteHelper.useAnswer(boxedPriority)
+		callSite.useAnswer(boxedPriority)
 		return true
 	}
 

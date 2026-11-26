@@ -57,9 +57,9 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive3
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** If the second argument, a [function][A_Function], accepts the
@@ -116,12 +116,12 @@ object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 					TOP())),
 			TOP())
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// Inline the invocation of this P_CastIntoElse primitive, such that it
@@ -157,13 +157,12 @@ object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 				// runtime type test (since we just did it).  Don't do a type
 				// check on the result, because the client will deal with it.
 				when {
-					passedTest -> generateGeneralFunctionInvocation(
+					passedTest -> callSite.generateGeneralFunctionInvocation(
 						castFunctionRead,
 						true,
-						callSiteHelper,
 						listOf(valueRead))
-					else -> generateGeneralFunctionInvocation(
-						elseFunctionRead, true, callSiteHelper, emptyList())
+					else -> callSite.generateGeneralFunctionInvocation(
+						elseFunctionRead, true, emptyList())
 				}
 				return true
 			}
@@ -192,13 +191,13 @@ object P_CastIntoElse : Primitive3(Invokes, CanInline, CannotFail)
 		// castBlock or elseBlock, after which we merge the control flow back.
 		// Start by generating the invocation of castFunction.
 		startBlock(castBlock)
-		generateGeneralFunctionInvocation(
-			castFunctionRead, true, callSiteHelper, listOf(valueRead))
+		callSite.generateGeneralFunctionInvocation(
+			castFunctionRead, true, listOf(valueRead))
 
 		// Now deal with invoking the elseBlock instead.
 		startBlock(elseBlock)
-		generateGeneralFunctionInvocation(
-			elseFunctionRead, true, callSiteHelper, emptyList())
+		callSite.generateGeneralFunctionInvocation(
+			elseFunctionRead, true, emptyList())
 
 		return true
 	}

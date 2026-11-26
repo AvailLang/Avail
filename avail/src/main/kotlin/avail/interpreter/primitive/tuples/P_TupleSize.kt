@@ -62,8 +62,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -114,12 +114,12 @@ object P_TupleSize : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 	): TypeRestriction =
 		restrictionForType(argumentTypes[0].sizeRange.typeIntersection(i31))
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val tupleReg = arguments[0]
@@ -132,7 +132,7 @@ object P_TupleSize : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 			lower.equals(upper) ->
 				// If the exact size of the tuple is known, then leverage that
 				// information to produce a constant.
-				callSiteHelper.useAnswer(boxedConstant(lower))
+				callSite.useAnswer(boxedConstant(lower))
 			else ->
 			{
 				// The exact size of the tuple isn't known, so generate code to
@@ -159,7 +159,7 @@ object P_TupleSize : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 					val writer = intWrite(setOf(size), restriction)
 					+L2_TUPLE_SIZE(tupleReg, writer)
 				}
-				callSiteHelper.useAnswer(readBoxed(size))
+				callSite.useAnswer(readBoxed(size))
 			}
 		}
 		return true

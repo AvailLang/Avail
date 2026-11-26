@@ -67,8 +67,8 @@ import avail.interpreter.levelTwoSimple.instructions.registers.Write
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive3
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Exit the given [continuation][ContinuationDescriptor]
@@ -153,12 +153,12 @@ object P_ExitContinuationWithResultIf : Primitive3(
 		return true
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (continuationRead, valueRead, conditionRead) = arguments
@@ -181,7 +181,7 @@ object P_ExitContinuationWithResultIf : Primitive3(
 			startBlock(noExit)
 			if (currentlyReachable())
 			{
-				callSiteHelper.useAnswer(boxedConstant(nil))
+				callSite.useAnswer(boxedConstant(nil))
 			}
 			return true
 		}

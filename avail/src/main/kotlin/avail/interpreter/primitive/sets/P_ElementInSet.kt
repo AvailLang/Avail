@@ -54,8 +54,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Check if the [object][AvailObject] is an element of the
@@ -80,12 +80,12 @@ object P_ElementInSet : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 				mostGeneralSetType()),
 			booleanType)
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSite: L2CallSite): Boolean
 	{
 		val (value, set) = arguments
 		val setSource = set.definitionSkippingMoves(currentManifest)
@@ -127,11 +127,11 @@ object P_ElementInSet : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			startBlock(notMatched)
 		}
 		// Code generation is at the point where nothing matched.
-		callSiteHelper.useConstantAnswer(falseObject)
+		callSite.useConstantAnswer(falseObject)
 		startBlock(anyMatched)
 		if (currentlyReachable())
 		{
-			callSiteHelper.useConstantAnswer(trueObject)
+			callSite.useConstantAnswer(trueObject)
 		}
 		return true
 	}

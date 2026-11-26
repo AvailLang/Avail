@@ -50,8 +50,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Answer the type of the given object.
@@ -78,12 +78,12 @@ object P_Type : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 		argumentTypes: List<A_Type>
 	): TypeRestriction = restrictionForType(instanceMeta(argumentTypes[0]))
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// Note that we exclude the values ⊥ and ⊤, as these are not the exact
@@ -91,7 +91,7 @@ object P_Type : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 		val restriction = arguments[0].restriction.metaRestriction()
 		val writer = boxedWriteTemp("type", restriction)
 		+L2_GET_TYPE(arguments[0], writer)
-		callSiteHelper.useAnswer(readBoxed(writer))
+		callSite.useAnswer(readBoxed(writer))
 		return true
 	}
 }

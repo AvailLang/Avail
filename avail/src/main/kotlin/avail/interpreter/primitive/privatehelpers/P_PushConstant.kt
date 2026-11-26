@@ -57,8 +57,8 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.PrimitiveN
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** The first literal is being returned. Extract the first literal
@@ -101,16 +101,16 @@ object P_PushConstant : PrimitiveN(
 			if (value.isNil) TOP() else instanceTypeOrMetaOn(value))
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val constant = rawFunction.literalAt(1)
-		callSiteHelper.useAnswer(boxedConstant(constant))
+		callSite.useAnswer(boxedConstant(constant))
 		return true
 	}
 

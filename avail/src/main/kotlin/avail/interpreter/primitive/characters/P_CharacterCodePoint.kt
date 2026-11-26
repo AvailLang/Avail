@@ -56,8 +56,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
 * **Primitive:** Extract the [code&#32;point][IntegerDescriptor] from a
@@ -75,12 +75,12 @@ object P_CharacterCodePoint
 		return fromInt(character.codePoint)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSite: L2CallSite): Boolean
 	{
 		if (!currentManifest.caresAboutSemanticValues) return false
 		val characterRead = arguments.single()
@@ -88,7 +88,7 @@ object P_CharacterCodePoint
 			characterRead.definitionSkippingMoves(currentManifest)
 		if (characterInstruction is L2_CODEPOINT_TO_CHARACTER)
 		{
-			callSiteHelper.useAnswer(
+			callSite.useAnswer(
 				readBoxed(characterInstruction.source.semanticValue()))
 			return true
 		}

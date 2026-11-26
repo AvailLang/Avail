@@ -72,8 +72,8 @@ import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMEN
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive3
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** If the given boolean condition is true, then restart the given
@@ -125,12 +125,12 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 		enumerationWith(
 			set(E_INCORRECT_NUMBER_OF_ARGUMENTS, E_INCORRECT_ARGUMENT_TYPE))
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (continuationReg, argumentsTupleReg, condition) = arguments
@@ -146,7 +146,7 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 		{
 			// We're restarting the current frame.  First set up the semantic
 			// arguments for phis at the loop head to converge.
-			val numArgs = code.numArgs()
+			val numArgs = topFrame.code.numArgs()
 			val argsType = argumentsTupleReg.type
 			val argsSizeRange = argsType.sizeRange
 
@@ -157,7 +157,8 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 				return false
 			}
 			val argTypesTuple = argsType.tupleOfTypesFromTo(1, numArgs)
-			if (!code.functionType().acceptsTupleOfArgTypes(argTypesTuple))
+			val functionType = topFrame.code.functionType()
+			if (!functionType.acceptsTupleOfArgTypes(argTypesTuple))
 			{
 				// Couldn't guarantee the argument types matched.
 				return false
@@ -180,11 +181,11 @@ object P_RestartContinuationWithArgumentsIf : Primitive3(
 			startBlock(restartLabel)
 			if (currentlyReachable())
 			{
-				generateRestartContinuation(explodedTupleRegs)
+				callSite.generateRestartContinuation(explodedTupleRegs)
 			}
 			// The not-restarting path.
 			startBlock(noRestartLabel)
-			callSiteHelper.useConstantAnswer(nil)
+			callSite.useConstantAnswer(nil)
 			return true
 		}
 

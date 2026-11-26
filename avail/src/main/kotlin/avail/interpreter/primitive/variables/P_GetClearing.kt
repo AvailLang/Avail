@@ -58,9 +58,9 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Get the value of the [variable][A_Variable], clear the
@@ -104,12 +104,12 @@ object P_GetClearing : PrimitiveIsolated1(
 		return restrictionForType(if (readType.isTop) ANY() else readType)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val varReg = arguments[0]
@@ -142,15 +142,16 @@ object P_GetClearing : PrimitiveIsolated1(
 		startBlock(failure)
 		if (currentlyReachable())
 		{
-			fallbackToL1AndRedoCall(arguments)
+			callSite.generateGeneralFunctionInvocation(
+				functionToCallReg, false, arguments)
 		}
 		// End with the success block.  Note that the failure path could have
-		// also made it to the callSiteHelper's after-everything block if the
+		// also made it to the callSite's after-everything block if the
 		// call returns successfully.
 		startBlock(success)
 		// Reading and clearing the variable can't cause any local variables to
 		// become shared or acquire reactors.
-		callSiteHelper.useAnswer(readBoxed(extractedValue))
+		callSite.useAnswer(readBoxed(extractedValue))
 		return true
 	}
 

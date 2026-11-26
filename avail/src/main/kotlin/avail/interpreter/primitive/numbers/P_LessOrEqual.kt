@@ -60,12 +60,12 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
-import avail.optimizer.PostPhiData
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntConditions
+import avail.optimizer.PostPhiData
 
 /**
  * **Primitive:** Compare two extended integers and answer a
@@ -118,12 +118,12 @@ object P_LessOrEqual : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		}
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (firstReg, secondReg) = arguments
@@ -140,7 +140,7 @@ object P_LessOrEqual : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		if (!canBeTrue || !canBeFalse)
 		{
 			// The branch direction has been statically proven.
-			callSiteHelper.useAnswer(
+			callSite.useAnswer(
 				boxedConstant(objectFromBoolean(canBeTrue)))
 			return true
 		}
@@ -153,9 +153,9 @@ object P_LessOrEqual : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			edgeTo(truePath),
 			edgeTo(falsePath))
 		startBlock(truePath)
-		callSiteHelper.useAnswer(boxedConstant(trueObject))
+		callSite.useAnswer(boxedConstant(trueObject))
 		startBlock(falsePath)
-		callSiteHelper.useAnswer(boxedConstant(falseObject))
+		callSite.useAnswer(boxedConstant(falseObject))
 		return true
 	}
 

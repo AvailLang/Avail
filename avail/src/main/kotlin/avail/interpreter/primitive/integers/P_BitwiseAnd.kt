@@ -82,9 +82,8 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.interpreter.primitive.general.P_Hash
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
 import avail.optimizer.manifest.L2ValueManifest
@@ -185,19 +184,19 @@ object P_BitwiseAnd : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		return null
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val bound = guaranteedRestriction(rawFunction, argumentTypes).type
 		if (bound.lowerBound.equals(bound.upperBound))
 		{
 			// Constant result.
-			callSiteHelper.useAnswer(boxedConstant(bound.lowerBound))
+			callSite.useAnswer(boxedConstant(bound.lowerBound))
 			return true
 		}
 		val (range1, range2) = argumentTypes
@@ -215,7 +214,7 @@ object P_BitwiseAnd : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			{
 				// range2 is a constant power of two big enough to include all
 				// non-zero bits of the first argument.
-				callSiteHelper.useAnswer(arguments[0])
+				callSite.useAnswer(arguments[0])
 				return true
 			}
 		}
@@ -231,7 +230,7 @@ object P_BitwiseAnd : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			{
 				// range1 is a constant power of two big enough to include all
 				// non-zero bits of the second argument.
-				callSiteHelper.useAnswer(arguments[1])
+				callSite.useAnswer(arguments[1])
 				return true
 			}
 		}
@@ -240,13 +239,13 @@ object P_BitwiseAnd : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 				this@P_BitwiseAnd,
 				arguments,
 				argumentTypes,
-				callSiteHelper,
+				callSite,
 				typeGuaranteeFunction = { restrictedArgTypes ->
 					guaranteedRestriction(rawFunction, restrictedArgTypes).type
 				},
 				fallbackBody = {
-					generateGeneralFunctionInvocation(
-						functionToCallReg, false, callSiteHelper, arguments)
+					callSite.generateGeneralFunctionInvocation(
+						functionToCallReg, false, arguments)
 				},
 				range = i64)
 		}

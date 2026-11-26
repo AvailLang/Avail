@@ -53,8 +53,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 
 /**
@@ -100,12 +100,12 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 		return restrictionForType(rawFunction!!.functionType().returnType)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean {
 		// This primitive is private, and the function *should* only have been
 		// constructed by P_CreateObjectFieldGetter.  Play it safe if the
@@ -155,7 +155,7 @@ object P_PrivateGetSpecificObjectField : Primitive1(
 				// L2 instructions that access the field by index.
 			}
 		}
-		callSiteHelper.useAnswer(readBoxed(semanticFieldValue))
+		callSite.useAnswer(readBoxed(semanticFieldValue))
 		return true
 	}
 }

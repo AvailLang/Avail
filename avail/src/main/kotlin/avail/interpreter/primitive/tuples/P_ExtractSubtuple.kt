@@ -84,8 +84,7 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated3
 import avail.interpreter.primitive.numbers.P_Subtraction
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
@@ -305,12 +304,12 @@ object P_ExtractSubtuple : PrimitiveIsolated3(CanInline), Foldable
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (tuple, low, high) = arguments
@@ -407,15 +406,14 @@ object P_ExtractSubtuple : PrimitiveIsolated3(CanInline), Foldable
 						tuple.type,
 						lowInt.type,
 						highInt.type))))
-		callSiteHelper.useAnswer(readBoxed(temp))
+		callSite.useAnswer(readBoxed(temp))
 		startBlock(outOfRange)
 		if (currentlyReachable())
 		{
 			// Deal with indices being out of range by doing the general case.
-			generateGeneralFunctionInvocation(
+			callSite.generateGeneralFunctionInvocation(
 				functionToCallReg,
 				false,
-				callSiteHelper,
 				arguments,
 				willAlwaysFailPrimitive = true)
 		}

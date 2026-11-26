@@ -101,7 +101,8 @@ class CallSiteHelper internal constructor(
 	val semanticArguments: List<L2SemanticValue>,
 	val superUnionType: A_Type,
 	val expectedType: A_Type,
-	val unionOfPossibleResults: A_Type)
+	val unionOfPossibleResults: A_Type
+) : L2CallSite
 {
 	/** A Java [String] naming the [A_Bundle]. */
 	val quotedBundleName = bundle.message.atomName.asNativeString()
@@ -326,7 +327,7 @@ class CallSiteHelper internal constructor(
 	/**
 	 * Answer the [L2Generator] that this [CallSiteHelper] is within.
 	 */
-	val generator: L2Generator get() = translator.generator
+	override val generator: L2Generator get() = translator.generator
 
 	/**
 	 * The semantic value holding the function that produced the value being
@@ -367,16 +368,16 @@ class CallSiteHelper internal constructor(
 
 	/**
 	 * Record the fact that this call has produced a value in a particular
-	 * [answerReg] which is to represent the new top-of-stack value.
+	 * [answer] which is to represent the new top-of-stack value.
 	 *
-	 * @param answerReg
+	 * @param answer
 	 *   The register which will already hold the return value at this point.
 	 *   The value has not yet been type checked against the expectedType at
 	 *   this point, but it should comply with the type guarantees of the VM.
 	 */
-	fun useAnswer(answerReg: L2ReadBoxedOperand)
+	override fun useAnswer(answer: L2ReadBoxedOperand)
 	{
-		val answerType = generator.run { answerReg.type }
+		val answerType = generator.run { answer.type }
 		when
 		{
 			answerType.isBottom ->
@@ -390,7 +391,7 @@ class CallSiteHelper internal constructor(
 			{
 				// Capture it as the checked value L2SemanticSlot.
 				translator.forceSlotMove(
-					translator.stackp, translator.pc, answerReg)
+					translator.stackp, translator.pc, answer)
 				generator.jumpTo(this[AfterEverything])
 			}
 			else ->
@@ -398,7 +399,7 @@ class CallSiteHelper internal constructor(
 				// Capture it as the unchecked return value SemanticSlot by
 				// using pc - 1, and attribute it to the invoked function.
 				translator.forceSlotMove(
-					translator.stackp, translator.pc - 1, answerReg)
+					translator.stackp, translator.pc - 1, answer)
 				generator.move(
 					invokedFunction!!.semanticValue(),
 					listOf(returningFunction))
@@ -408,19 +409,21 @@ class CallSiteHelper internal constructor(
 		assert(!generator.currentlyReachable())
 	}
 
-	/**
-	 * Record the fact that this call is producing a particular *constant*
-	 * value.
-	 *
-	 * @param constantResult
-	 *   The [A_BasicObject] to use as the result of the call.
-	 */
-	fun useConstantAnswer(
-		constantResult: A_BasicObject)
-	{
-		if (!generator.currentlyReachable()) return
-		useAnswer(generator.boxedConstant(constantResult))
-	}
+	override fun generateGeneralFunctionInvocation(
+		functionToCall: L2ReadBoxedOperand,
+		tryToGenerateSpecialPrimitiveInvocation: Boolean,
+		arguments: List<L2ReadBoxedOperand>,
+		willAlwaysFailPrimitive: Boolean
+	): Unit = translator.generateGeneralFunctionInvocation(
+		functionToCall,
+		tryToGenerateSpecialPrimitiveInvocation,
+		this,
+		arguments,
+		willAlwaysFailPrimitive)
+
+	override fun generateRestartContinuation(
+		restartArguments: List<L2ReadBoxedOperand>
+	): Unit = translator.generateRestartContinuation(restartArguments)
 
 	/**
 	 * For every [L2BasicBlock] in my [invocationSitesToCreate] that is

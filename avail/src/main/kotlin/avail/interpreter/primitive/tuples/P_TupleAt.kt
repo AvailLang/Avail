@@ -80,10 +80,10 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
 import avail.interpreter.primitive.characters.P_CharacterCodePoint
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import java.lang.Integer.MAX_VALUE
 
@@ -150,12 +150,12 @@ object P_TupleAt : PrimitiveIsolated2(CanInline), Foldable
 		else super.fallibilityForArgumentTypes(argumentTypes)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (tupleReg, subscriptReg) = arguments
@@ -242,16 +242,15 @@ object P_TupleAt : PrimitiveIsolated2(CanInline), Foldable
 				{
 					+L2_TUPLE_AT_NO_FAIL(tupleReg, readSubscript, writeResult)
 				}
-				callSiteHelper.useAnswer(readBoxed(writeResult))
+				callSite.useAnswer(readBoxed(writeResult))
 			}
 			startBlock(outOfBounds)
 			if (currentlyReachable())
 			{
 				// The failure path can be reached.
-				generateGeneralFunctionInvocation(
+				callSite.generateGeneralFunctionInvocation(
 					functionToCallReg,
 					false,
-					callSiteHelper,
 					arguments,
 					willAlwaysFailPrimitive = true)
 			}
@@ -271,7 +270,7 @@ object P_TupleAt : PrimitiveIsolated2(CanInline), Foldable
 			val subscriptInt = lower.extractInt
 			+L2_TUPLE_AT_CONSTANT(
 				tupleReg, L2IntImmediateOperand(subscriptInt), writer)
-			callSiteHelper.useAnswer(readBoxed(writer))
+			callSite.useAnswer(readBoxed(writer))
 			return true
 		}
 		// The subscript isn't a constant, but it's known to be in range.
@@ -285,7 +284,7 @@ object P_TupleAt : PrimitiveIsolated2(CanInline), Foldable
 		}
 		assert(subscriptConversionFailure.predecessorEdges().isEmpty())
 		+L2_TUPLE_AT_NO_FAIL(tupleReg, subscriptIntReg, writer)
-		callSiteHelper.useAnswer(readBoxed(writer))
+		callSite.useAnswer(readBoxed(writer))
 		return true
 	}
 }

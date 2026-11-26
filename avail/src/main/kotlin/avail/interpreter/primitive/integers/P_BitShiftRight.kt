@@ -76,8 +76,8 @@ import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 import avail.utility.notNullAnd
 
 /**
@@ -208,14 +208,14 @@ object P_BitShiftRight : PrimitiveIsolated2(CanInline), Foldable
 			integerRangeType(min, min.isFinite, max, max.isFinite))
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
-		callSiteHelper,
+		callSite,
 		functionToCallReg,
 		rawFunction,
 		arguments,

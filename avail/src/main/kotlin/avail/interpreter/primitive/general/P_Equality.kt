@@ -57,9 +57,9 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Compare for equality. Answer a
@@ -111,12 +111,12 @@ object P_Equality : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(ANY(), ANY()), booleanType)
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (firstReg, secondReg) = arguments
@@ -127,7 +127,7 @@ object P_Equality : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		{
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
-			callSiteHelper.useAnswer(boxedConstant(trueObject))
+			callSite.useAnswer(boxedConstant(trueObject))
 			return true
 		}
 
@@ -136,7 +136,7 @@ object P_Equality : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		if (type1.typeIntersection(type2).isBottom)
 		{
 			// The actual values cannot be equal at runtime.
-			callSiteHelper.useAnswer(boxedConstant(falseObject))
+			callSite.useAnswer(boxedConstant(falseObject))
 			return true
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -146,7 +146,7 @@ object P_Equality : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			&& type1.instanceCount.equalsInt(1)
 			&& !type1.isInstanceMeta)
 		{
-			callSiteHelper.useAnswer(boxedConstant(trueObject))
+			callSite.useAnswer(boxedConstant(trueObject))
 			return true
 		}
 
@@ -178,12 +178,12 @@ object P_Equality : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		if (ifEqual.currentlyReachable())
 		{
 			startBlock(ifEqual)
-			callSiteHelper.useAnswer(boxedConstant(trueObject))
+			callSite.useAnswer(boxedConstant(trueObject))
 		}
 		if (ifNotEqual.currentlyReachable())
 		{
 			startBlock(ifNotEqual)
-			callSiteHelper.useAnswer(boxedConstant(falseObject))
+			callSite.useAnswer(boxedConstant(falseObject))
 		}
 		return true
 	}

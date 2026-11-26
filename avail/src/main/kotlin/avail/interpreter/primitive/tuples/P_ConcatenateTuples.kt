@@ -75,8 +75,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 import avail.utility.notNullAnd
 
 /**
@@ -157,12 +157,12 @@ object P_ConcatenateTuples : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 		return super.restrictionGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		assert(arguments.size == 1)
@@ -229,13 +229,13 @@ object P_ConcatenateTuples : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 				inputTuple,
 				readBoxed(elementTemp),
 				resultWrite)
-			callSiteHelper.useAnswer(readBoxed(resultWrite))
+			callSite.useAnswer(readBoxed(resultWrite))
 			return true
 		}
 		when (adjustedSources.size)
 		{
-			0 -> callSiteHelper.useAnswer(boxedConstant(emptyTuple))
-			1 -> callSiteHelper.useAnswer(adjustedSources[0])
+			0 -> callSite.useAnswer(boxedConstant(emptyTuple))
+			1 -> callSite.useAnswer(adjustedSources[0])
 			else ->
 			{
 				val write = boxedWriteTemp(
@@ -244,7 +244,7 @@ object P_ConcatenateTuples : PrimitiveIsolated1(CannotFail, CanInline), Foldable
 				+L2_CONCATENATE_TUPLES(
 					L2ReadBoxedVectorOperand(adjustedSources),
 					write)
-				callSiteHelper.useAnswer(readBoxed(write))
+				callSite.useAnswer(readBoxed(write))
 			}
 		}
 		return true

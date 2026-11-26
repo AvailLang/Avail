@@ -82,8 +82,7 @@ import avail.interpreter.primitive.numbers.P_Division
 import avail.interpreter.primitive.numbers.P_Division.positiveI63
 import avail.interpreter.primitive.numbers.P_Multiplication
 import avail.interpreter.primitive.numbers.P_Subtraction
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.CheckedMethod
@@ -93,9 +92,9 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.addOrSubtractOverflows
-import org.objectweb.asm.Opcodes
 import kotlin.math.max
 import kotlin.math.min
+import org.objectweb.asm.Opcodes
 
 /**
  * My instances are logic operations that take two [Int]s and produce an [Int].
@@ -700,7 +699,7 @@ constructor(
 		) = Unit
 
 		/**
-		 * Generate code (via the [callSiteHelper] that performs this operation,
+		 * Generate code (via the [callSite] that performs this operation,
 		 * and ensures the boxed form of the result is available as the result
 		 * of the call site.
 		 *
@@ -710,8 +709,8 @@ constructor(
 		 *   The two boxed input arguments.
 		 * @param argumentTypes
 		 *   The [List] of [A_Type]s of the arguments.
-		 * @param callSiteHelper
-		 *   The [CallSiteHelper] that assists creation of the current method
+		 * @param callSite
+		 *   The [L2CallSite] that assists creation of the current method
 		 *   call site.
 		 * @param typeGuaranteeFunction
 		 *   A lambda that produces an output type bound, given two input types.
@@ -731,9 +730,9 @@ constructor(
 			primitive: Foldable,
 			arguments: List<L2ReadBoxedOperand>,
 			argumentTypes: List<A_Type>,
-			callSiteHelper: CallSiteHelper,
+			callSite: L2CallSite,
 			typeGuaranteeFunction: (List<A_Type>) -> A_Type,
-			fallbackBody: L1Translator.() -> Unit,
+			fallbackBody: L2GeneratorInterface.() -> Unit,
 			range: A_Type = i32
 		): Boolean
 		{
@@ -779,7 +778,7 @@ constructor(
 						currentManifest.updateRestriction(semanticPrimitive) {
 							intersectionWithType(typeGuarantee)
 						}
-						callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
+						callSite.useAnswer(readBoxed(semanticPrimitive))
 						return true
 					}
 					if (currentManifest
@@ -789,7 +788,7 @@ constructor(
 						currentManifest.updateRestriction(semanticPrimitive) {
 							intersectionWithType(typeGuarantee)
 						}
-						callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
+						callSite.useAnswer(readBoxed(semanticPrimitive))
 						return true
 					}
 					when (val lower = typeGuarantee.lowerBound)
@@ -814,7 +813,7 @@ constructor(
 					// unboxed form is also still available in the manifest for
 					// use by subsequent primitives, which might allow the
 					// boxing instruction to evaporate.
-					callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
+					callSite.useAnswer(readBoxed(semanticPrimitive))
 				}
 				return true
 			}
@@ -825,7 +824,7 @@ constructor(
 					// The fallback block is reachable, so generate the slow
 					// case within it.
 					startBlock(fallback)
-					callSiteHelper.translator.fallbackBody()
+					callSite.generator.fallbackBody()
 				}
 			}
 		}

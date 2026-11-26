@@ -60,9 +60,9 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Assign the [value][AvailObject] to the
@@ -97,12 +97,12 @@ object P_SetValue : PrimitiveIsolated2(
 				ANY()),
 			TOP())
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (varReg, valueReg) = arguments
@@ -132,14 +132,14 @@ object P_SetValue : PrimitiveIsolated2(
 
 		// Emit the failure path.  Simply invoke the primitive function.
 		startBlock(failure)
-		generateGeneralFunctionInvocation(
-			functionToCallReg, false, callSiteHelper, arguments)
+		callSite.generateGeneralFunctionInvocation(
+			functionToCallReg, false, arguments)
 
 		// End with the success block.  Note that the failure path could have
-		// also made it to the callSiteHelper's after-everything block if the
+		// also made it to the callSite's after-everything block if the
 		// call returns successfully.
 		startBlock(success)
-		callSiteHelper.useAnswer(boxedConstant(nil))
+		callSite.useAnswer(boxedConstant(nil))
 		return true
 	}
 

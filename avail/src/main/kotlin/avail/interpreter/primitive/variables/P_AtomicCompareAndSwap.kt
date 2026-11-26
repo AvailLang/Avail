@@ -70,9 +70,9 @@ import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive3
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.performance.Statistic
 import avail.performance.StatisticReport
 import avail.performance.StatisticReport.PRIMITIVES
@@ -116,12 +116,12 @@ object P_AtomicCompareAndSwap : Primitive3(
 		return objectFromBoolean(replaced)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (variableReg, referenceReg, newValueReg) = arguments
@@ -141,14 +141,14 @@ object P_AtomicCompareAndSwap : Primitive3(
 			edgeTo(failure),
 			edgeTo(exception))
 		startBlock(success)
-		callSiteHelper.useAnswer(boxedConstant(trueObject))
+		callSite.useAnswer(boxedConstant(trueObject))
 
 		startBlock(failure)
-		callSiteHelper.useAnswer(boxedConstant(falseObject))
+		callSite.useAnswer(boxedConstant(falseObject))
 
 		startBlock(exception)
-		generateGeneralFunctionInvocation(
-			functionToCallReg, false, callSiteHelper, arguments)
+		callSite.generateGeneralFunctionInvocation(
+			functionToCallReg, false, arguments)
 
 		return true
 	}

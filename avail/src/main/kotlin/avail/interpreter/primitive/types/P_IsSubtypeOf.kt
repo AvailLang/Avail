@@ -53,9 +53,9 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Answer whether type1 is a subtype of type2 (or equal).
@@ -89,12 +89,12 @@ object P_IsSubtypeOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 	 *  1. The test is always true if x = ⊥.
 	 *
 	 */
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (xTypeReg, yTypeReg) = arguments
@@ -109,7 +109,7 @@ object P_IsSubtypeOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			{
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
-				callSiteHelper.useAnswer(boxedConstant(trueObject))
+				callSite.useAnswer(boxedConstant(trueObject))
 				return true
 			}
 		}
@@ -124,7 +124,7 @@ object P_IsSubtypeOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 				// and it is not a subtype of y.  The actual y might be more
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
-				callSiteHelper.useAnswer(boxedConstant(falseObject))
+				callSite.useAnswer(boxedConstant(falseObject))
 				return true
 			}
 		}
@@ -134,7 +134,7 @@ object P_IsSubtypeOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			// ⊥ is a subtype of all other types.  We test this separately from
 			// looking for a constant x, since ⊥'s type is special and doesn't
 			// report that it only has one instance (i.e., ⊥).
-			callSiteHelper.useAnswer(boxedConstant(trueObject))
+			callSite.useAnswer(boxedConstant(trueObject))
 			return true
 		}
 
@@ -171,9 +171,9 @@ object P_IsSubtypeOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 				edgeTo(ifNotSubtype))
 		}
 		startBlock(ifSubtype)
-		callSiteHelper.useConstantAnswer(trueObject)
+		callSite.useConstantAnswer(trueObject)
 		startBlock(ifNotSubtype)
-		callSiteHelper.useConstantAnswer(falseObject)
+		callSite.useConstantAnswer(falseObject)
 		return true
 	}
 

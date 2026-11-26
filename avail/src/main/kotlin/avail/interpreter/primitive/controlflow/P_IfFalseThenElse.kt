@@ -50,8 +50,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive3
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Invoke the [falseBlock][FunctionDescriptor].
@@ -84,12 +84,12 @@ object P_IfFalseThenElse : Primitive3(Invokes, CanInline, CannotFail)
 				functionType(emptyTuple, TOP())),
 			TOP())
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
@@ -98,8 +98,8 @@ object P_IfFalseThenElse : Primitive3(Invokes, CanInline, CannotFail)
 		val elseFunction = arguments[2]
 		// 'then' function
 		// takes no arguments.
-		generateGeneralFunctionInvocation(
-			elseFunction, true, callSiteHelper, emptyList())
+		callSite.generateGeneralFunctionInvocation(
+			elseFunction, true, emptyList())
 		return true
 	}
 }

@@ -51,9 +51,9 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Answer whether `value` is an instance of `type`.
@@ -88,12 +88,12 @@ object P_IsInstanceOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 	 * subtype) and x1' ∉ y'.
 	 *  1. The test is always true if y = ⊤.
 	 */
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (xReg, yTypeReg) = arguments
@@ -102,7 +102,7 @@ object P_IsInstanceOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 				yTypeReg.restriction).type.isVacuousType)
 		{
 			// The intersection is vacuous, so no further testing is required.
-			callSiteHelper.useAnswer(boxedConstant(falseObject))
+			callSite.useAnswer(boxedConstant(falseObject))
 			return true
 		}
 
@@ -129,12 +129,12 @@ object P_IsInstanceOf : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		startBlock(ifInstance)
 		if (currentlyReachable())
 		{
-			callSiteHelper.useAnswer(boxedConstant(trueObject))
+			callSite.useAnswer(boxedConstant(trueObject))
 		}
 		startBlock(ifNotInstance)
 		if (currentlyReachable())
 		{
-			callSiteHelper.useAnswer(boxedConstant(falseObject))
+			callSite.useAnswer(boxedConstant(falseObject))
 		}
 		return true
 	}

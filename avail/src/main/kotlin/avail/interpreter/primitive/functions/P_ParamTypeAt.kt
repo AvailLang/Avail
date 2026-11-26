@@ -65,8 +65,8 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Answer the type of the parameter at the given index within the
@@ -127,12 +127,12 @@ object P_ParamTypeAt : PrimitiveIsolated2(CanInline), Foldable
 		return CallSiteCannotFail
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (functionTypeRead, _) = arguments
@@ -154,9 +154,9 @@ object P_ParamTypeAt : PrimitiveIsolated2(CanInline), Foldable
 		if (functionTypeDefinition !is L2_GET_TYPE) return false
 		// This is the pattern "x's type [y]".  Since x is some actual
 		// function, the resulting argument type can't be top or bottom.
-		val read = callSiteHelper.generator.extractParameterTypeFromFunction(
+		val read = callSite.generator.extractParameterTypeFromFunction(
 			functionTypeDefinition.value, exactIndex.extractInt)
-		callSiteHelper.useAnswer(read)
+		callSite.useAnswer(read)
 		return true
 	}
 }

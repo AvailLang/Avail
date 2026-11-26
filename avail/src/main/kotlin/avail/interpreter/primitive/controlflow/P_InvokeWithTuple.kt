@@ -81,9 +81,9 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.performance.Statistic
 import avail.performance.StatisticReport
 import java.util.Collections.nCopies
@@ -251,12 +251,12 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 	 * If the call will always fail, just invoke this primitive normally, and
 	 * let it fail.
 	 */
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (functionRead, tupleRead) = arguments
@@ -333,10 +333,9 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
-		generateGeneralFunctionInvocation(
+		callSite.generateGeneralFunctionInvocation(
 			functionRead,
 			true,
-			callSiteHelper,
 			explodedArgumentReads)
 
 		startBlock(failurePath)
@@ -345,10 +344,9 @@ object P_InvokeWithTuple : Primitive2(Invokes, CanInline)
 		// function to invoke and the tuple of arguments.
 		if (currentlyReachable())
 		{
-			generateGeneralFunctionInvocation(
+			callSite.generateGeneralFunctionInvocation(
 				functionToCallReg,
 				false,
-				callSiteHelper,
 				arguments)
 		}
 		return true

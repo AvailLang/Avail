@@ -102,10 +102,10 @@ import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
-import avail.optimizer.CallSiteHelper
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readTwoInts
@@ -134,13 +134,13 @@ import avail.utility.bitfield.PackedBits
 import avail.utility.cartesianProductForEach
 import avail.utility.cast
 import avail.utility.isNullOr
-import org.objectweb.asm.Opcodes.DUP
-import org.objectweb.asm.Opcodes.POP
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.String.format
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.regex.Pattern
+import org.objectweb.asm.Opcodes.DUP
+import org.objectweb.asm.Opcodes.POP
 
 /**
  * This abstraction represents the interface between Avail's Level One
@@ -1122,7 +1122,7 @@ constructor(
 	 * specialized L2 instructions for itself.  If the primitive is still known
 	 * to be infallible (and does not affect the continuation stack) at this
 	 * site, generate an [L2_RUN_INFALLIBLE_PRIMITIVE] for it and answer `true`,
-	 * ensuring control flow will go to the appropriate [CallSiteHelper] exit
+	 * ensuring control flow will go to the appropriate [L2CallSite] exit
 	 * point, and leave the translator NOT at a currentReachable() point.
 	 *
 	 * If the primitive might fail for this site, do not generate anything,
@@ -1136,18 +1136,18 @@ constructor(
 	 *   The argument [L2ReadBoxedOperand]s supplied to the function.
 	 * @param argumentTypes
 	 *   The list of [A_Type]s of the arguments.
-	 * @param callSiteHelper
+	 * @param callSite
 	 *   Information about the call site being generated.
 	 * @return
 	 *   `true` if a specialized [L2Instruction] sequence was generated, `false`
 	 *   if nothing was emitted and the general mechanism should be used
 	 *   instead.
 	 */
-	fun L1Translator.tryToGenerateGeneralPrimitiveInvocation(
+	fun L2GeneratorInterface.tryToGenerateGeneralPrimitiveInvocation(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// In the general case, avoid producing failure and reification code if
@@ -1191,7 +1191,7 @@ constructor(
 				currentManifest.updateRestriction(equivalent) {
 					intersection(guaranteed)
 				}
-				callSiteHelper.useAnswer(readBoxed(equivalent))
+				callSite.useAnswer(readBoxed(equivalent))
 				return true
 			}
 		}
@@ -1208,7 +1208,7 @@ constructor(
 		when
 		{
 			guaranteedType.isBottom -> addUnreachableCode()
-			else -> callSiteHelper.useAnswer(readBoxed(writer))
+			else -> callSite.useAnswer(readBoxed(writer))
 		}
 		return true
 	}
@@ -1217,7 +1217,7 @@ constructor(
 	/**
 	 * The primitive couldn't be folded out, so see if alternative instructions
 	 * can be generated for its invocation.  If so, answer `true`, ensure
-	 * control flow will go to the appropriate [CallSiteHelper] exit point,
+	 * control flow will go to the appropriate [L2CallSite] exit point,
 	 * and leave the translator NOT at a currentReachable() point.  If
 	 * the alternative instructions could not be generated for this primitive,
 	 * answer `false`, and generate nothing.
@@ -1231,19 +1231,19 @@ constructor(
 	 *   The argument [L2ReadBoxedOperand]s supplied to the function.
 	 * @param argumentTypes
 	 *   The list of [A_Type]s of the arguments.
-	 * @param callSiteHelper
+	 * @param callSite
 	 *   Information about the call site being generated.
 	 * @return
 	 *   `true` if a specialized [L2Instruction] sequence was generated, `false`
 	 *   if nothing was emitted and the general mechanism should be used
 	 *   instead.
 	 */
-	open fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	open fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean = false
 
 	/**
@@ -1531,7 +1531,7 @@ constructor(
 		val boxedWrite: L2WriteBoxedOperand,
 		val intSuccess: L2BasicBlock,
 		val intFailure: L2BasicBlock,
-		private val translator: L1Translator
+		private val translator: L2GeneratorInterface
 	) : L2GeneratorInterface by translator
 
 	/**
@@ -1549,7 +1549,7 @@ constructor(
 		@Suppress("unused")
 		val boxedB: L2ReadBoxedOperand,
 		val boxedWrite: L2WriteBoxedOperand,
-		val translator: L1Translator
+		val translator: L2GeneratorInterface
 	) : L2GeneratorInterface by translator
 
 	/**

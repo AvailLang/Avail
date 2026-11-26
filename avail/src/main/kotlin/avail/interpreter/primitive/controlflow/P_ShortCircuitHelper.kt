@@ -51,8 +51,8 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Run the zero-argument [function][FunctionDescriptor], ignoring
@@ -83,12 +83,12 @@ object P_ShortCircuitHelper : Primitive2(Invokes, CanInline, CannotFail)
 			tuple(ANY(), functionType(emptyTuple, TOP())),
 			TOP())
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
@@ -98,8 +98,8 @@ object P_ShortCircuitHelper : Primitive2(Invokes, CanInline, CannotFail)
 		val functionRead = arguments[1]
 		// the function in the 2nd (=args[1]) argument.
 		// takes no arguments.
-		generateGeneralFunctionInvocation(
-			functionRead, true, callSiteHelper, emptyList())
+		callSite.generateGeneralFunctionInvocation(
+			functionRead, true, emptyList())
 		return true
 	}
 }

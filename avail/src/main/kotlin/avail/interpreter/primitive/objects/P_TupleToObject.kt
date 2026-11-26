@@ -95,8 +95,8 @@ import avail.interpreter.primitive.Foldable
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] of field assignment into an
@@ -228,12 +228,12 @@ object P_TupleToObject : PrimitiveIsolated1(CanInline), Foldable
 		return true
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// If we know the exact keys, we can statically determine the
@@ -295,7 +295,7 @@ object P_TupleToObject : PrimitiveIsolated1(CanInline), Foldable
 			L2ConstantOperand(typeGuarantee),
 			L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
 			write)
-		callSiteHelper.useAnswer(readBoxed(write))
+		callSite.useAnswer(readBoxed(write))
 		return true
 	}
 

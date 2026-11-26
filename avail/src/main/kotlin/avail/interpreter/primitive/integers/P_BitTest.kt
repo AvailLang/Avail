@@ -74,10 +74,10 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2GeneratorInterface.Companion.readInt
 import kotlin.math.min
 
@@ -163,12 +163,12 @@ object P_BitTest : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		return restrictionForType(booleanType)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (a, b) = arguments
@@ -232,9 +232,9 @@ object P_BitTest : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			ifTrue = edgeTo(isZeroLabel),
 			ifFalse = edgeTo(isOneLabel))
 		startBlock(isZeroLabel)
-		callSiteHelper.useAnswer(boxedConstant(falseObject))
+		callSite.useAnswer(boxedConstant(falseObject))
 		startBlock(isOneLabel)
-		callSiteHelper.useAnswer(boxedConstant(trueObject))
+		callSite.useAnswer(boxedConstant(trueObject))
 		startBlock(fallback)
 		// If the fallback is reachable, return false to indicate general
 		// infallible primitive invocation code should be generated for it,

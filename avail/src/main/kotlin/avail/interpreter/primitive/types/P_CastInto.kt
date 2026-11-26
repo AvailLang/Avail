@@ -63,9 +63,9 @@ import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** If the second argument, a [function][A_Function], accepts the
@@ -138,12 +138,12 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 		return CallSiteCanFail
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// Inline the invocation of this P_CastInto primitive, such that it
@@ -197,8 +197,8 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 		startBlock(castBlock)
 		if (currentlyReachable())
 		{
-			generateGeneralFunctionInvocation(
-				castFunctionRead, true, callSiteHelper, listOf(valueRead))
+			callSite.generateGeneralFunctionInvocation(
+				castFunctionRead, true, listOf(valueRead))
 		}
 
 		// In elseBlock, generate the invocation of the actual block implemented
@@ -206,10 +206,9 @@ object P_CastInto : Primitive2(Invokes, CanInline)
 		startBlock(elseBlock)
 		if (currentlyReachable())
 		{
-			generateGeneralFunctionInvocation(
+			callSite.generateGeneralFunctionInvocation(
 				functionToCallReg,
 				false,
-				callSiteHelper,
 				arguments,
 				willAlwaysFailPrimitive = true)
 		}

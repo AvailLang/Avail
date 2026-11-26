@@ -63,8 +63,9 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.Primitive1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** A global variable's value is being returned.
@@ -108,12 +109,12 @@ object P_GetGlobalVariableValue : Primitive1(
 	): Boolean = literals.tupleSize >= 1 &&
 		literals.tupleAt(1).isInitializedWriteOnceVariable
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		// We have to know the specific function to know what variable to read
@@ -129,16 +130,24 @@ object P_GetGlobalVariableValue : Primitive1(
 			variable.valueWasStablyComputed)
 		{
 			// The variable is permanently set to this value.
-			callSiteHelper.useAnswer(boxedConstant(variable.getValue()))
+			callSite.useAnswer(boxedConstant(variable.getValue()))
 			return true
 		}
 		val temp = newTemp("value of global ${variable.globalName}")
-		emitGetVariableOffRamp(
-			NeverClear,
-			boxedConstant(variable),
-			variable.kind().readType,
-			destination = temp)
-		callSiteHelper.useAnswer(readBoxed(temp))
+		val write = boxedWrite(
+			temp, restrictionForType(variable.kind().readType))
+		val success = createBasicBlock("successfully read global")
+		val unassigned = createBasicBlock(
+			"global is unassigned", isCold = true)
+		+NeverClear.createInstruction(
+			boxedConstant(variable), write, edgeTo(success), edgeTo(unassigned))
+		// The function itself reports the unassigned variable, when its
+		// primitive fails.
+		startBlock(unassigned)
+		callSite.generateGeneralFunctionInvocation(
+			functionToCallReg, false, arguments)
+		startBlock(success)
+		callSite.useAnswer(readBoxed(temp))
 		return true
 	}
 

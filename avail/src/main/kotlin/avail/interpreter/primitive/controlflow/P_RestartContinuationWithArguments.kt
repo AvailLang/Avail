@@ -79,8 +79,8 @@ import avail.interpreter.primitive.Primitive.Flag.AlwaysSwitchesContinuation
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Restart the given [label][LabelDescriptor], passing in the
@@ -160,12 +160,12 @@ object P_RestartContinuationWithArguments : Primitive2(
 		return true
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (continuationReg, argumentsTupleReg) = arguments
@@ -181,7 +181,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 		{
 			// We're restarting the current frame.  First set up the semantic
 			// arguments for phis at the loop head to converge.
-			val numArgs = code.numArgs()
+			val numArgs = topFrame.code.numArgs()
 			val argsType = argumentsTupleReg.type
 			val argsSizeRange = argsType.sizeRange
 
@@ -192,7 +192,8 @@ object P_RestartContinuationWithArguments : Primitive2(
 				return false
 			}
 			val argTypesTuple = argsType.tupleOfTypesFromTo(1, numArgs)
-			if (!code.functionType().acceptsTupleOfArgTypes(argTypesTuple))
+			val functionType = topFrame.code.functionType()
+			if (!functionType.acceptsTupleOfArgTypes(argTypesTuple))
 			{
 				// Couldn't guarantee the argument types matched.
 				return false
@@ -207,7 +208,7 @@ object P_RestartContinuationWithArguments : Primitive2(
 				// some reflective mechanism, fall back to the primitive.
 				return false
 			}
-			generateRestartContinuation(explodedTupleRegs)
+			callSite.generateRestartContinuation(explodedTupleRegs)
 			return true
 		}
 

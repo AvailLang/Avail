@@ -58,8 +58,8 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.Primitive.Flag.SpecialForm
 import avail.interpreter.primitive.PrimitiveN
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** The sole outer value is being returned.
@@ -94,12 +94,12 @@ object P_PushLastOuter : PrimitiveN(
 		literals: A_Tuple
 	): Boolean = true
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val constantFunction = functionToCallReg.constantOrNull
@@ -108,7 +108,7 @@ object P_PushLastOuter : PrimitiveN(
 		// it has an outer).
 		if (constantFunction !== null)
 		{
-			callSiteHelper.useAnswer(
+			callSite.useAnswer(
 				boxedConstant(constantFunction.outerVarAt(1)))
 			return true
 		}
@@ -116,7 +116,7 @@ object P_PushLastOuter : PrimitiveN(
 		// Use the value captured where the function was closed, if possible,
 		// which may avoid creating the function at all.
 		val returnType = functionToCallReg.type.returnType
-		callSiteHelper.useAnswer(
+		callSite.useAnswer(
 			extractFunctionOuter(functionToCallReg, 1, returnType))
 		return true
 	}

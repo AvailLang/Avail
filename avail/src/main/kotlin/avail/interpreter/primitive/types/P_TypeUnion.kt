@@ -54,11 +54,11 @@ import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated2
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
-import avail.optimizer.PostPhiData
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionConditions
+import avail.optimizer.PostPhiData
 
 /**
  * **Primitive:** Answer the type union of the specified
@@ -108,12 +108,12 @@ object P_TypeUnion : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 				restrictionForType(topMeta).minusValue(bottom)))
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val (arg1, arg2) = arguments
@@ -126,25 +126,25 @@ object P_TypeUnion : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 			// ⊥ ∪ x = x
 			argType1.equals(bottomMeta) ->
 			{
-				callSiteHelper.useAnswer(arg2)
+				callSite.useAnswer(arg2)
 				return true
 			}
 			// x ∪ ⊥ = x
 			argType2.equals(bottomMeta) ->
 			{
-				callSiteHelper.useAnswer(arg1)
+				callSite.useAnswer(arg1)
 				return true
 			}
 			// fold constant types
 			const1 !== null && const2 !== null ->
-				callSiteHelper.useAnswer(
+				callSite.useAnswer(
 					boxedConstant(const1.typeUnion(const2)))
 			// t ∪ x = t, if t is a constant type subsuming x
 			const1 !== null && argType2.instance.isSubtypeOf(const1) ->
-				callSiteHelper.useAnswer(arg1)
+				callSite.useAnswer(arg1)
 			// x ∪ t = t, if t is a constant type subsuming x
 			const2 !== null && argType1.instance.isSubtypeOf(const2) ->
-				callSiteHelper.useAnswer(arg2)
+				callSite.useAnswer(arg2)
 			// if x≠⊥ ∧ y≠⊥, then (x∪y)≠⊥.
 			!arg1.restriction.containsEntireType(bottomMeta) &&
 				!arg2.restriction.containsEntireType(bottomMeta) ->
@@ -163,7 +163,7 @@ object P_TypeUnion : PrimitiveIsolated2(CannotFail, CanInline), Foldable
 		}
 		val writer = boxedWriteTemp("type union", restriction)
 		+L2_TYPE_UNION(arg1, arg2, writer)
-		callSiteHelper.useAnswer(readBoxed(writer))
+		callSite.useAnswer(readBoxed(writer))
 		return true
 	}
 }

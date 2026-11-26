@@ -56,9 +56,9 @@ import avail.interpreter.levelTwo.operation.variables.L2_GET_VARIABLE
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.HasSideEffect
 import avail.interpreter.primitive.Primitive1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** There are two possibilities.  The
@@ -107,12 +107,12 @@ object P_GetValue : Primitive1(
 		return restrictionForType(if (readType.isTop) ANY() else readType)
 	}
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val varReg = arguments[0]
@@ -135,16 +135,16 @@ object P_GetValue : Primitive1(
 		// primitive function and having it fail (presumably) into its failure
 		// handling code.
 		startBlock(failure)
-		generateGeneralFunctionInvocation(
-			functionToCallReg, false, callSiteHelper, arguments)
+		callSite.generateGeneralFunctionInvocation(
+			functionToCallReg, false, arguments)
 
 		// And now the success path.  Note that the failure path could have
-		// also made it to the callSiteHelper's after-everything block if the
+		// also made it to the callSite's after-everything block if the
 		// call returns successfully.
 		startBlock(success)
 		// Reading the variable can't cause any local variables to become shared
 		// or acquire reactors.
-		callSiteHelper.useAnswer(readBoxed(extractedValue))
+		callSite.useAnswer(readBoxed(extractedValue))
 		return true
 	}
 

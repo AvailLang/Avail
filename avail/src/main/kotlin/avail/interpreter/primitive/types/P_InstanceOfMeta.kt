@@ -52,8 +52,8 @@ import avail.interpreter.primitive.Primitive.Flag.CannotFail
 import avail.interpreter.primitive.Primitive.Flag.Private
 import avail.interpreter.primitive.PrimitiveContext
 import avail.interpreter.primitive.PrimitiveIsolated1
-import avail.optimizer.CallSiteHelper
-import avail.optimizer.L1Translator
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2GeneratorInterface
 
 /**
  * **Primitive:** Obtain the sole instance, a type, of the specified metatype.
@@ -78,12 +78,12 @@ object P_InstanceOfMeta
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NOT_AN_ENUMERATION))
 
-	override fun L1Translator.tryToGenerateSpecialPrimitiveInvocation(
+	override fun L2GeneratorInterface.tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper
+		callSite: L2CallSite
 	): Boolean
 	{
 		val metaReg = arguments[0]
@@ -91,7 +91,7 @@ object P_InstanceOfMeta
 		val restriction = restrictionForType(returnType)
 		val writer = boxedWriteTemp("instance of meta", restriction)
 		+L2_INSTANCE_OF_META(metaReg, writer)
-		callSiteHelper.useAnswer(readBoxed(writer.onlySemanticValue()))
+		callSite.useAnswer(readBoxed(writer.onlySemanticValue()))
 		return true
 	}
 }
