@@ -205,7 +205,6 @@ import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.START
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.manifest.L2ValueManifest
-import avail.optimizer.reoptimizer.L2Inliner
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
@@ -1413,20 +1412,11 @@ class L1Translator private constructor(
 		}
 		else
 		{
-			// Exact function was unknown, or it wasn't a primitive.  If it's
-			// known, try to embed its code here instead of calling it.
-			if (rawFunction !== null
-				&& optimizationLevel.inlinesCallees
-				&& L2Inliner.tryToInline(
-					this,
-					rawFunction,
-					functionToCallRead,
-					arguments,
-					callSiteHelper))
-			{
-				assert(!currentlyReachable())
-				return
-			}
+			// Exact function was unknown, or it wasn't a primitive, so call
+			// it.  Callees are not embedded during translation.
+			// TODO: Embedding is to be done by rewriting invocations in a pass
+			//  after code splitting, which can find more of the callees and
+			//  embed them repeatedly.
 			guaranteedResultType = functionToCallRead.type.returnType
 		}
 

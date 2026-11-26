@@ -141,6 +141,14 @@ import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertThrows
 
 /**
+ * Why a test that asserts that a callee was embedded is disabled.
+ */
+// TODO: These tests run again once invocations are rewritten into embedded
+//  callees by an optimization pass.
+private const val NOT_EMBEDDED =
+	"callees are not embedded during L1 translation"
+
+/**
  * Tests of [L2Inliner], which embeds a suitable callee's graph at a call site
  * instead of invoking the callee.
  */
@@ -203,6 +211,7 @@ class InliningTest
 	 * which calls it instead.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testEmbeddingIsAtMostTwentyDeep()
 	{
 		val names = (0 .. 21).map { "level ${it}_" }
@@ -246,6 +255,7 @@ class InliningTest
 	 * the callee's chunk depends on, and computes the same results.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testCalleeWithoutCallsIsEmbedded()
 	{
 		helper.defineMethod("twice_", integers) {
@@ -299,6 +309,7 @@ class InliningTest
 	 * records the returning function it was given, then crashes the fiber.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testEmbeddedCalleeIsBlamedForWrongResult()
 	{
 		helper.defineMethod("loose_", Types.ANY()) {
@@ -351,6 +362,7 @@ class InliningTest
 	 * the whole stack, records it, then crashes the fiber.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testEmbeddedFallbackReifiesCallerBeneathCallee()
 	{
 		val global = newVariableWithContentType(integers)
@@ -417,6 +429,7 @@ class InliningTest
 	 * stack, records it, then crashes the fiber.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testEmbeddedWrongResultReifiesCallerBeneathCallee()
 	{
 		helper.definePrimitives("_[_]" to P_TupleAt)
@@ -482,6 +495,7 @@ class InliningTest
 	 * and the caller computes the right result.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testCalleeThatCallsIsEmbedded()
 	{
 		helper.defineMethod("identity_", integers) {
@@ -528,6 +542,7 @@ class InliningTest
 	 * are taken.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testCongruentEmbeddedInvocationsAreOneValue()
 	{
 		helper.definePrimitives(
@@ -582,6 +597,7 @@ class InliningTest
 	 * apart through the call.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testVariantDispatchedByCallerIsKnownInCallee()
 	{
 		val dispatch = helper.defineVariantDispatch()
@@ -616,6 +632,7 @@ class InliningTest
 	 * apart through the return from the callee.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testVariantDispatchedByCalleeIsKnownInCaller()
 	{
 		val dispatch = helper.defineVariantDispatch()
@@ -651,6 +668,7 @@ class InliningTest
 	 * reached only by its own closing.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testClosingsOfDifferentBlocksAreInvokedApart()
 	{
 		helper.definePrimitives("Invoke_with tuple_" to P_InvokeWithTuple)
@@ -765,6 +783,7 @@ class InliningTest
 	 * exactly once.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testFreezeBuildsCallerBeneathEmbeddedCallee()
 	{
 		val shared = newVariableWithContentType(mostGeneralLabelType)
@@ -808,6 +827,7 @@ class InliningTest
 	 * own frame, holding the values assigned before the call.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testFreezeCreatesElidedLocalsOfCalleeAndCaller()
 	{
 		val shared = newVariableWithContentType(mostGeneralLabelType)
@@ -870,6 +890,7 @@ class InliningTest
 	 * enclosing calls, innermost first.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testFreezeBuildsFramesOfNestedEmbeddings()
 	{
 		val shared = newVariableWithContentType(mostGeneralLabelType)
@@ -922,6 +943,7 @@ class InliningTest
 	 * chunk at a safe point and unparks the fiber.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testInvalidReentryResumesEmbeddedCalleeInL1()
 	{
 		helper.definePrimitives(
@@ -1011,6 +1033,7 @@ class InliningTest
 	 * variable, holding the value the creator assigned.
 	 */
 	@Test
+	@Disabled(NOT_EMBEDDED)
 	fun testCapturedLocalIsSharedWithEmbeddedBlock()
 	{
 		val shared = newVariableWithContentType(mostGeneralLabelType)
