@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
@@ -77,6 +78,24 @@ import avail.utility.Strings.increaseIndentation
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property constantFunction
+ *   The function to invoke.
+ * @property arguments
+ *   The arguments to pass to it.
+ * @property result
+ *   Where to write the value it returns.
+ * @property returningFunction
+ *   Either empty, or a single write of the function that returned the
+ *   [result], which is where a failed check of the result's type puts the
+ *   blame.  It is written only when the result must be checked (see
+ *   [L2_INVOKE.returningFunction]).  When this invocation is replaced by code
+ *   that produces the result in place, the invoked function is the one that
+ *   produced it.
+ * @property ifReturn
+ *   Where to continue after a normal return.
+ * @property ifReification
+ *   Where to continue if the stack is reified during the call.
  */
 @WritesHiddenVariable(
 	CURRENT_FUNCTION::class,
@@ -85,6 +104,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 	var constantFunction: L2ConstantOperand,
 	var arguments: L2ReadBoxedVectorOperand,
 	@On(SUCCESS) var result: L2WriteBoxedOperand,
+	@On(SUCCESS) var returningFunction: L2WriteBoxedVectorOperand,
 	@On(SUCCESS) var ifReturn: L2PcOperand,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
 ): L2ControlFlowInstruction()
@@ -177,6 +197,10 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 					boxedWrite(
 						result.semanticValues(),
 						result.restriction().intersection(guaranteed)))
+				returningFunction.elements.forEach { write ->
+					moveConstant(
+						constantFunction.constant, write.semanticValues())
+				}
 				jumpTo(ifReturn.targetBlock())
 				return
 			}
@@ -204,6 +228,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			generatePushArgumentsAndInvoke(
 				arguments.elements,
 				result,
+				returningFunction,
 				ifReturn,
 				ifReification)
 		}

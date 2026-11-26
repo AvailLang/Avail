@@ -55,6 +55,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition.Companion.knownExactlyConditions
@@ -65,6 +66,7 @@ import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.DUP
+import org.objectweb.asm.Type
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -86,6 +88,23 @@ import org.objectweb.asm.Opcodes.DUP
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property calledFunction
+ *   The function to invoke.
+ * @property arguments
+ *   The arguments to pass to it.
+ * @property result
+ *   Where to write the value it returns.
+ * @property returningFunction
+ *   Either empty, or a single write of the function that returned the
+ *   [result], which is where a failed check of the result's type puts the
+ *   blame.  It is written only when the result must be checked.  The invoked
+ *   function need not be the one that returns, since a function can replace
+ *   its own continuation, so it is read from the interpreter after the return.
+ * @property ifReturn
+ *   Where to continue after a normal return.
+ * @property ifReification
+ *   Where to continue if the stack is reified during the call.
  */
 @WritesHiddenVariable(
 	CURRENT_CONTINUATION::class,
@@ -103,6 +122,7 @@ class L2_INVOKE(
 	var calledFunction: L2ReadBoxedOperand,
 	var arguments: L2ReadBoxedVectorOperand,
 	@On(SUCCESS) var result: L2WriteBoxedOperand,
+	@On(SUCCESS) var returningFunction: L2WriteBoxedVectorOperand,
 	@On(SUCCESS) var ifReturn: L2PcOperand,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
 ): L2ControlFlowInstruction()
@@ -148,6 +168,7 @@ class L2_INVOKE(
 				L2ConstantOperand(constantFunction),
 				arguments,
 				result,
+				returningFunction,
 				ifReturn,
 				ifReification
 			).run {
@@ -197,6 +218,7 @@ class L2_INVOKE(
 		generatePushArgumentsAndInvoke(
 			arguments.elements,
 			result,
+			returningFunction,
 			ifReturn,
 			ifReification)
 	}
@@ -228,6 +250,9 @@ class L2_INVOKE(
 		 * @param result
 		 *   Where to write the return result if the call returns without
 		 *   reification.
+		 * @param returningFunction
+		 *   Either empty, or a single write of the function that returned, read
+		 *   from the interpreter after a return without reification.
 		 * @param onNormalReturn
 		 *   Where to jump if the call completes.
 		 * @param onReification
@@ -236,6 +261,7 @@ class L2_INVOKE(
 		fun JVMTranslator.generatePushArgumentsAndInvoke(
 			argsRegsList: List<L2ReadBoxedOperand>,
 			result: L2WriteBoxedOperand,
+			returningFunction: L2WriteBoxedVectorOperand,
 			onNormalReturn: L2PcOperand,
 			onReification: L2PcOperand)
 		{
@@ -270,6 +296,15 @@ class L2_INVOKE(
 			// :: value
 			store(result.register())
 			// ::
+			returningFunction.elements.forEach { write ->
+				// :: returningFunction = interpreter.returningFunction;
+				loadInterpreter()
+				load(Interpreter.returningFunctionField)
+				method.visitTypeInsn(
+					Opcodes.CHECKCAST,
+					Type.getInternalName(AvailObject::class.java))
+				store(write.register())
+			}
 			jump(onNormalReturn)
 
 			method.visitLabel(isReification)

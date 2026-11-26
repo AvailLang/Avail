@@ -48,6 +48,7 @@ import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_RETURNING_FUNCTION
+import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.optimizer.CallSiteHelper.JunctionType.AfterCallWithCheck
 import avail.optimizer.CallSiteHelper.JunctionType.AfterEverything
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
@@ -332,8 +333,9 @@ class CallSiteHelper internal constructor(
 	/**
 	 * The semantic value holding the function that produced the value being
 	 * checked at [AfterCallWithCheck], so a failed check can name it.  Each
-	 * path to that junction supplies it: after a call that actually returned,
-	 * an [L2_GET_RETURNING_FUNCTION] reads it from the interpreter, and an
+	 * path to that junction supplies it.  A call that returns writes it itself
+	 * (see [L2_INVOKE.returningFunction]).  A call resumed after reification
+	 * reads it from the interpreter with an [L2_GET_RETURNING_FUNCTION].  An
 	 * answer produced without a return, such as by a primitive generated in
 	 * place or a callee embedded by [L2Inliner], is attributed to the
 	 * [invokedFunction].
@@ -354,7 +356,7 @@ class CallSiteHelper internal constructor(
 
 	/**
 	 * Generate code to capture which function returned the value about to be
-	 * checked, after a call that returned through the interpreter.
+	 * checked, after a call that was resumed following reification.
 	 */
 	fun captureReturningFunction()
 	{

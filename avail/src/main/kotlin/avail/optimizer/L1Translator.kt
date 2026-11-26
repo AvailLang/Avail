@@ -1444,12 +1444,24 @@ class L1Translator private constructor(
 				if (guaranteedResultType.isBottom) Types.ANY() // unreachable
 				else guaranteedResultType))
 		val unreachable = L2BasicBlock("unreachable", isCold = true)
+		// A result that must be checked needs the function that returned it,
+		// to blame if the check fails.
+		val returningFunctionWrite = L2WriteBoxedVectorOperand(
+			when
+			{
+				skipCheck -> emptyList()
+				else -> listOf(
+					boxedWrite(
+						callSiteHelper.returningFunction,
+						restrictionForType(mostGeneralFunctionType)))
+			})
 		if (constantFunction !== null)
 		{
 			+L2_INVOKE_CONSTANT_FUNCTION(
 				L2ConstantOperand(constantFunction),
 				L2ReadBoxedVectorOperand(arguments),
 				writeResult,
+				returningFunctionWrite,
 				edgeTo(if (canReturn) successBlock else unreachable),
 				edgeTo(reificationTarget))
 		}
@@ -1459,6 +1471,7 @@ class L1Translator private constructor(
 				functionToCallRead,
 				L2ReadBoxedVectorOperand(arguments),
 				writeResult,
+				returningFunctionWrite,
 				edgeTo(if (canReturn) successBlock else unreachable),
 				edgeTo(reificationTarget))
 		}
@@ -1480,7 +1493,6 @@ class L1Translator private constructor(
 			}
 			else
 			{
-				callSiteHelper.captureReturningFunction()
 				jumpTo(callSiteHelper[AfterCallWithCheck])
 			}
 			assert(!currentlyReachable())
@@ -2156,6 +2168,7 @@ class L1Translator private constructor(
 			// Unreachable:
 			boxedWriteTemp(
 				"unreachable value", anyRestriction),
+			L2WriteBoxedVectorOperand(emptyList()),
 			edgeTo(success),
 			edgeTo(onReificationDuringFailure))
 		startBlock(onReificationDuringFailure)
