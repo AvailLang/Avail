@@ -159,6 +159,7 @@ import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.reoptimizer.L2Inliner
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
@@ -236,6 +237,13 @@ constructor(
 
 	/** The control flow graph being generated. */
 	val controlFlowGraph = L2ControlFlowGraph()
+
+	/**
+	 * How deeply callees are embedded one inside another in the chunk being
+	 * generated, which becomes its [L2JVMChunk.embeddingDepth].  [L2Inliner]
+	 * raises it as it embeds each callee.
+	 */
+	var embeddingDepth = 0
 
 	override fun toString(): String = "${javaClass.simpleName} ($debugName)"
 
@@ -1512,20 +1520,6 @@ constructor(
 			edgeTo(failedCheck))
 	}
 
-	override fun determineRawFunction(
-		functionToCallRead: L2ReadBoxedOperand
-	): A_RawFunction?
-	{
-		functionToCallRead.constantOrNull?.let { function ->
-			return function.code()
-		}
-		// See if we can at least find out the raw function that the function
-		// was created from.
-		return functionToCallRead
-			.definitionSkippingMoves(currentManifest)
-			.getConstantCode(currentManifest)
-	}
-
 	/**
 	 * Temporarily switch my state to generate code just prior to the control
 	 * flow altering instruction leading to this edge.  Update the edge's
@@ -1607,6 +1601,7 @@ constructor(
 			controlFlowGraph,
 			inlinableGraph,
 			optimizationLevel,
+			embeddingDepth,
 			optimizationLevel.countdown < Long.MAX_VALUE,
 			contingentValues)
 		code.setStartingChunkAndReoptimizationCountdown(

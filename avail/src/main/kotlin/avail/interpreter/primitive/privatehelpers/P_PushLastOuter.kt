@@ -113,16 +113,11 @@ object P_PushLastOuter : PrimitiveN(
 			return true
 		}
 
-		// See if we can find the instruction that created the function, using
-		// the original register that provided the value for the outer.  This
-		// should allow us to skip the creation of the function.
-		val functionCreationInstruction =
-			functionToCallReg.definitionSkippingMoves(currentManifest)
+		// Use the value captured where the function was closed, if possible,
+		// which may avoid creating the function at all.
 		val returnType = functionToCallReg.type.returnType
-		val outerReg = functionCreationInstruction.run {
-			extractFunctionOuter(functionToCallReg, 1, returnType)
-		}
-		callSiteHelper.useAnswer(outerReg)
+		callSiteHelper.useAnswer(
+			extractFunctionOuter(functionToCallReg, 1, returnType))
 		return true
 	}
 

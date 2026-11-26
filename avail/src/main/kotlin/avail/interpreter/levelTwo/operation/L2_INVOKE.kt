@@ -57,6 +57,9 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2SplitCondition.Companion.knownExactlyConditions
+import avail.optimizer.L2SplitCondition.Companion.knownRawFunctionConditions
+import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
@@ -122,6 +125,19 @@ class L2_INVOKE(
 			assert(functionType.isSubtypeOf(mostGeneralFunctionType))
 			return functionType.returnType.isBottom
 		}
+
+	/**
+	 * Wish to know the called function exactly, which would turn this into an
+	 * [L2_INVOKE_CONSTANT_FUNCTION], or at least to know its raw function,
+	 * which says what code this call will run.  A wish for the raw function
+	 * that survives to the top of the graph says that something passed in
+	 * would specialize this call.
+	 */
+	override fun PostPhiData.interestingConditions() = buildList {
+		val register = calledFunction.register()
+		addAll(knownExactlyConditions(listOf(register)))
+		addAll(knownRawFunctionConditions(register))
+	}
 
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{

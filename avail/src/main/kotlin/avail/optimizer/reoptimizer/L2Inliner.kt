@@ -123,6 +123,7 @@ import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.mapToSet
 import java.util.IdentityHashMap
+import kotlin.math.max
 
 /**
  * An [L2Regenerator] that embeds a callee's [L2JVMChunk.inlinableGraph] at a
@@ -646,6 +647,20 @@ class L2Inliner private constructor(
 		private const val maxInlinedInstructions = 100
 
 		/**
+		 * The most callees that may be embedded one inside another in a
+		 * chunk (see [L2JVMChunk.embeddingDepth]).
+		 */
+		private const val maxEmbeddingDepth = 20
+
+		/**
+		 * The number of blocks the chunk being generated may reach before no
+		 * more callees are embedded in it.  The chunk is still completed,
+		 * calling whatever it has not yet embedded, so this bounds growth
+		 * without affecting correctness.
+		 */
+		private const val maxBlocksForEmbedding = 1000
+
+		/**
 		 * The [HiddenVariable]s that describe the running frame: its
 		 * function, its continuation, and the machinery of calls and
 		 * reification.  An instruction that touches one of them is tied to
@@ -732,7 +747,9 @@ class L2Inliner private constructor(
 		 * from the given frame, or `null` if it should not be embedded.  The
 		 * function must not be a primitive, must have a valid
 		 * [L2JVMChunk] that kept its [L2JVMChunk.inlinableGraph], and must
-		 * not already be running in an enclosing frame.  Every instruction
+		 * not already be running in an enclosing frame.  Its chunk must
+		 * embed callees fewer than [maxEmbeddingDepth] deep, so that
+		 * embedding it stays within that depth.  Every instruction
 		 * reachable without an interrupt must be [embeddable][canEmbed], no
 		 * edge may lead backward (so the callee has no loop), and there may
 		 * be at most [maxInlinedInstructions] of them.
@@ -757,6 +774,7 @@ class L2Inliner private constructor(
 			val chunk = rawFunction.startingChunk as? L2JVMChunk ?: return null
 			if (!chunk.isValid) return null
 			val graph = chunk.inlinableGraph ?: return null
+			if (chunk.embeddingDepth >= maxEmbeddingDepth) return null
 			var frame: Frame? = callerFrame
 			while (frame !== null)
 			{
@@ -793,8 +811,9 @@ class L2Inliner private constructor(
 
 		/**
 		 * Embed the callee at this call site, if it is suitable (see
-		 * [inlinableChunkFor]).  If so, generate its code, record the
-		 * callee's dependencies as the caller's, hand the result to the
+		 * [inlinableChunkFor]) and the chunk being generated has fewer than
+		 * [maxBlocksForEmbedding] blocks.  If so, generate its code, record
+		 * the callee's dependencies as the caller's, hand the result to the
 		 * [callSiteHelper], and answer `true`.  Otherwise generate nothing
 		 * and answer `false`.
 		 *
@@ -818,6 +837,8 @@ class L2Inliner private constructor(
 			arguments: List<L2ReadBoxedOperand>,
 			callSiteHelper: CallSiteHelper
 		): Boolean = translator.run {
+			val blockCount = generator.controlFlowGraph.basicBlockOrder.size
+			if (blockCount >= maxBlocksForEmbedding) return false
 			val chunk = inlinableChunkFor(rawFunction, topFrame)
 				?: return false
 			val argumentTypes = rawFunction.functionType().argsTupleType
@@ -831,6 +852,8 @@ class L2Inliner private constructor(
 			{
 				addContingentValue(value)
 			}
+			generator.embeddingDepth = max(
+				generator.embeddingDepth, chunk.embeddingDepth + 1)
 			L2Inliner(
 				generator,
 				chunk,

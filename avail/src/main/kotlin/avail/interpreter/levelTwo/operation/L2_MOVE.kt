@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
@@ -290,10 +289,6 @@ constructor(
 	override val source: L2ReadBoxedOperand get() = moveSource
 
 	override val destination: L2WriteBoxedOperand get() = moveDestination
-
-	override fun getConstantCode(manifest: L2ValueManifest): A_RawFunction? =
-		source.definitionSkippingMoves(manifest)
-			.getConstantCode(manifest)
 
 	override fun L2GeneratorInterface.extractTupleElement(
 		synonym: L2Synonym,

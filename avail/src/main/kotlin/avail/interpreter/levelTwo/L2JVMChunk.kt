@@ -95,6 +95,11 @@ import avail.optimizer.reoptimizer.L2Inliner
  *   own [L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO] carries the same level,
  *   but a chunk whose code has been embedded elsewhere may need reoptimizing
  *   without being run (see [L2_LOOKUP_BY_VALUES.inlinedChunksPath]).
+ * @property embeddingDepth
+ *   How deeply callees are embedded one inside another in this chunk: zero
+ *   if it embeds none, and otherwise one more than the deepest
+ *   `embeddingDepth` of the chunks whose graphs it embedded.  [L2Inliner]
+ *   bounds it.
  * @property contingentValues
  *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
  *   depends. If one of these changes significantly, this chunk must be
@@ -118,6 +123,8 @@ import avail.optimizer.reoptimizer.L2Inliner
  *   The SSA [L2ControlFlowGraph] for [L2Inliner] to embed, or `null`.
  * @param optimizationLevel
  *   The [OptimizationLevel] at which this chunk was translated.
+ * @param embeddingDepth
+ *   How deeply callees are embedded one inside another in this chunk.
  * @param contingentValues
  *   The set of [contingent&#32;values][A_ChunkDependable] on which this chunk
  *   depends. If one of these changes significantly, this chunk must be
@@ -133,6 +140,7 @@ constructor(
 	val controlFlowGraph: L2ControlFlowGraph,
 	val inlinableGraph: L2ControlFlowGraph?,
 	val optimizationLevel: OptimizationLevel,
+	val embeddingDepth: Int,
 	contingentValues: A_Set,
 	override val executableChunk: JVMChunk
 ) : L2Chunk(code, offsetAfterInitialTryPrimitive, contingentValues)
@@ -192,6 +200,8 @@ constructor(
 		 *   inlined.
 		 * @param optimizationLevel
 		 *   The [OptimizationLevel] at which the chunk was translated.
+		 * @param embeddingDepth
+		 *   How deeply callees are embedded one inside another in the chunk.
 		 * @param trackBranches
 		 *   Whether to emit bytecodes that track directions taken by branches.
 		 * @param contingentValues
@@ -207,6 +217,7 @@ constructor(
 			controlFlowGraph: L2ControlFlowGraph,
 			inlinableGraph: L2ControlFlowGraph?,
 			optimizationLevel: OptimizationLevel,
+			embeddingDepth: Int,
 			trackBranches: Boolean,
 			contingentValues: A_Set
 		): L2JVMChunk
@@ -246,6 +257,7 @@ constructor(
 				controlFlowGraph,
 				inlinableGraph,
 				optimizationLevel,
+				embeddingDepth,
 				contingentValues,
 				jvmTranslator.jvmChunk())
 			for (value in contingentValues)

@@ -56,6 +56,7 @@ import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.numOuters
 import avail.descriptor.representation.A_RawFunction.Companion.startingChunk
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.instance
 import avail.descriptor.representation.A_Variable
@@ -149,6 +150,8 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_ENTER_FREEZE
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
+import avail.interpreter.levelTwo.operation.L2_INVOKE
+import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
@@ -187,6 +190,7 @@ import avail.interpreter.primitive.controlflow.P_ShortCircuitHelper
 import avail.interpreter.primitive.doubles.P_DoubleFloor
 import avail.interpreter.primitive.fibers.P_CurrentFiber
 import avail.interpreter.primitive.floats.P_FloatFloor
+import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.interpreter.primitive.functions.P_ParamTypeAt
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.general.P_Equality
@@ -213,6 +217,7 @@ import avail.interpreter.primitive.phrases.P_PhraseExpressionType
 import avail.interpreter.primitive.phrases.P_PhraseTypeExpressionType
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
+import avail.interpreter.primitive.privatehelpers.P_PushLastOuter
 import avail.interpreter.primitive.rawfunctions.P_PrivateForceOptimizationForTests
 import avail.interpreter.primitive.sets.P_ElementInSet
 import avail.interpreter.primitive.sets.P_SetIsSubset
@@ -249,15 +254,16 @@ import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticTemp
 import avail.optimizer.values.L2SemanticValue
+import java.math.BigInteger
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertNotNull
-import java.math.BigInteger
 
 class SimpleOptimizerTest
 {
@@ -1200,6 +1206,104 @@ class SimpleOptimizerTest
 		helper.testOptimize(rawFunction)
 		dispatch.assertSecondFollowsFirstDirectly(rawFunction)
 		dispatch.assertComputesPairs(rawFunction)
+	}
+
+	/**
+	 * A closing counts as consuming the outers it captures.  The function it
+	 * makes holds them, so a mutable boxed integer read only by a closing must
+	 * not be altered or offered to the recycling pool afterward, or a later
+	 * boxing could overwrite the closure's outer in place.  Treating the
+	 * capture as a destroying read is what keeps it out of the pool.  The
+	 * function closes a block over the constant `c ::= a + 1`, then boxes
+	 * `b + 2`, and answers both.
+	 */
+	@Test
+	fun testClosingConsumesItsOuters()
+	{
+		val block = helper.rawFunction(integers) {
+			val outer = createOuter(integers)
+			// Touch the outer, so that the block is not just a primitive.
+			L1_doPushOuter(outer)
+			L1_doPop()
+			L1_doPushOuter(outer)
+		}
+		val rawFunction = helper.rawFunction(mostGeneralTupleType) {
+			argumentTypes(integers, integers)
+			val c = createConstant(integers)
+			// :: c ::= a + 1;
+			L1_doPushLocal(1)
+			pushLiteral(fromInt(1))
+			call("_+_", integers)
+			L1Ext_doSetLocalSlot(c)
+			// :: <[c], b + 2>
+			L1_doPushLastLocal(c)
+			L1_doClose(1, addLiteral(block))
+			L1_doPushLocal(2)
+			pushLiteral(fromInt(2))
+			call("_+_", integers)
+			L1_doMakeTuple(2)
+		}
+		helper.testOptimize(rawFunction)
+		val closings = rawFunction.l2Instructions.filter {
+			it is L2_RUN_INFALLIBLE_PRIMITIVE
+				&& it.primitive.constant === P_CloseFunction
+		}
+		assertTrue(closings.isNotEmpty(), "Expected the closing to be emitted")
+		closings.forEach { closing ->
+			val outers = (closing as L2_RUN_INFALLIBLE_PRIMITIVE)
+				.arguments.elements.drop(1)
+			assertTrue(
+				closing.readsThatMightDestroy.containsAll(outers),
+				"Expected the closing to consume its outers: $closing")
+		}
+		val result = helper.executeRawFunction(
+			rawFunction, listOf(fromInt(100), fromInt(200)))
+		assertEquals(fromInt(202), result.tupleAt(2))
+		assertEquals(fromInt(101), result.tupleAt(1).outerVarAt(1))
+	}
+
+	/**
+	 * Invoking a closure whose block only answers its outer reads the value
+	 * it captured, without creating the closure or calling it.  The closing
+	 * names the closure by its raw function and outers, so the invocation
+	 * knows it will run that block's primitive, which answers the outer, and
+	 * the outer is the value that was captured.  The closure is still made
+	 * where a frame is reified or frozen, which needs it in a slot, but only
+	 * there.
+	 */
+	@Test
+	fun testInvokedClosureOfOuterAnswersCapturedValue()
+	{
+		val block = helper.rawFunction(integers) {
+			primitive = P_PushLastOuter
+			val outer = createOuter(integers)
+			L1_doPushLastOuter(outer)
+		}
+		assertSame(P_PushLastOuter, block.codePrimitive())
+		val rawFunction = helper.rawFunction(integers) {
+			argumentTypes(integers)
+			// :: invoke [x] with <>
+			L1_doPushLocal(1)
+			L1_doClose(1, addLiteral(block))
+			pushLiteral(emptyTuple)
+			call("Invoke_with tuple_", integers)
+		}
+		helper.testOptimize(rawFunction)
+		val warm = rawFunction.l2Instructions.filterNot {
+			it.basicBlock().isCold
+		}
+		assertTrue(
+			warm.none { it is L2_INVOKE || it is L2_INVOKE_CONSTANT_FUNCTION },
+			"Expected no call of the closure: $warm")
+		assertTrue(
+			warm.none {
+				it is L2_RUN_INFALLIBLE_PRIMITIVE
+					&& it.primitive.constant === P_CloseFunction
+			},
+			"Expected the closure not to be made when warm: $warm")
+		assertEquals(
+			fromInt(42),
+			helper.executeRawFunction(rawFunction, listOf(fromInt(42))))
 	}
 
 	/**

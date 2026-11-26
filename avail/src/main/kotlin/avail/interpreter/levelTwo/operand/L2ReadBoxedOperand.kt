@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.argsTupleType
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
@@ -41,11 +40,10 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operation.L2ControlFlowInstruction
-import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -89,34 +87,19 @@ constructor(
 	 * which produces a function.  If the function type is known, answer it,
 	 * otherwise `null`.
 	 *
+	 * The type is known if the raw function is known, since a raw function
+	 * knows the exact type of every function closed from it (see
+	 * [P_CloseFunction.rawFunctionIn]).
+	 *
 	 * @param manifest
-	 *   The manifest to use for looking up the definition of this read, if it
-	 *   involves postponed instructions.
+	 *   The manifest in which to look up what is known about this read's
+	 *   value.
 	 * @return
 	 *   Either `null` or an exact [A_Type] for the function in this register.
 	 */
-	fun exactFunctionType(manifest: L2ValueManifest): A_Type?
-	{
-		val constantFunction: A_Function? = manifest.run { constantOrNull }
-		if (constantFunction !== null)
-		{
-			// Function is a constant.
-			return constantFunction.code().functionType()
-		}
-		val originOfFunction = definitionSkippingMoves(manifest)
-		return when (originOfFunction)
-		{
-			// Function came from a constant (although the TypeRestriction
-			// should have ensured the clause above caught it).
-			is L2_MOVE_CONSTANT_BOXED ->
-				originOfFunction.constant().constant.code().functionType()
-			// We found where the function was closed from a raw function, which
-			// knows the exact function type that it'll be.  Use that.
-			is L2_CREATE_FUNCTION ->
-				originOfFunction.code.constant.functionType()
-			else -> null
-		}
-	}
+	fun exactFunctionType(manifest: L2ValueManifest): A_Type? =
+		P_CloseFunction.rawFunctionIn(manifest, semanticValue())
+			?.functionType()
 
 	/**
 	 * See if we can determine the exact type required as the first argument of

@@ -138,7 +138,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_ADD_UNDER_FROZEN_FRAME
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
-import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_CREATE_L1_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
@@ -184,6 +183,7 @@ import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.primitive.Primitive.Flag
+import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.privatehelpers.P_PushArgument2
 import avail.interpreter.primitive.privatehelpers.P_PushArgument3
@@ -2435,13 +2435,19 @@ class L1Translator private constructor(
 		val outers = (stackp + count - 1 downTo stackp).map(::readSlot)
 		// Pop the outers, but reserve room for the pushed function.
 		stackp += count - 1
-		+L2_CREATE_FUNCTION(
-			L2ConstantOperand(codeLiteral),
-			L2ReadBoxedVectorOperand(outers),
-			writeSlot(
-				stackp,
-				pc,
-				restrictionForType(codeLiteral.functionType())))
+		// The closure is also named by its closing, so that its raw function
+		// and outers are known wherever it is.
+		val arguments = listOf(boxedConstant(codeLiteral)) + outers
+		val closing = P_CloseFunction.semanticInvocation(
+			arguments.map(L2ReadBoxedOperand::semanticValue))
+		val slotWrite = writeSlot(
+			stackp, pc, restrictionForType(codeLiteral.functionType()))
+		+L2_RUN_INFALLIBLE_PRIMITIVE(
+			P_CloseFunction,
+			L2ReadBoxedVectorOperand(arguments),
+			boxedWrite(
+				slotWrite.semanticValues() + closing,
+				slotWrite.restriction()))
 
 		// Now that the function has been constructed, clear the slots that
 		// were used for outer values -- except the destination slot, which

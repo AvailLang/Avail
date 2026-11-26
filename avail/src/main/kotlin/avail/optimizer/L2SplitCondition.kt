@@ -34,6 +34,9 @@ package avail.optimizer
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.methodName
+import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
@@ -45,6 +48,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i64Restricti
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
@@ -52,6 +56,7 @@ import avail.interpreter.levelTwo.operation.dispatch.L2_EXTRACT_OBJECT_VARIANT_I
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.optimizer.L2Synonym.Companion.appendSemanticValues
 import avail.optimizer.manifest.L2ValueManifest
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -59,6 +64,7 @@ import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.truncateTo
 import avail.utility.intersects
 import avail.utility.mapToSet
+import avail.utility.notNullAnd
 
 /**
  * An [L2SplitCondition] is a predicate on an [L2ValueManifest] which would be
@@ -349,6 +355,114 @@ sealed class L2SplitCondition
 	}
 
 	/**
+	 * A condition that holds if one of the given [semanticValues] is a
+	 * function whose [A_RawFunction] is known, whichever raw function that is
+	 * (see [P_CloseFunction.rawFunctionIn]).  Knowing the raw function of a
+	 * function about to be invoked lets the invocation be specialized for that
+	 * code, even when the function's outers are not known.
+	 *
+	 * At a split point it [specializes][specializedFor] to an
+	 * [L2RawFunctionIsCondition] for the raw function that the incoming edge
+	 * actually knows, so that edges closing different code reach different
+	 * copies of the block.
+	 *
+	 * @property semanticValues
+	 *   The [L2SemanticValue]s of functions, any of which may have a known raw
+	 *   function.
+	 */
+	private class L2KnownRawFunctionCondition
+	constructor (
+		val semanticValues: Set<L2SemanticValue>
+	): L2SplitCondition()
+	{
+		override fun equals(other: Any?): Boolean =
+			other is L2KnownRawFunctionCondition &&
+				other.semanticValues == semanticValues
+
+		override val hash = semanticValues.hashCode() + 0x6B3D1E47
+
+		/**
+		 * Answer the [A_RawFunction] that one of the [semanticValues] is known
+		 * to run in the given manifest, or `null` if none is known.
+		 *
+		 * @param manifest
+		 *   The [L2ValueManifest] to examine.
+		 * @return
+		 *   The known raw function, or `null`.
+		 */
+		fun rawFunctionIn(manifest: L2ValueManifest): A_RawFunction? =
+			semanticValues.firstNotNullOfOrNull {
+				when
+				{
+					manifest.hasSemanticValue(it) ->
+						P_CloseFunction.rawFunctionIn(manifest, it)
+					else -> null
+				}
+			}
+
+		override fun holdsFor(manifest: L2ValueManifest): Boolean =
+			rawFunctionIn(manifest) !== null
+
+		override fun specializedFor(
+			manifest: L2ValueManifest
+		): L2SplitCondition = L2RawFunctionIsCondition(
+			semanticValues, rawFunctionIn(manifest)!!)
+
+		override fun toString(): String = buildString {
+			append("Known raw function: ")
+			appendSemanticValues(semanticValues, false)
+		}.truncateTo(200)
+
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			otherCondition is L2KnownRawFunctionCondition &&
+				semanticValues.containsAll(otherCondition.semanticValues)
+	}
+
+	/**
+	 * A condition that holds if one of the given [semanticValues] is a
+	 * function known to run the given [rawFunction].  It is what an
+	 * [L2KnownRawFunctionCondition] becomes at a split point.
+	 *
+	 * @property semanticValues
+	 *   The [L2SemanticValue]s of functions.
+	 * @property rawFunction
+	 *   The [A_RawFunction] that one of them must be known to run.
+	 */
+	private class L2RawFunctionIsCondition
+	constructor (
+		val semanticValues: Set<L2SemanticValue>,
+		val rawFunction: A_RawFunction
+	): L2SplitCondition()
+	{
+		override fun equals(other: Any?): Boolean =
+			other is L2RawFunctionIsCondition &&
+				other.rawFunction.equals(rawFunction) &&
+				other.semanticValues == semanticValues
+
+		override val hash = combine3(
+			semanticValues.hashCode(), rawFunction.hash(), 0x2F8C5A19)
+
+		override fun holdsFor(manifest: L2ValueManifest): Boolean =
+			semanticValues.any {
+				manifest.hasSemanticValue(it)
+					&& P_CloseFunction.rawFunctionIn(manifest, it)
+						.notNullAnd { equals(rawFunction) }
+			}
+
+		override fun toString(): String = buildString {
+			append("Raw function is ")
+			append(rawFunction.methodName.asNativeString())
+			append(": ")
+			appendSemanticValues(semanticValues, false)
+		}.truncateTo(200)
+
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			otherCondition is L2RawFunctionIsCondition &&
+				otherCondition.rawFunction.equals(rawFunction) &&
+				semanticValues.containsAll(otherCondition.semanticValues)
+	}
+
+	/**
 	 * What a [KnownExactlyTracer] wishes to be known exactly about a value, as
 	 * it traces the value back through the instructions that produced it.
 	 */
@@ -374,7 +488,15 @@ sealed class L2SplitCondition
 		 * when traced back across the [L2_EXTRACT_OBJECT_TYPE_VARIANT_ID] that
 		 * produced the id.
 		 */
-		OBJECT_TYPE_VARIANT
+		OBJECT_TYPE_VARIANT,
+
+		/**
+		 * The value is a function whose [A_RawFunction] is known, though its
+		 * outers may not be.  An [L2_INVOKE] wishes this of the function it
+		 * calls, which then passes back through the moves and phis that
+		 * brought the function there, to the closing that made it.
+		 */
+		RAW_FUNCTION
 	}
 
 	/**
@@ -389,18 +511,22 @@ sealed class L2SplitCondition
 	 *
 	 * @constructor
 	 * Create a tracer that starts at the given registers, wishing each were
-	 * known to be a constant.
+	 * known exactly in the given way.
 	 *
 	 * @param initialRegisters
 	 *   The registers whose values it would be profitable to know exactly.
+	 * @param initialKnowledge
+	 *   What it would be profitable to know about them, by default that each
+	 *   is a constant.
 	 */
 	class KnownExactlyTracer
 	constructor (
-		initialRegisters: Collection<L2Register<*>>)
+		initialRegisters: Collection<L2Register<*>>,
+		initialKnowledge: KnownExactly = KnownExactly.CONSTANT)
 	{
 		/** The registers still to visit, each with what it is wished to be. */
 		private val registersToVisit = initialRegisters.mapTo(ArrayDeque()) {
-			it to KnownExactly.CONSTANT
+			it to initialKnowledge
 		}
 
 		/** The registers already visited. */
@@ -447,6 +573,8 @@ sealed class L2SplitCondition
 						L2KnownVariantCondition(values, isType = false)
 					KnownExactly.OBJECT_TYPE_VARIANT ->
 						L2KnownVariantCondition(values, isType = true)
+					KnownExactly.RAW_FUNCTION ->
+						L2KnownRawFunctionCondition(values)
 				}
 			}
 		}
@@ -690,6 +818,28 @@ sealed class L2SplitCondition
 			startingRegisters: Collection<L2Register<*>>
 		): Set<L2SplitCondition> =
 			KnownExactlyTracer(startingRegisters).traceAll()
+
+		/**
+		 * Answer conditions that hold where an ancestor of the given
+		 * register, which holds a function, is known to run a particular
+		 * [A_RawFunction], whatever its outers.  The wish is traced back
+		 * through moves and phis to the closings that made the function, and
+		 * each condition [specializes][L2SplitCondition.specializedFor] at a
+		 * split point to the raw function that the incoming edge actually
+		 * knows.
+		 *
+		 * @param functionRegister
+		 *   The register holding a function about to be invoked.
+		 * @return
+		 *   The [Set] of conditions, empty if every ancestor was written only
+		 *   with constants.
+		 */
+		fun knownRawFunctionConditions(
+			functionRegister: L2Register<*>
+		): Set<L2SplitCondition> =
+			KnownExactlyTracer(
+				listOf(functionRegister), KnownExactly.RAW_FUNCTION
+			).traceAll()
 
 		/**
 		 * Answer the constants that the values of the given registers are

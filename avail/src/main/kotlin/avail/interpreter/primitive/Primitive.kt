@@ -1585,6 +1585,27 @@ constructor(
 		readTwoInts(semanticValue1, semanticValue2, onFailure, range)
 
 	/**
+	 * Describe an [L2_RUN_INFALLIBLE_PRIMITIVE] of this primitive with the
+	 * given arguments, as it follows the result and its arrow in a rendering
+	 * of the instruction.  By default this is the primitive's name and its
+	 * arguments.  A primitive can say something more readable about what its
+	 * invocation makes.
+	 *
+	 * @receiver
+	 *   The [StringBuilder] on which to describe the invocation.
+	 * @param arguments
+	 *   The [L2ReadBoxedOperand]s supplying the arguments.
+	 */
+	open fun StringBuilder.describeL2Invocation(
+		arguments: List<L2ReadBoxedOperand>)
+	{
+		append(this@Primitive)
+		append('(')
+		append(arguments)
+		append(')')
+	}
+
+	/**
 	 * Write a JVM invocation of this primitive, *under the assumption that the
 	 * primitive cannot fail or reify*.  This sets up the interpreter, calls
 	 * [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt], calls

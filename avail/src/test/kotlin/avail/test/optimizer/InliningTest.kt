@@ -52,6 +52,7 @@ import avail.descriptor.representation.A_Fiber.Companion.executionState
 import avail.descriptor.representation.A_Label
 import avail.descriptor.representation.A_Label.Companion.caller
 import avail.descriptor.representation.A_Method.Companion.definitionsTuple
+import avail.descriptor.representation.A_Method.Companion.lookupByValuesFromList
 import avail.descriptor.representation.A_Number.Companion.extractLong
 import avail.descriptor.representation.A_Number.Companion.plusCanDestroy
 import avail.descriptor.representation.A_RawFunction
@@ -71,6 +72,7 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
@@ -93,6 +95,7 @@ import avail.interpreter.levelOne.L1Operation.L1_doGetOuter
 import avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
 import avail.interpreter.levelOne.L1Operation.L1_doPop
 import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
+import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
 import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.DEPENDENCY_CHANGED
@@ -105,20 +108,30 @@ import avail.interpreter.levelTwo.operation.L2_INLINED_FALL_BACK_TO_L1
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT_BOXED
+import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.variables.L2_CREATE_VARIABLE
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.fibers.P_CurrentFiber
 import avail.interpreter.primitive.fibers.P_ParkCurrentFiber
 import avail.interpreter.primitive.fibers.P_UnparkFiber
+import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.integers.P_UpperBound
 import avail.interpreter.primitive.numbers.P_Addition
 import avail.interpreter.primitive.numbers.P_Subtraction
 import avail.interpreter.primitive.rawfunctions.P_PrivateForceOptimizationForTests
 import avail.interpreter.primitive.tuples.P_TupleAt
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.reoptimizer.L2Inliner
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.withLock
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -126,10 +139,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertThrows
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.concurrent.withLock
 
 /**
  * Tests of [L2Inliner], which embeds a suitable callee's graph at a call site
@@ -185,6 +194,50 @@ class InliningTest
 		get() = l2Instructions.any {
 			it is L2_INVOKE || it is L2_INVOKE_CONSTANT_FUNCTION
 		}
+
+	/**
+	 * Callees are embedded one inside another at most twenty deep.  Each of a
+	 * chain of functions calls the next, and each is optimized after the one
+	 * it calls, so each embeds the next, which already embeds the rest.  The
+	 * function whose chunk is twenty deep is not embedded in its caller,
+	 * which calls it instead.
+	 */
+	@Test
+	fun testEmbeddingIsAtMostTwentyDeep()
+	{
+		val names = (0 .. 21).map { "level ${it}_" }
+		// Define each level after the one it calls, which must exist first.
+		names.indices.reversed().forEach { index ->
+			helper.defineMethod(names[index], integers) {
+				argumentTypes(integers)
+				L1_doPushLocal(1)
+				when (val next = names.getOrNull(index + 1))
+				{
+					null ->
+					{
+						pushLiteral(fromInt(1))
+						call("_+_", integers)
+					}
+					else -> call(next, integers)
+				}
+			}
+		}
+		val bodies = names.map(::soleBodyOf)
+		bodies.reversed().forEach(helper::testOptimize)
+		val depths = bodies.map {
+			(it.startingChunk as L2JVMChunk).embeddingDepth
+		}
+		assertEquals(
+			listOf(0) + (20 downTo 1) + 0,
+			depths,
+			"Expected each level to embed the next, up to twenty deep")
+		assertTrue(
+			bodies[0].invokesAFunction,
+			"Expected the outermost level to call the next, not embed it")
+		assertEquals(
+			fromInt(43),
+			helper.executeRawFunction(bodies[0], listOf(fromInt(42))))
+	}
 
 	/**
 	 * A call of an optimized function that calls only an infallible
@@ -587,6 +640,119 @@ class InliningTest
 		assertEmbedded(caller, "first of_")
 		dispatch.assertSecondFollowsFirstDirectly(caller)
 		dispatch.assertComputesPairs(caller)
+	}
+
+	/**
+	 * A caller that invokes a function closed by one of two embedded
+	 * definitions, each closing a different block over the argument, invokes
+	 * each closure apart from the other.  The invocation wishes the closure's
+	 * raw function were known, so code splitting keeps the arms of the
+	 * embedded dispatch apart through the merge, and each invocation is
+	 * reached only by its own closing.
+	 */
+	@Test
+	fun testClosingsOfDifferentBlocksAreInvokedApart()
+	{
+		helper.definePrimitives("Invoke_with tuple_" to P_InvokeWithTuple)
+		val dispatch = helper.defineVariantDispatch()
+		val blocks = listOf(1, 2).map { answer ->
+			helper.rawFunction(integers) {
+				val x = createOuter(dispatch.commonType)
+				// Touch the outer, so that the block is not just a constant.
+				L1_doPushOuter(x)
+				L1_doPop()
+				pushLiteral(fromInt(answer))
+			}
+		}
+		assertNotEquals(blocks[0], blocks[1])
+		// The type says the blocks take no arguments, so invoking one with an
+		// empty tuple is a call of the function, not of the primitive.
+		val blockType = functionType(emptyTuple, integers)
+		listOf(dispatch.left, dispatch.right).zip(blocks).forEach {
+				(value, block) ->
+			helper.defineMethod("block for_", blockType) {
+				argumentTypes(value.kind())
+				L1_doPushLocal(1)
+				L1_doClose(1, addLiteral(block))
+			}
+		}
+		val method = helper.lookup("block for_").bundleMethod
+		listOf(dispatch.left, dispatch.right).forEach { value ->
+			method.lookupByValuesFromList(listOf(value), null)
+		}
+		method.definitionsTuple.forEach { definition ->
+			val body = definition.bodyBlock().code()
+			helper.testOptimize(body)
+			assertNotNull((body.startingChunk as L2JVMChunk).inlinableGraph)
+		}
+		val caller = helper.rawFunction(integers) {
+			argumentTypes(dispatch.commonType)
+			// :: invoke block for x with <>
+			L1_doPushLocal(1)
+			call("block for_", blockType)
+			pushLiteral(emptyTuple)
+			call("Invoke_with tuple_", integers)
+		}
+		helper.testOptimize(caller)
+		assertEmbedded(caller, "block for_")
+		// Examine the graph while it is still in SSA form, before registers
+		// that never interfere are merged.
+		val graph = (caller.startingChunk as L2JVMChunk).inlinableGraph
+		assertNotNull(graph)
+		val invocations = graph!!.basicBlockOrder
+			.filterNot(L2BasicBlock::isCold)
+			.flatMap(L2BasicBlock::instructions)
+			.filterIsInstance<L2_INVOKE>()
+		// The fallback for other kinds of shape invokes whatever function its
+		// lookup finds, and then whatever that answers, so only the closings
+		// are examined, but no invocation may be of a merge of closings.
+		val origins = invocations.map {
+			it.calledFunction.definitionSkippingMoves()
+		}
+		val mergedClosings = origins.filterIsInstance<L2_PHI<*>>().filter {
+			it.sources.elements.any { source ->
+				closedRawFunctionOrNull(source.definitionSkippingMoves()) !==
+					null
+			}
+		}
+		assertTrue(
+			mergedClosings.isEmpty(),
+			"Expected no invocation of merged closings: $mergedClosings")
+		assertEquals(
+			blocks.toSet(),
+			origins.mapNotNullTo(mutableSetOf(), ::closedRawFunctionOrNull),
+			"Expected each block to be invoked only after its own closing")
+		listOf(dispatch.left, dispatch.right).zip(listOf(1, 2)).forEach {
+				(value, answer) ->
+			assertEquals(
+				fromInt(answer),
+				helper.executeRawFunction(caller, listOf(value)))
+		}
+	}
+
+	/**
+	 * Answer the raw function that the given instruction closes, if it is an
+	 * [L2_RUN_INFALLIBLE_PRIMITIVE] of [P_CloseFunction], or `null` if it is
+	 * not a closing.
+	 *
+	 * @param instruction
+	 *   The [L2Instruction] that produced an invoked function.
+	 * @return
+	 *   The [A_RawFunction] it closes, or `null`.
+	 */
+	private fun closedRawFunctionOrNull(
+		instruction: L2Instruction
+	): A_RawFunction?
+	{
+		if (instruction !is L2_RUN_INFALLIBLE_PRIMITIVE
+			|| instruction.primitive.constant !== P_CloseFunction)
+		{
+			return null
+		}
+		val constant =
+			instruction.arguments.elements[0].definitionSkippingMoves()
+		assertTrue(constant is L2_MOVE_CONSTANT_BOXED, "$constant")
+		return (constant as L2_MOVE_CONSTANT_BOXED).constant().constant
 	}
 
 	/**

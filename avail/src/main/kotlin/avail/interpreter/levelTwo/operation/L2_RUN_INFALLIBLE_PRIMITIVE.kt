@@ -200,10 +200,7 @@ private constructor(
 		append("\n\t")
 		append(result.registerString())
 		append(" ← ")
-		append(primitive)
-		append('(')
-		append(arguments.elements)
-		append(')')
+		primitive.constant.run { describeL2Invocation(arguments.elements) }
 	}
 
 	/**

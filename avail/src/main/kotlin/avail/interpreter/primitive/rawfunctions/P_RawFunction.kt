@@ -68,5 +68,12 @@ object P_RawFunction
 				mostGeneralFunctionType),
 			mostGeneralCompiledCodeType())
 
+	/**
+	 * The answer is a subobject of the argument, which this flag ordinarily
+	 * forbids, since a mutable subobject could then be altered or recycled
+	 * while the argument still holds it.  Compiled code is always shared,
+	 * though, so it is never altered or recycled, and the function cannot be
+	 * affected through it.
+	 */
 	override val canDestroyArguments get() = false
 }

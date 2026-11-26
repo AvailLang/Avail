@@ -33,10 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import avail.descriptor.representation.A_Function
-import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
-import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.interpreter.levelTwo.InstructionLayout
@@ -198,17 +195,6 @@ constructor(
 	override fun JVMTranslator.pushConstant() =
 		loadLiteralObject(constant().constant)
 
-	override fun L2GeneratorInterface.extractFunctionOuter(
-		functionRegister: L2ReadBoxedOperand,
-		outerIndex: Int,
-		outerType: A_Type
-	): L2ReadBoxedOperand
-	{
-		// The exact function is known statically.
-		val constantFunction: A_Function = constant().constant
-		return boxedConstant(constantFunction.outerVarAt(outerIndex))
-	}
-
 	override fun L2GeneratorInterface.extractTupleElement(
 		synonym: L2Synonym,
 		index: Int,
@@ -223,9 +209,6 @@ constructor(
 	{
 		// Constants are always immutable.
 	}
-
-	/** The constant must be a function at this point. */
-	override fun getConstantCode(manifest: L2ValueManifest): A_RawFunction = source.constant.code()
 }
 
 class L2_MOVE_CONSTANT_INT

@@ -32,13 +32,10 @@
 
 package avail.interpreter.levelTwo
 
-import avail.descriptor.representation.A_RawFunction
-import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.types.TypeTag
-import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -508,19 +505,6 @@ constructor() :
 	open fun isBitLogicOperation(op: BitOperation) = false
 
 	/**
-	 * Extract the constant [A_RawFunction] that's enclosed by the function
-	 * produced or passed along by this instruction.  Answer `null` if it cannot
-	 * be determined statically.
-	 *
-	 * @param
-	 *   The [L2ValueManifest] in which to trace postponed instructions.
-	 * @return
-	 *   The constant [A_RawFunction] extracted from the instruction, or `null`
-	 *   if unknown.
-	 */
-	open fun getConstantCode(manifest: L2ValueManifest): A_RawFunction? = null
-
-	/**
 	 * Produce code to extract the specified [index] of the tuple constructed by
 	 * this instruction, writing it to the [destinationSemanticValues].
 	 *
@@ -549,30 +533,6 @@ constructor() :
 					currentManifest.restrictionFor(synonym.pickSemanticValue())
 						.type
 						.typeAtIndex(index))))
-
-	/**
-	 * Emit code to extract the specified outer value from the function produced
-	 * by this instruction.  The new code is appended to the provided list of
-	 * instructions, which may be at a code generation position unrelated to the
-	 * receiver.  The extracted outer variable will be written to the provided
-	 * target register.
-	 *
-	 * @receiver
-	 *   The [L2Generator] into which to write the new code.
-	 * @param functionRegister
-	 *   The register holding the function at the code generation point.
-	 * @param outerIndex
-	 *   The one-based outer index to extract from the function.
-	 * @param outerType
-	 *   The type of value that must be in that outer.
-	 * @return
-	 *   The [L2ReadBoxedOperand] holding the outer value.
-	 */
-	open fun L2GeneratorInterface.extractFunctionOuter(
-		functionRegister: L2ReadBoxedOperand,
-		outerIndex: Int,
-		outerType: A_Type,
-	): L2ReadBoxedOperand = unsupported
 
 	/**
 	 * Answer whether this instruction, which occurs at the end of a basic

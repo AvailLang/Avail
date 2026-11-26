@@ -42,6 +42,7 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Inliner
@@ -104,12 +105,12 @@ class L2_MOVE_OUTER_VARIABLE(
 	}
 
 	/**
-	 * Trace the function back to where it was made.  If it is a constant,
-	 * its outer is a constant too.  If this graph created it with an
-	 * [L2_CREATE_FUNCTION], the outer is the value that was captured, and the
-	 * function might not have to be created at all.  This is what lets a
-	 * callee embedded by [L2Inliner] read its outers straight from the
-	 * caller's values.  Otherwise, extract the outer at runtime.
+	 * If the function is a constant, its outer is a constant too.  If it was
+	 * closed here (see [P_CloseFunction.closingIn]) and the value it captured
+	 * is still live, that value is the outer, and the function might not have
+	 * to be created at all.  This is what lets a callee embedded by
+	 * [L2Inliner] read its outers straight from the caller's values.
+	 * Otherwise, extract the outer at runtime.
 	 */
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
@@ -121,21 +122,16 @@ class L2_MOVE_OUTER_VARIABLE(
 			moveConstant(constantFunction.outerVarAt(index), destinations)
 			return
 		}
-		when (val creation = function.definitionSkippingMoves(currentManifest))
+		val outer = capturedOuterOrNull(function.semanticValue(), index)
+		if (outer !== null)
 		{
-			is L2_CREATE_FUNCTION, is L2_MOVE_CONSTANT_BOXED ->
-			{
-				val outer = creation.run {
-					extractFunctionOuter(
-						function, index, destination.restriction().type)
-				}
-				move(outer.semanticValue(), destinations)
-				currentManifest.updateRestriction(destinations.first()) {
-					intersection(destination.restriction())
-				}
+			move(outer.semanticValue(), destinations)
+			currentManifest.updateRestriction(destinations.first()) {
+				intersection(destination.restriction())
 			}
-			else -> analyzeAndOptionallyRewrite()?.let { +it }
+			return
 		}
+		analyzeAndOptionallyRewrite()?.let { +it }
 	}
 
 	override fun JVMTranslator.translateToJVM()

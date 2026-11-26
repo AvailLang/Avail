@@ -234,6 +234,17 @@ Two kinds of semantic value deserve mention:
   `P_ExtractObjectTypeVariantId`.  Facts flow between an invocation and its
   arguments through the primitive, in both directions (see
   [Narrowing](#narrowing)).
+- A closure is named by an invocation of `P_CloseFunction`, whose first
+  argument is the raw function and whose others are the values of its
+  outers.  Wherever the closure is known, its class therefore holds that
+  invocation, which says what code the closure runs and what it captured,
+  however the closure got there: through moves, postponement, or a merge
+  whose incoming edges all closed the same values.  Two closings of the same
+  raw function over the same values are congruent, and are one value, as
+  function equality says they are.  The closing is also the instruction
+  that makes the closure, an `L2_RUN_INFALLIBLE_PRIMITIVE` of
+  `P_CloseFunction`, which is postponed like any other until something
+  needs the closure itself.
 
 An invocation is assumed to be infallible and stable wherever it is known:
 running it again there produces the same value and cannot fail.  Its

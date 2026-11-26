@@ -36,12 +36,20 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_ChunkDependable
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
+import avail.descriptor.representation.A_RawFunction.Companion.declarationNames
+import avail.descriptor.representation.A_RawFunction.Companion.numOuters
+import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
+import avail.descriptor.representation.A_String.Companion.asNativeString
+import avail.descriptor.representation.A_Tuple.Companion.tupleAt
+import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2CommentOperand
+import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
@@ -52,6 +60,8 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.i32Restriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_EXIT_FREEZE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
@@ -60,6 +70,7 @@ import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
@@ -72,12 +83,14 @@ import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
+import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.manifest.L2ValueManifest
+import avail.optimizer.reoptimizer.L2Inliner
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticValue
@@ -793,7 +806,9 @@ interface L2GeneratorInterface : L2Visualizable
 
 	/**
 	 * Given a register that holds the function to invoke, answer either the
-	 * [A_RawFunction] it will be known to run, or `null`.
+	 * [A_RawFunction] it will be known to run, or `null`.  It is known if the
+	 * function is a constant, or was closed from a constant raw function (see
+	 * [P_CloseFunction.rawFunctionIn]).
 	 *
 	 * @param functionToCallRead
 	 *   The [L2ReadBoxedOperand] containing the function to invoke.
@@ -802,7 +817,115 @@ interface L2GeneratorInterface : L2Visualizable
 	 */
 	fun determineRawFunction(
 		functionToCallRead: L2ReadBoxedOperand
-	): A_RawFunction?
+	): A_RawFunction? = P_CloseFunction.rawFunctionIn(
+		currentManifest, functionToCallRead.semanticValue())
+
+	/**
+	 * Answer a read of the outer value at the given index of the function in
+	 * the given register, generating whatever it takes to produce it.  If the
+	 * function is a constant, so is the outer.  If it was closed here (see
+	 * [P_CloseFunction.closingIn]) and the value it captured is still live or
+	 * constant, that value is read, and the function might never have to be
+	 * created at all.  This is what lets a callee embedded by [L2Inliner]
+	 * read its outers straight from the caller's values.  Otherwise the outer
+	 * is extracted from the function at runtime.
+	 *
+	 * @param functionRead
+	 *   The register holding the function.
+	 * @param outerIndex
+	 *   The one-based index of the outer to read.
+	 * @param outerType
+	 *   The type of value that must be in that outer.
+	 * @return
+	 *   The [L2ReadBoxedOperand] holding the outer value.
+	 */
+	fun extractFunctionOuter(
+		functionRead: L2ReadBoxedOperand,
+		outerIndex: Int,
+		outerType: A_Type
+	): L2ReadBoxedOperand
+	{
+		val function = functionRead.semanticValue()
+		currentManifest.constantOrNullFor(function)?.let { constant ->
+			return boxedConstant(constant.outerVarAt(outerIndex))
+		}
+		capturedOuterOrNull(function, outerIndex)?.let { return it }
+		// Extract the value from the actual function, which is guaranteed to
+		// have the strengthened type.
+		var restriction = restrictionForType(outerType)
+		val rawFunction = determineRawFunction(functionRead)
+		if (rawFunction !== null)
+		{
+			restriction = restriction.intersectionWithType(
+				rawFunction.outerTypeAt(outerIndex))
+		}
+		if (functionRead.restriction.isImmutable)
+		{
+			// An immutable function has immutable captured outers.
+			restriction = restriction.withFlag(IMMUTABLE_FLAG)
+		}
+		val tempWrite = boxedWriteTemp("outer #$outerIndex", restriction)
+		+L2_MOVE_OUTER_VARIABLE(
+			L2CommentOperand(outerName(rawFunction, outerIndex)),
+			L2IntImmediateOperand(outerIndex),
+			functionRead,
+			tempWrite)
+		return readBoxed(tempWrite)
+	}
+
+	/**
+	 * Answer a read of the value that the function with the given
+	 * [L2SemanticValue] captured as the outer at the given index, if the
+	 * function was closed here (see [P_CloseFunction.closingIn]) and that
+	 * value is still live or constant.  Otherwise answer `null`.
+	 *
+	 * @param function
+	 *   The [L2SemanticValue] of the function.
+	 * @param outerIndex
+	 *   The one-based index of the outer.
+	 * @return
+	 *   A read of the captured value, or `null`.
+	 */
+	fun capturedOuterOrNull(
+		function: L2SemanticValue,
+		outerIndex: Int
+	): L2ReadBoxedOperand?
+	{
+		val closing = P_CloseFunction.closingIn(currentManifest, function)
+			?: return null
+		val outer = closing.argumentSemanticValues[outerIndex]
+		return when
+		{
+			currentManifest.hasLiveSemanticValue(outer, BOXED_KIND) ->
+				readBoxed(outer)
+			else -> currentManifest.constantOrNullFor(outer)
+				?.let(::boxedConstant)
+		}
+	}
+
+	/**
+	 * Answer the name that the given raw function declares for the outer at
+	 * the given index, for annotating an extraction of it, or an empty string
+	 * if the raw function is not known or declares no name for it.
+	 *
+	 * @param rawFunction
+	 *   The [A_RawFunction] that declares the outer, or `null`.
+	 * @param outerIndex
+	 *   The one-based index of the outer.
+	 * @return
+	 *   The outer's name, or an empty string.
+	 */
+	private fun outerName(rawFunction: A_RawFunction?, outerIndex: Int): String
+	{
+		rawFunction ?: return ""
+		val allNames = rawFunction.declarationNames
+		val nameIndex = allNames.tupleSize - rawFunction.numOuters + outerIndex
+		return when (nameIndex <= allNames.tupleSize)
+		{
+			true -> allNames.tupleAt(nameIndex).asNativeString()
+			else -> ""
+		}
+	}
 
 	/**
 	 * Record the fact that the chunk being created depends on the given

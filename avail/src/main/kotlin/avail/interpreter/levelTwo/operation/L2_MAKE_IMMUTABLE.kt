@@ -32,8 +32,6 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_Type
-import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -62,16 +60,6 @@ class L2_MAKE_IMMUTABLE(
 	var output: L2WriteBoxedOperand
 ): L2Instruction()
 {
-	/**
-	 * The make-immutable instruction should only be inserted near the end of
-	 * optimization.
- 	 */
-	override fun L2GeneratorInterface.extractFunctionOuter(
-		functionRegister: L2ReadBoxedOperand,
-		outerIndex: Int,
-		outerType: A_Type
-	): L2ReadBoxedOperand = unsupported
-
 	override fun StringBuilder.appendToWithWarnings(
 		desiredOperandTypes: Set<L2OperandType>,
 		ignoreMisconnections: Boolean,
