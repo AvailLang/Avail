@@ -150,7 +150,6 @@ import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
@@ -197,7 +196,6 @@ import avail.optimizer.CallSiteHelper.JunctionType.ReificationUnreturnable
 import avail.optimizer.CallSiteHelper.JunctionType.ReificationWithCheck
 import avail.optimizer.DefaultL1ExecutableChunk.DefaultEntryPoint
 import avail.optimizer.L2ControlFlowGraph.ZoneType
-import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2Generator.Companion.maxPolymorphismToInlineDispatch
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
@@ -840,57 +838,6 @@ class L1Translator private constructor(
 	}
 
 	/**
-	 * We've reached a position in code generation where we know the current
-	 * frame's label is being restarted.  Generate code to strip the manifest
-	 * and jump back to the [RESTART_LOOP_HEAD].
-	 *
-	 * @param restartArguments
-	 *   The [L2ReadBoxedOperand]s providing values with which to restart the
-	 *   current frame.
-	 */
-	fun generateRestartContinuation(
-		restartArguments: List<L2ReadBoxedOperand>)
-	{
-		val indices = 0 ..< numArgs
-		val restrictions = restartArguments.map { it.restriction }
-		val temps = restartArguments.indices.map { i ->
-			newTemp("arg #${i+1} for restart")
-		}
-		val tempWrites = indices.map { i ->
-			boxedWrite(temps[i], restrictions[i])
-		}
-		// For safety, first copy the arguments into temps.  The function
-		// passes through both strips unchanged, since a restart keeps it.
-		val function = topFrame.function()
-		+L2_STRIP_MANIFEST(
-			L2ReadBoxedVectorOperand(restartArguments + readBoxed(function)),
-			L2WriteBoxedVectorOperand(tempWrites + functionWrite()))
-		// Now copy from the temps into the arguments.
-		val finalSlots = indices.map { i -> createSemanticSlot(i + 1, 1) }
-		val finalWrites = indices.map { i ->
-			L2WriteBoxedOperand(
-				setOf(finalSlots[i]),
-				restrictions[i])
-		}
-		+L2_STRIP_MANIFEST(
-			L2ReadBoxedVectorOperand(
-				tempWrites.map(::readBoxed) + readBoxed(function)),
-			L2WriteBoxedVectorOperand(finalWrites + functionWrite()))
-
-		// Jump back to the RESTART_LOOP_HEAD, where only the n@1 semantic slots
-		// and the function, and their registers, will be live and added to
-		// the phis.
-		+L2_JUMP_BACK(
-			backEdgeTo(
-				specialBlocks[RESTART_LOOP_HEAD]!!,
-				// Registers will be (re)generated from finalSlots reads.
-				emptySet(),
-				(finalSlots + function).toSet()),
-			L2ReadBoxedVectorOperand(
-				(finalSlots + function).map(::readBoxed)))
-	}
-
-	/**
 	 * Information about one invocation site, for use by polymorphic calls.
 	 *
 	 * @property block
@@ -1291,40 +1238,19 @@ class L1Translator private constructor(
 			{
 				// We are not recursing here from a primitive override of
 				// tryToGenerateSpecialPrimitiveInvocation(), so try to generate
-				// a special primitive invocation.  Note that this lookup was
-				// monomorphic *in the event of success*, so we can safely
-				// tighten the argument types here to conform to the only
-				// possible found function.
-				val manifest = currentManifest
-				val strongArguments = (0 until argumentCount).map {
-					val arg = arguments[it]
-					val argSemanticValue = arg.semanticValue()
-					val strongRestriction = arg.restriction
-						.intersection(manifest.restrictionFor(argSemanticValue))
-						.intersectionWithType(argsTupleType.typeAtIndex(it + 1))
-					manifest.setRestriction(argSemanticValue, strongRestriction)
-					L2ReadBoxedOperand(argSemanticValue)
-				}
-				argumentTypes = strongArguments.map { it.type }
-				if (primitive is Foldable)
-				{
-					// See if there's an equivalent semantic value already in
-					// the manifest, and just reuse that if possible.
-					val semanticPrimitive = primitive.semanticInvocation(
-						arguments.map(L2ReadBoxedOperand::semanticValue))
-					manifest.equivalentSemanticValue(semanticPrimitive)?.let {
-							equivalent ->
-						move(equivalent, listOf(semanticPrimitive))
-						callSiteHelper.useAnswer(readBoxed(semanticPrimitive))
-						return
-					}
-				}
-				generated = tryToGenerateSpecialInvocation(
+				// the primitive in place of the call.  Note that this lookup
+				// was monomorphic *in the event of success*, so the arguments
+				// are tightened to conform to the only possible found function.
+				generated = tryToGeneratePrimitiveInPlace(
 					functionToCallRead,
 					rawFunction,
 					primitive,
-					strongArguments,
+					arguments,
 					callSiteHelper)
+				if (generated) return
+				argumentTypes = arguments.map {
+					currentManifest.restrictionFor(it.semanticValue()).type
+				}
 			}
 			else
 			{
@@ -1603,133 +1529,6 @@ class L1Translator private constructor(
 				uncheckedValueRead.restriction.intersection(
 					restrictionForType(expectedType)))
 		}
-	}
-
-	/**
-	 * Attempt to create a more specific instruction sequence than just an
-	 * [L2_INVOKE].  In particular, see if the `functionToCallReg` is known to
-	 * contain a constant function (a common case) which is an inlineable
-	 * primitive, and if so, delegate this opportunity to the primitive.
-	 *
-	 * We must either answer `false` and generate no code, or answer `true` and
-	 * generate code that has the same effect as having run the function in the
-	 * register without fear of reification or abnormal control flow.  A folded
-	 * primitive, for example, can generate a simple [L2_MOVE_CONSTANT] into the
-	 * top-of-stack register and answer true.
-	 *
-	 * @param functionToCallReg
-	 *   The register containing the [function][A_Function] to invoke.
-	 * @param rawFunction
-	 *   The [raw function][A_RawFunction] being invoked.
-	 * @param primitive
-	 *   The [Primitive] being invoked.
-	 * @param arguments
-	 *   The arguments to supply to the function.
-	 * @param callSiteHelper
-	 *   Information about the method call site having its dispatch tree
-	 *   inlined.  It also contains merge points for this call, so if a specific
-	 *   code generation happens it should jump to one of these.
-	 * @return
-	 *   `true` if a special instruction sequence was generated, `false`
-	 *   otherwise.
-	 */
-	private fun tryToGenerateSpecialInvocation(
-		functionToCallReg: L2ReadBoxedOperand,
-		rawFunction: A_RawFunction,
-		primitive: Primitive,
-		arguments: List<L2ReadBoxedOperand>,
-		callSiteHelper: CallSiteHelper
-	): Boolean
-	{
-		val argumentCount = arguments.size
-		if (primitive.hasFlag(Flag.CanFold))
-		{
-			// It can be folded, if supplied with constants.
-			val constants = mutableListOf<AvailObject>()
-			for (regRead in arguments)
-			{
-				regRead.constantOrNull?.let(constants::add)
-			}
-			if (constants.size == argumentCount)
-			{
-				// Fold the primitive.  A foldable primitive must not
-				// require access to the enclosing function or its code.
-				val savedFunction = interpreter.function
-				interpreter.function = null
-				val savedDebugModeString = interpreter.debugModeString
-				if (Interpreter.debugL2)
-				{
-					log(
-						Interpreter.loggerDebugL2,
-						Level.FINER,
-						"{0}FOLD {1}:",
-						interpreter.debugModeString,
-						primitive.name)
-				}
-				val valueOrNull: A_BasicObject? = try
-				{
-					interpreter.argsBuffer.clear()
-					interpreter.argsBuffer.addAll(constants)
-					primitive.attempt(interpreter)
-				}
-				finally
-				{
-					interpreter.debugModeString = savedDebugModeString
-					interpreter.function = savedFunction
-				}
-				if (valueOrNull !== null)
-				{
-					callSiteHelper.useAnswer(
-						boxedConstant(valueOrNull.makeImmutable()))
-					return true
-				}
-				assert(interpreter.currentReifier === null)
-				assert(!primitive.hasFlag(Flag.CannotFail))
-			}
-		}
-
-		// The primitive can't be folded, so let it generate its own code
-		// equivalent to invocation.
-		val signatureTupleType = rawFunction.functionType().argsTupleType
-		val narrowedArgTypes = mutableListOf<A_Type>()
-		val narrowedArguments = mutableListOf<L2ReadBoxedOperand>()
-		for (i in 0 until argumentCount)
-		{
-			val argument = readBoxed(arguments[i].semanticValue())
-			assert(
-				argument.type.isSubtypeOf(
-					signatureTupleType.typeAtIndex(i + 1)))
-			narrowedArgTypes.add(argument.type)
-			narrowedArguments.add(argument)
-		}
-		// Let the primitive generate specialized code if possible.
-		var generated = primitive.run {
-			tryToGenerateSpecialPrimitiveInvocation(
-				functionToCallReg,
-				rawFunction,
-				narrowedArguments,
-				narrowedArgTypes,
-				callSiteHelper)
-		}
-		if (!generated)
-		{
-			// Try a general infallible invocation, if possible.
-			generated = primitive.run {
-				tryToGenerateGeneralPrimitiveInvocation(
-					rawFunction,
-					narrowedArguments,
-					narrowedArgTypes,
-					callSiteHelper)
-			}
-		}
-		if (generated)
-		{
-			// We don't allow the primitive generation to leave the generator at
-			// a reachable point, since the callSiteHelper was supposed to be
-			// told when a result was produced.
-			assert(!currentlyReachable())
-		}
-		return generated
 	}
 
 	/**

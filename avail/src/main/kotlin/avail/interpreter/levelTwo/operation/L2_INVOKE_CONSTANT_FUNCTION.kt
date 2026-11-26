@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction.Companion.declarationNames
 import avail.descriptor.representation.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.A_RawFunction.Companion.numArgs
@@ -46,20 +47,23 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCanFail
-import avail.interpreter.primitive.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.primitive.Primitive.Flag.CanInline
 import avail.interpreter.primitive.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.primitive.Primitive.Flag.Invokes
 import avail.interpreter.primitive.Primitive.Flag.Unknown
+import avail.optimizer.L2CallSite
+import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.PostPhiData
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.Strings.increaseIndentation
 
 /**
@@ -171,42 +175,125 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		return emptyList()
 	}
 
+	/**
+	 * If the function has a primitive, let it generate code in place of this
+	 * call, through a [RewrittenCallSite].  This is asked again whenever the
+	 * graph is regenerated, since the arguments' types may have narrowed
+	 * enough to reveal a new opportunity.  Otherwise keep the call.
+	 */
 	override fun L2GeneratorInterface.emitTransformedInstruction()
 	{
-		// See if the new situation has become specialized enough to invoke a
-		// primitive that's infallible for these arguments.
-		val rawFunction = constantFunction.constant.code()
-		val argumentTypes = arguments.elements.map { it.type }
+		val function = constantFunction.constant
+		val rawFunction = function.code()
 		val primitive = rawFunction.codePrimitive()
-		when
+		if (primitive !== null
+			&& tryToGeneratePrimitiveInPlace(
+				boxedConstant(function),
+				rawFunction,
+				primitive,
+				arguments.elements,
+				RewrittenCallSite(this, this@L2_INVOKE_CONSTANT_FUNCTION)))
 		{
-			primitive === null -> { }
-			!primitive.hasFlag(CanInline) -> { }
-			primitive.hasFlag(CanSwitchContinuations) -> { }
-			primitive.hasFlag(Invokes) -> { }
-			primitive.hasFlag(Unknown) -> { }
-			primitive.fallibilityForArgumentTypes(argumentTypes)
-				== CallSiteCannotFail ->
-			{
-				val guaranteed = primitive.guaranteedRestriction(
-					rawFunction, argumentTypes)
-				+L2_RUN_INFALLIBLE_PRIMITIVE(
-					rawFunction,
-					primitive,
-					arguments,
-					boxedWrite(
-						result.semanticValues(),
-						result.restriction().intersection(guaranteed)))
-				returningFunction.elements.forEach { write ->
-					moveConstant(
-						constantFunction.constant, write.semanticValues())
-				}
-				jumpTo(ifReturn.targetBlock())
-				return
-			}
+			return
 		}
 		+this@L2_INVOKE_CONSTANT_FUNCTION
 	}
+
+	/**
+	 * The [L2CallSite] of an [L2_INVOKE_CONSTANT_FUNCTION] whose primitive is
+	 * generating code in place of the call during regeneration.  The call's
+	 * own operands say where each path goes: an answer produced in place is
+	 * written to the call's [result], with the invoked function named as the
+	 * one that produced it, and continues at its [ifReturn] target.  A
+	 * function invoked in the primitive's place is called with the same
+	 * targets, writing the same values.
+	 *
+	 * Each nested call's reification edge goes to the same target as the
+	 * call's.  That target begins with an entry point, which must be reached
+	 * by a single edge, but [L2Regenerator] gives each incoming edge its own
+	 * copy of such a block.
+	 *
+	 * @property generator
+	 *   The generator regenerating the graph.
+	 * @property invoke
+	 *   The call whose primitive is generating code in its place.
+	 * @constructor
+	 * Create the call site.
+	 */
+	private class RewrittenCallSite(
+		override val generator: L2GeneratorInterface,
+		val invoke: L2_INVOKE_CONSTANT_FUNCTION
+	) : L2CallSite
+	{
+		override fun useAnswer(answer: L2ReadBoxedOperand) = generator.run {
+			if (answer.type.isBottom)
+			{
+				// The VM says the answer cannot actually be produced.
+				addUnreachableCode()
+				return@run
+			}
+			move(answer.semanticValue(), invoke.result.semanticValues())
+			invoke.returningFunction.elements.forEach { write ->
+				moveConstant(
+					invoke.constantFunction.constant, write.semanticValues())
+			}
+			jumpTo(invoke.ifReturn.targetBlock())
+		}
+
+		override fun generateGeneralFunctionInvocation(
+			functionToCall: L2ReadBoxedOperand,
+			tryToGenerateSpecialPrimitiveInvocation: Boolean,
+			arguments: List<L2ReadBoxedOperand>,
+			willAlwaysFailPrimitive: Boolean
+		): Unit = generator.run {
+			// The nested function's answer is the call's answer, so it must be
+			// at least as strong as what the call promised.
+			val returnType = functionToCall.type.returnType
+			val promised = invoke.result.restriction()
+			val restriction = when
+			{
+				returnType.isBottom -> promised
+				else -> promised.intersectionWithType(returnType)
+			}
+			val result = boxedWrite(
+				invoke.result.semanticValues(), restriction)
+			val returningFunction = L2WriteBoxedVectorOperand(
+				invoke.returningFunction.elements.map { write ->
+					boxedWrite(write.semanticValues(), write.restriction())
+				})
+			val ifReturn = edgeTo(invoke.ifReturn.targetBlock())
+			val ifReification = edgeTo(invoke.ifReification.targetBlock())
+			val constant: A_Function? = functionToCall.constantOrNull
+			val nested = when (constant)
+			{
+				null -> L2_INVOKE(
+					functionToCall,
+					L2ReadBoxedVectorOperand(arguments),
+					result,
+					returningFunction,
+					ifReturn,
+					ifReification)
+				else -> L2_INVOKE_CONSTANT_FUNCTION(
+					L2ConstantOperand(constant),
+					L2ReadBoxedVectorOperand(arguments),
+					result,
+					returningFunction,
+					ifReturn,
+					ifReification)
+			}
+			when
+			{
+				tryToGenerateSpecialPrimitiveInvocation ->
+					nested.run { emitTransformedInstruction() }
+				else -> +nested
+			}
+		}
+
+		override fun generateRestartContinuation(
+			restartArguments: List<L2ReadBoxedOperand>
+		): Unit = generator.generateRestartOfTopFrame(restartArguments)
+	}
+
 
 	override fun JVMTranslator.translateToJVM()
 	{

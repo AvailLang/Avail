@@ -425,7 +425,7 @@ class CallSiteHelper internal constructor(
 
 	override fun generateRestartContinuation(
 		restartArguments: List<L2ReadBoxedOperand>
-	): Unit = translator.generateRestartContinuation(restartArguments)
+	): Unit = translator.generateRestartOfTopFrame(restartArguments)
 
 	/**
 	 * For every [L2BasicBlock] in my [invocationSitesToCreate] that is

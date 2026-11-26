@@ -37,25 +37,31 @@ import avail.descriptor.representation.A_ChunkDependable
 import avail.descriptor.representation.A_Function
 import avail.descriptor.representation.A_RawFunction
 import avail.descriptor.representation.A_RawFunction.Companion.declarationNames
+import avail.descriptor.representation.A_RawFunction.Companion.numArgs
 import avail.descriptor.representation.A_RawFunction.Companion.numOuters
 import avail.descriptor.representation.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.representation.A_String.Companion.asNativeString
 import avail.descriptor.representation.A_Tuple.Companion.tupleAt
 import avail.descriptor.representation.A_Tuple.Companion.tupleSize
 import avail.descriptor.representation.A_Type
+import avail.descriptor.representation.A_Type.Companion.argsTupleType
+import avail.descriptor.representation.A_Type.Companion.typeAtIndex
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
+import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -67,11 +73,13 @@ import avail.interpreter.levelTwo.operation.L2_EXIT_FREEZE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE
 import avail.interpreter.levelTwo.operation.L2_IMPOSSIBLE_CODE_CONTINUING_FOR_NOW
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.operation.tuples.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -82,10 +90,14 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.Foldable
+import avail.interpreter.primitive.Primitive
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.interpreter.primitive.functions.P_CloseFunction
 import avail.optimizer.L2ControlFlowGraph.Zone
+import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
 import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
@@ -803,6 +815,150 @@ interface L2GeneratorInterface : L2Visualizable
 		expectedType: A_Type,
 		passedCheck: L2BasicBlock,
 		failedCheck: L2BasicBlock)
+
+	/**
+	 * Try to generate code in place of a call of a function whose
+	 * [primitive] is known, ending each path that completes the call through
+	 * the [callSite].  Answer whether anything was generated; if not, the
+	 * caller generates the invocation.
+	 *
+	 * The arguments are first narrowed to the types the raw function accepts,
+	 * since the primitive only runs if they satisfy them.  Then, in order:
+	 *  * a [Foldable] primitive whose invocation is already known reuses it,
+	 *  * a foldable primitive with constant arguments is folded,
+	 *  * the primitive generates its own code in place of the call (see
+	 *    [Primitive.tryToGenerateSpecialPrimitiveInvocation]), or
+	 *  * it is run directly where it cannot fail (see
+	 *    [Primitive.tryToGenerateGeneralPrimitiveInvocation]).
+	 *
+	 * @param functionToCall
+	 *   The register holding the function.
+	 * @param rawFunction
+	 *   The function's [A_RawFunction], whose primitive is [primitive].
+	 * @param primitive
+	 *   The [Primitive] to generate.
+	 * @param arguments
+	 *   The registers supplying the arguments.
+	 * @param callSite
+	 *   The [L2CallSite] through which each completing path ends.
+	 * @return
+	 *   Whether code was generated, leaving the generator unreachable.
+	 */
+	fun tryToGeneratePrimitiveInPlace(
+		functionToCall: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		primitive: Primitive,
+		arguments: List<L2ReadBoxedOperand>,
+		callSite: L2CallSite
+	): Boolean
+	{
+		val argsTupleType = rawFunction.functionType().argsTupleType
+		val manifest = currentManifest
+		val narrowedArguments = arguments.mapIndexed { i, argument ->
+			val semanticValue = argument.semanticValue()
+			manifest.setRestriction(
+				semanticValue,
+				argument.restriction
+					.intersection(manifest.restrictionFor(semanticValue))
+					.intersectionWithType(argsTupleType.typeAtIndex(i + 1)))
+			readBoxed(semanticValue)
+		}
+		val narrowedTypes = narrowedArguments.map { it.type }
+		if (primitive is Foldable)
+		{
+			// Reuse an equivalent invocation that is already known.
+			val invocation = primitive.semanticInvocation(
+				narrowedArguments.map(L2ReadBoxedOperand::semanticValue))
+			manifest.equivalentSemanticValue(invocation)?.let { equivalent ->
+				move(equivalent, listOf(invocation))
+				callSite.useAnswer(readBoxed(invocation))
+				return true
+			}
+			// Fold it, if every argument is a constant.
+			val constants = narrowedArguments.mapNotNull { it.constantOrNull }
+			val interpreter = Interpreter.currentOrNull()
+			if (constants.size == narrowedArguments.size
+				&& interpreter !== null)
+			{
+				primitive.foldedResultOrNull(interpreter, constants)?.let {
+					callSite.useAnswer(boxedConstant(it))
+					return true
+				}
+			}
+		}
+		val generated = primitive.run {
+			tryToGenerateSpecialPrimitiveInvocation(
+				functionToCall,
+				rawFunction,
+				narrowedArguments,
+				narrowedTypes,
+				callSite)
+			|| tryToGenerateGeneralPrimitiveInvocation(
+				rawFunction, narrowedArguments, narrowedTypes, callSite)
+		}
+		// A primitive that generated code must have ended every path through
+		// the call site.
+		assert(!generated || !currentlyReachable())
+		return generated
+	}
+
+	/**
+	 * Generate a restart of the [topFrame] with the given arguments: strip the
+	 * manifest down to the arguments and the frame's function, then jump back
+	 * to the [RESTART_LOOP_HEAD], where only the argument slots after the
+	 * first instruction and the function are live.
+	 *
+	 * @param restartArguments
+	 *   The [L2ReadBoxedOperand]s providing values with which to restart the
+	 *   frame.
+	 */
+	fun generateRestartOfTopFrame(
+		restartArguments: List<L2ReadBoxedOperand>)
+	{
+		val code = topFrame.code
+		val indices = 0 ..< code.numArgs()
+		val restrictions = restartArguments.map { it.restriction }
+		val temps = restartArguments.indices.map { i ->
+			newTemp("arg #${i+1} for restart")
+		}
+		val tempWrites = indices.map { i ->
+			boxedWrite(temps[i], restrictions[i])
+		}
+		// A fresh write of the function, which passes through both strips
+		// unchanged, since a restart keeps it.
+		val function = topFrame.function()
+		val functionWrite = {
+			boxedWrite(function, restrictionForType(code.functionType()))
+		}
+		// For safety, first copy the arguments into temps.
+		+L2_STRIP_MANIFEST(
+			L2ReadBoxedVectorOperand(restartArguments + readBoxed(function)),
+			L2WriteBoxedVectorOperand(tempWrites + functionWrite()))
+		// Now copy from the temps into the arguments.
+		val names = code.declarationNames
+		val finalSlots = indices.map { i ->
+			topFrame.semanticSlot(
+				i + 1, 1, names.tupleAt(i + 1).asNativeString())
+		}
+		val finalWrites = indices.map { i ->
+			L2WriteBoxedOperand(setOf(finalSlots[i]), restrictions[i])
+		}
+		+L2_STRIP_MANIFEST(
+			L2ReadBoxedVectorOperand(
+				tempWrites.map(::readBoxed) + readBoxed(function)),
+			L2WriteBoxedVectorOperand(finalWrites + functionWrite()))
+		// Jump back to the RESTART_LOOP_HEAD, where only the argument slots
+		// and the function, and their registers, will be live and added to
+		// the phis.
+		+L2_JUMP_BACK(
+			backEdgeTo(
+				specialBlocks[RESTART_LOOP_HEAD]!!,
+				// Registers will be (re)generated from finalSlots reads.
+				emptySet(),
+				(finalSlots + function).toSet()),
+			L2ReadBoxedVectorOperand(
+				(finalSlots + function).map(::readBoxed)))
+	}
 
 	/**
 	 * Given a register that holds the function to invoke, answer either the
